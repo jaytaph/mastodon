@@ -4,17 +4,31 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.0.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "symfony/console": "6.1.*",
-        "symfony/dotenv": "6.1.*",
+        "ext-openssl": "*",
+        "guzzlehttp/guzzle": "^7.5",
+        "symfony/console": "6.0.*",
+        "symfony/dotenv": "6.0.*",
         "symfony/flex": "^2",
-        "symfony/framework-bundle": "6.1.*",
-        "symfony/runtime": "6.1.*",
-        "symfony/yaml": "6.1.*"
+        "symfony/framework-bundle": "6.0.*",
+        "symfony/runtime": "6.0.*",
+        "symfony/twig-bundle": "6.0.*",
+        "symfony/yaml": "6.0.*",
+        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/twig": "^2.12|^3.0"
     },
     "require-dev": {
+        "deployer/deployer": "^7.0",
+        "phpunit/phpunit": "^9.5",
+        "symfony/browser-kit": "6.0.*",
+        "symfony/css-selector": "6.0.*",
+        "symfony/debug-bundle": "6.0.*",
+        "symfony/maker-bundle": "^1.0",
+        "symfony/phpunit-bridge": "^6.0",
+        "symfony/stopwatch": "6.0.*",
+        "symfony/web-profiler-bundle": "6.0.*"
     },
     "config": {
         "allow-plugins": {
@@ -25,6 +39,9 @@
         "optimize-autoloader": true,
         "preferred-install": {
             "*": "dist"
+        },
+        "platform": {
+            "php": "8.0.2"
         },
         "sort-packages": true
     },
@@ -44,8 +61,7 @@
         "symfony/polyfill-php72": "*",
         "symfony/polyfill-php73": "*",
         "symfony/polyfill-php74": "*",
-        "symfony/polyfill-php80": "*",
-        "symfony/polyfill-php81": "*"
+        "symfony/polyfill-php80": "*"
     },
     "scripts": {
         "auto-scripts": {
@@ -65,7 +81,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "6.1.*"
+            "require": "6.0.*"
         }
     }
 }
