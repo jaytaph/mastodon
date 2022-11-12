@@ -41,7 +41,7 @@ class DefaultController extends AbstractController
             'publicKey' => [
                 'id' => 'https://dhpt.nl/users/jaytaph#main-key',
                 'owner' => 'https://dhpt.nl/users/jaytaph',
-                'publicKeyPem' => "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLF7UQZ3J/KuZ/PD20ae\n1exuuO9hXSOdJrIzQVQRcsEpjAO+BLQIAHYAgmrajDvpkkpIFywZlUiyIqjk5fCx\npnJ8nIwrPqEz1gloF743BO9gw+fZOQazPv5Kw6QuvyzojxC40LdcL5tqkB8A81GL\nSmWHGEd9tst+f3FC3IlUADjcJb5HVTMO0NraxC4bTBn0hv0Uw+bt61xsFgdSAXQ3\n8TURwgLnWc7ijtsKSLjUIWg6WwnVqjqXycdwaBw7Yg1V00hBF7uXWyLlZoeltKwJ\nPc8WNTP4fM1/iBvPzP9dNwJTuEKomvZziV4d0I+dAwzMe4QyZP4sBtsm8HDQ0YOp\nmwIDAQAB\n-----END PUBLIC KEY-----"
+                'publicKeyPem' => "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLF7UQZ3J/KuZ/PD20ae\n1exuuO9hXSOdJrIzQVQRcsEpjAO+BLQIAHYAgmrajDvpkkpIFywZlUiyIqjk5fCx\npnJ8nIwrPqEz1gloF743BO9gw+fZOQazPv5Kw6QuvyzojxC40LdcL5tqkB8A81GL\nSmWHGEd9tst+f3FC3IlUADjcJb5HVTMO0NraxC4bTBn0hv0Uw+bt61xsFgdSAXQ3\n8TURwgLnWc7ijtsKSLjUIWg6WwnVqjqXycdwaBw7Yg1V00hBF7uXWyLlZoeltKwJ\nPc8WNTP4fM1/iBvPzP9dNwJTuEKomvZziV4d0I+dAwzMe4QyZP4sBtsm8HDQ0YOp\nmwIDAQAB\n-----END PUBLIC KEY-----\n"
             ],
 #            'followers' => 'https://dhpt.nl/users/jaytaph/followers',
 #            'following' => 'https://dhpt.nl/users/jaytaph/following',

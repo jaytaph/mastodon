@@ -11,22 +11,22 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:toot',
+    name: 'app:follow',
     description: 'Add a short description for your command',
 )]
-class TootCommand extends Command
+class FollowCommand extends Command
 {
     protected function configure(): void
     {
         $this
-            ->addArgument('msg', InputArgument::OPTIONAL, 'Argument description')
+            ->addArgument('url', InputArgument::REQUIRED, 'User url to follow')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $msg = $input->getArgument('msg');
+        $url = $input->getArgument('url');
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
@@ -36,6 +36,7 @@ class TootCommand extends Command
 
 //        $receiverUrl = "https://toet.dnzm.nl/users/max";
         $receiverUrl = "https://mastodon.nl/users/jaytest";
+        $receiverUrl = $url;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
 
@@ -82,21 +83,6 @@ class TootCommand extends Command
         }
 
         $io->note($result->getBody());
-
-//        $data = [
-//            '@context' => 'https://www.w3.org/ns/activitystreams',
-//            "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//            "type" => "Create",
-//            "actor" => "https://dhpt.nl/users/jaytaph",
-//            "object" => [
-//                "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//                "type" => "Note",
-//                "published" => (new \DateTimeImmutable())->format(\DateTime::ATOM),
-//                "attributedTo" => "https://dhpt.nl/users/jaytaph",
-//                "content" => $arg1,
-//                "to" => "https://www.w3.org/ns/activitystreams#Public",
-//            ]
-//        ];
 
         $io->success('All done');
         return Command::SUCCESS;
