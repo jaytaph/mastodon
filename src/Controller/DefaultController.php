@@ -21,7 +21,7 @@ class DefaultController extends AbstractController
     #[Route('/users/{user}/inbox', name: 'app_users_inbox')]
     public function inbox(string $user, Request $request): Response
     {
-        file_put_contents("../var/uploads/{$user}-inbox.txt", json_encode($request->getContent(), true)."\n", FILE_APPEND);
+        file_put_contents("../var/uploads/{$user}-inbox.txt", $request->getCOntent()."\n", FILE_APPEND);
 
         return new Response("donkey");
     }

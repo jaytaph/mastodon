@@ -12,22 +12,24 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
-    name: 'app:toot',
+    name: 'app:follow:accept',
     description: 'Add a short description for your command',
 )]
-class TootCommand extends Command
+class AcceptFollowCommand extends Command
 {
     protected function configure(): void
     {
         $this
-            ->addArgument('msg', InputArgument::OPTIONAL, 'Argument description')
+            ->addArgument('url', InputArgument::REQUIRED, 'User url to accept the follow')
+            ->addArgument('id', InputArgument::REQUIRED, 'ID to accept the follow')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $msg = $input->getArgument('msg');
+        $url = $input->getArgument('url');
+        $id = $input->getArgument('id');
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
@@ -35,28 +37,28 @@ class TootCommand extends Command
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
         $senderUrl = "https://dhpt.nl/users/jaytaph";
 
-//        $receiverUrl = "https://toet.dnzm.nl/users/max";
-        $receiverUrl = "https://mastodon.nl/users/jaytest";
+        $receiverUrl = $url;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
 
         $obj = [
-            'type' => 'Note',
-            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
-            'attributedTo' => $senderUrl,
-            'to' => $receiverUrl,
-            'content' => $msg,
+            'id' => $id,
+            'type' => 'Follow',
+            'actor' => $receiverUrl,
+            'object' => $senderUrl,
         ];
-        
+
         // Set data and create signature for the message body
         $data = [
-            '@context' => "https://www.w3.org/ns/activitystreams",
-            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
-            'type' => "Create",
-            'actor' => $senderUrl,
-            'object' => $obj,
+            "@context" => "https://www.w3.org/ns/activitystreams",
+            "id" => "https://dhpt.nl/users/jaytaph/statuses/" . Uuid::v4(),
+            "type" =>  "Accept",
+            "actor" => $senderUrl,
+            "object" => $obj,
         ];
         $msgDigest = "SHA-256=" . base64_encode(hash("sha256", json_encode($data), true));
+
+        dump($data);
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): post {$receiverPath}/inbox\nhost: {$receiverHost}\ndate: {$date}\ndigest: {$msgDigest}";
@@ -80,7 +82,7 @@ class TootCommand extends Command
         try {
             $client = new Client();
             $result = $client->post($receiverUrl."/inbox", [
-                'debug' => true,
+//                'debug' => true,
                 'headers' => $headers,
                 'json' => $data,
                 'http_errors' => false,
@@ -91,21 +93,6 @@ class TootCommand extends Command
         }
 
         $io->note($result->getBody());
-
-//        $data = [
-//            '@context' => 'https://www.w3.org/ns/activitystreams',
-//            "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//            "type" => "Create",
-//            "actor" => "https://dhpt.nl/users/jaytaph",
-//            "object" => [
-//                "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//                "type" => "Note",
-//                "published" => (new \DateTimeImmutable())->format(\DateTime::ATOM),
-//                "attributedTo" => "https://dhpt.nl/users/jaytaph",
-//                "content" => $arg1,
-//                "to" => "https://www.w3.org/ns/activitystreams#Public",
-//            ]
-//        ];
 
         $io->success('All done');
         return Command::SUCCESS;
