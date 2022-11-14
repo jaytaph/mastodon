@@ -56,13 +56,19 @@ class ParseInboxCommand extends Command
 
         $filter = $input->getOption('type');
 
+        $i = 0;
         $inbox = file("jaytaph-inbox.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
-            $line = substr(stripslashes($line), 1, -1);
+            if ($line[0] == '"') {
+                $line = substr(stripslashes($line), 1, -1);
+            }
             $message = json_decode($line, true);
+            $i++;
             if (!$message) {
+                print "Error reading line $i\n";
                 continue;
             }
+
 
             if (! $this->matchesFilter($filter ?? "", $message['type'])) {
                 continue;

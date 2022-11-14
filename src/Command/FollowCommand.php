@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
     name: 'app:follow',
@@ -35,7 +36,6 @@ class FollowCommand extends Command
         $senderUrl = "https://dhpt.nl/users/jaytaph";
 
 //        $receiverUrl = "https://toet.dnzm.nl/users/max";
-        $receiverUrl = "https://mastodon.nl/users/jaytest";
         $receiverUrl = $url;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
@@ -43,7 +43,7 @@ class FollowCommand extends Command
         // Set data and create signature for the message body
         $data = [
             "@context" => "https://www.w3.org/ns/activitystreams",
-            "id" => "https://dhpt.nl/users/jaytaph/statuses/2",
+            "id" => "https://dhpt.nl/users/jaytaph/" . Uuid::v4(),
             "type" => "Follow",
             "actor" => $senderUrl,
             "object" => $receiverUrl,

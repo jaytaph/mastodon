@@ -35,26 +35,42 @@ class TootCommand extends Command
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
         $senderUrl = "https://dhpt.nl/users/jaytaph";
 
-//        $receiverUrl = "https://toet.dnzm.nl/users/max";
-        $receiverUrl = "https://mastodon.nl/users/jaytest";
+        $receiverUrl = "https://toet.dnzm.nl/users/max";
+//        $receiverUrl = "https://phpc.social/users/Skoop";
+//        $receiverUrl = "https://mastodon.nl/users/jaytest";
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
 
         $obj = [
+            'attachment' => [],
             'type' => 'Note',
-            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
+            'summary' => null,
+            'inReplyTo' => null,
+            'published' => $dt->format('Y-m-d\TH:i:s\Z'),
             'attributedTo' => $senderUrl,
-            'to' => $receiverUrl,
-            'content' => $msg,
+            'to' => [
+                $senderUrl.'/followers',
+                $receiverUrl,
+            ],
+            'cc' => [],
+            'sensitive' => false,
+            'content' => '<p>' . $msg . '</p>',
+            'tag' => [],
+            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
         ];
         
         // Set data and create signature for the message body
         $data = [
             '@context' => "https://www.w3.org/ns/activitystreams",
-            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
-            'type' => "Create",
             'actor' => $senderUrl,
+            'cc' => [
+                $receiverUrl,
+            ],
+            'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
             'object' => $obj,
+            'published' => $dt->format('Y-m-d\TH:i:s\Z'),
+            'to' => 'https://www.w3.org/ns/activitystreams#Public',
+            'type' => 'Create',
         ];
         $msgDigest = "SHA-256=" . base64_encode(hash("sha256", json_encode($data), true));
 
@@ -90,22 +106,8 @@ class TootCommand extends Command
             return Command::FAILURE;
         }
 
+        $io->note($result->getStatusCode());
         $io->note($result->getBody());
-
-//        $data = [
-//            '@context' => 'https://www.w3.org/ns/activitystreams',
-//            "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//            "type" => "Create",
-//            "actor" => "https://dhpt.nl/users/jaytaph",
-//            "object" => [
-//                "id" => "https://dhpt.nl/users/jaytaph/statuses/1",
-//                "type" => "Note",
-//                "published" => (new \DateTimeImmutable())->format(\DateTime::ATOM),
-//                "attributedTo" => "https://dhpt.nl/users/jaytaph",
-//                "content" => $arg1,
-//                "to" => "https://www.w3.org/ns/activitystreams#Public",
-//            ]
-//        ];
 
         $io->success('All done');
         return Command::SUCCESS;
