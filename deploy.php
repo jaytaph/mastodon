@@ -31,5 +31,11 @@ host('dhpt.nl')
     ->set('deploy_path', '/home/dhpt/domains/dhpt.nl/{{application}}')
 ;
 
+before('deploy:symlink', 'db:migrate');
+
 after('deploy:failed', 'deploy:unlock');
 
+
+task('db:migrate', function () {
+    run('cd {{release_path}} && php bin/console d:m:m');
+});

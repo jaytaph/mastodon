@@ -1,5 +1,0 @@
-config:
-  user: "jaytaph@dhpt.nl"
-  key:
-    public: "./public.pem"
-    private: "./private.pem"
