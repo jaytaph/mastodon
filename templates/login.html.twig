@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+  <div class="container">
+
+    <div class="row mt-5">
+      <div class="col-md-6 offset-md-3">
+
+        <div class="card">
+          <div class="card-body m-4">
+
+            <h1>DonkeyHead Mastodon Login</h1>
+
+
+    <form action="{{ path('app_login') }}" method="post">
+
+      <div class="form-outline mb-4">
+      {% if error %}
+          <div class="text-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+      {% endif %}
+      </div>
+
+      <div class="form-outline mb-4">
+        <input type="text" id="username" name="_username" class="form-control" value="{{ last_username }}"/>
+        <label class="form-label" for="account">Account name</label>
+      </div>
+
+      <!-- Password input -->
+      <div class="form-outline mb-4">
+        <input type="password" id="password" name="_password" class="form-control" />
+        <label class="form-label" for="password">Password</label>
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+
+    </form>
+          </div>
+        </div>
+
+      </div>
+  </div>
+{% endblock %}

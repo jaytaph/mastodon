@@ -4,7 +4,12 @@ namespace App\Controller;
 
 use App\Config;
 use App\Service\AccountService;
-use Ramsey\Uuid\UuidInterface;
+use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
+use League\Bundle\OAuth2ServerBundle\Model\Client;
+use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
+use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
+use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,17 +21,19 @@ use Symfony\Component\Uid\Uuid;
 class ApiController extends AbstractController
 {
     protected AccountService $accountService;
+    protected LoggerInterface $logger;
 
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $accountService, LoggerInterface $logger)
     {
         $this->accountService = $accountService;
+        $this->logger = $logger;
     }
 
-    // @TODO: THis does not have any security checks yet
     #[Route('/api/v1/accounts/verify_credentials', name: 'api_verify_credentials')]
     public function verifyCredentials(Request $request)
     {
-        $account = $this->accountService->getAccount(Config::ADMIN_USER);
+        $user = $this->getUser();
+        $account = $this->accountService->getAccount($user->getUserIdentifier());
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -220,13 +227,43 @@ class ApiController extends AbstractController
 
 
     #[Route('/api/v1/apps', name: 'api_apps', methods: ['POST'])]
-    public function apps(): Response
+    public function apps(ClientManagerInterface $clientManager, Request $request): Response
     {
 //        return new NotFoundHttpException();
 
+        $id = bin2hex(random_bytes(16));
+        $secret = 'dhpt_secret_' . bin2hex(random_bytes(32));
+
+        $client = new Client($request->get('client_name'), $id, $secret);
+        $client->setActive(true);
+
+        $scopes = explode(" ", $request->get('scopes'));
+        $grants = ['authorization_code', 'refresh_token'];
+
+        $client
+            ->setRedirectUris(...array_map(static function (string $redirectUri): RedirectUri {
+                try {
+                    return new RedirectUri($redirectUri);
+                } catch (\Throwable) {
+                    // @TODO: Handle invalid redirect URI
+                    return new RedirectUri("https://localhost");
+                }
+            }, explode(' ', $request->get('redirect_uris'))));
+        $client
+            ->setGrants(...array_map(static function (string $grant): Grant {
+                return new Grant($grant);
+            }, $grants));
+        $client
+            ->setScopes(...array_map(static function (string $scope): Scope {
+                return new Scope($scope);
+            }, $scopes))
+        ;
+
+        $clientManager->save($client);
+
         $data = [
-            'client_id' => 'DHPTID_' . strtoupper(bin2hex(random_bytes(32))),
-            'client_secret' => 'DHPTSEC_' . strtoupper(bin2hex(random_bytes(32))),
+            'client_id' => $client->getIdentifier(),
+            'client_secret' => $client->getSecret(),
         ];
 
         return new JsonResponse($data);

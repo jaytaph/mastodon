@@ -1,0 +1,18 @@
+league_oauth2_server:
+    authorization_server:
+        private_key: '%env(resolve:OAUTH_PRIVATE_KEY)%'
+        private_key_passphrase: '%env(resolve:OAUTH_PASSPHRASE)%'
+        encryption_key: '%env(resolve:OAUTH_ENCRYPTION_KEY)%'
+    resource_server:
+        public_key: '%env(resolve:OAUTH_PUBLIC_KEY)%'
+    scopes:
+        available: ['read', 'write', 'follow']
+        default: ['read']
+    persistence:
+        doctrine: null
+    role_prefix: ROLE_OAUTH2_
+
+when@test:
+    league_oauth2_server:
+        persistence:
+            in_memory: null

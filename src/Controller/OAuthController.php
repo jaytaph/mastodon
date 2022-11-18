@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class OAuthController extends AbstractController
 {
 
-    #[Route('/oauth/authorize', name: 'oauth_authorize', methods: ['GET'])]
+    #[Route('/xxx/oauth/authorize', name: 'oauth_authorize', methods: ['GET'])]
     public function authorize(Request $request): Response
     {
         // Just approve the thing....
@@ -22,7 +22,7 @@ class OAuthController extends AbstractController
         return new RedirectResponse($url);
     }
 
-    #[Route('/oauth/token', name: 'oauth_token', methods: ['POST'])]
+    #[Route('/xxx/oauth/token', name: 'oauth_token', methods: ['POST'])]
     public function token(Request $request): Response
     {
         $data = [

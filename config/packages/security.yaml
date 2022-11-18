@@ -1,37 +1,49 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    enable_authenticator_manager: true
+
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+
     providers:
-        users_in_memory: { memory: null }
+        users_in_memory:
+            memory:
+                users:
+                    jaytaph: { password: '$2y$13$T9iC44oygjqlLI4jEOXdJ.OD2S186Ewlny3I6vq0eXYg3srYmUsY2', roles: ['ROLE_USER'] }
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        api:
+            pattern: ^/api
+            security: true
+            context: api
+            stateless: true
+            provider: users_in_memory
+            oauth2: true
+
         main:
+            pattern: ^/
+            security: true
+            context: api
             lazy: true
             provider: users_in_memory
+            form_login:
+                check_path: app_login
+                login_path: app_login
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/oauth/authorize, roles: IS_AUTHENTICATED_REMEMBERED }
+
+        - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/accounts/verify_credentials, roles: ROLE_OAUTH2_READ }
+        - { path: ^/api, roles: ROLE_USER }
+
 
 when@test:
     security:
         password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
                 cost: 4 # Lowest possible value for bcrypt

@@ -20,5 +20,9 @@
 ###< symfony/phpunit-bridge ###
 
 
-private.pem
-public.pem
+config/packages/jwt/private.pem
+config/packages/jwt/public.pem
+
+###> league/oauth2-server-bundle ###
+/config/jwt/*.pem
+###< league/oauth2-server-bundle ###
