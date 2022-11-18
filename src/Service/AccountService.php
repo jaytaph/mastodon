@@ -4,9 +4,9 @@ namespace App\Service;
 
 use App\Entity\Account;
 use App\Entity\Follower;
-use App\Entity\Followers;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Symfony\Component\Uid\Uuid;
 
 class AccountService
 {
@@ -20,6 +20,16 @@ class AccountService
     function getAccount(string $acct): Account
     {
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        if (!$account) {
+            throw new EntityNotFoundException();
+        }
+
+        return $account;
+    }
+
+    function getAccountById(Uuid $id): Account
+    {
+        $account = $this->doctrine->getRepository(Account::class)->find($id);
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -41,7 +51,7 @@ class AccountService
     public function toJson(Account $account): array
     {
         return [
-            'id' => $account->getId(),
+            'id' => $account->getId()->toBase58(),
             'username' => $account->getUsername(),
             'acct' => $account->getAcct(),
             'display_name' => $account->getDisplayName(),

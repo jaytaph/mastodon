@@ -5,13 +5,16 @@ namespace App\Entity;
 use App\Repository\AccountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: AccountRepository::class)]
 class Account
 {
     #[ORM\Id]
-    #[ORM\Column]
-    private string $id = "";
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: "CUSTOM")]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private Uuid $id;
 
     #[ORM\Column(length: 255)]
     private string $username = "";
@@ -61,14 +64,15 @@ class Account
     #[ORM\Column(type: Types::JSON)]
     private array $fields;
 
-    public function getId(): string
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $publicKeyPem = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $privateKeyPem = null;
+
+    public function getId(): Uuid
     {
         return $this->id;
-    }
-
-    public function setId(string $id): void
-    {
-        $this->id = $id;
     }
 
     public function getUsername(): string
@@ -259,6 +263,30 @@ class Account
     public function setLastStatusAt(\DateTimeImmutable $last_status_at): self
     {
         $this->last_status_at = $last_status_at;
+
+        return $this;
+    }
+
+    public function getPublicKeyPem(): ?string
+    {
+        return $this->publicKeyPem;
+    }
+
+    public function setPublicKeyPem(?string $publicKeyPem): self
+    {
+        $this->publicKeyPem = $publicKeyPem;
+
+        return $this;
+    }
+
+    public function getPrivateKeyPem(): ?string
+    {
+        return $this->privateKeyPem;
+    }
+
+    public function setPrivateKeyPem(?string $privateKeyPem): self
+    {
+        $this->privateKeyPem = $privateKeyPem;
 
         return $this;
     }

@@ -5,17 +5,13 @@ namespace App\Command;
 use App\Entity\Follower;
 use App\Service\AccountService;
 use App\Service\WebfingerService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Client;
-use phpDocumentor\Reflection\DocBlock;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
     name: 'app:user:follow',

@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Config;
+use App\Service\AccountService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,10 +14,20 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends AbstractController
 {
+    protected AccountService $accountService;
+
+    /**
+     * @param AccountService $accountService
+     */
+    public function __construct(AccountService $accountService)
+    {
+        $this->accountService = $accountService;
+    }
+
     #[Route('/', name: 'app_index')]
     public function index(): Response
     {
-        return new Response("donkey");
+        return new Response("DonkeyHeads Mastodon Server - Things will break here");
     }
 
     #[Route('/users/{user}/inbox', name: 'app_users_inbox')]
@@ -26,25 +38,36 @@ class DefaultController extends AbstractController
         return new Response("donkey");
     }
 
-    #[Route('/users/{user}', name: 'app_users_jaytaph')]
-    public function user(string $user): Response
+    #[Route('/users/{acct}', name: 'app_users_show')]
+    public function user(string $acct): Response
     {
+        // Only local accounts are allowed
+        if (str_contains($acct, '@')) {
+            throw new NotFoundHttpException();
+        }
+        $account = $this->accountService->getAccount($acct);
+        if (!$account) {
+            throw new NotFoundHttpException();
+        }
+
+        $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
+
         $data = [
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => 'https://dhpt.nl/users/jaytaph',
+            'id' => $accountUrl,
             'type' => 'Person',
-            'preferredUsername' => 'jaytaph',
-            'name' => 'Joshua Thijssen',
-            'summary' => 'I am a software developer and breaker of things that are working.',
-            'inbox' => 'https://dhpt.nl/users/jaytaph/inbox',
-            'outbox' => 'https://dhpt.nl/users/jaytaph/outbox',
+            'preferredUsername' => $account->getDisplayName(),
+            'name' => $account->getUsername(),
+            'summary' => $account->getNote(),
+            'inbox' => $accountUrl . '/inbox',
+            'outbox' => $accountUrl . '/outbox',
             'publicKey' => [
-                'id' => 'https://dhpt.nl/users/jaytaph#main-key',
-                'owner' => 'https://dhpt.nl/users/jaytaph',
-                'publicKeyPem' => "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLF7UQZ3J/KuZ/PD20ae\n1exuuO9hXSOdJrIzQVQRcsEpjAO+BLQIAHYAgmrajDvpkkpIFywZlUiyIqjk5fCx\npnJ8nIwrPqEz1gloF743BO9gw+fZOQazPv5Kw6QuvyzojxC40LdcL5tqkB8A81GL\nSmWHGEd9tst+f3FC3IlUADjcJb5HVTMO0NraxC4bTBn0hv0Uw+bt61xsFgdSAXQ3\n8TURwgLnWc7ijtsKSLjUIWg6WwnVqjqXycdwaBw7Yg1V00hBF7uXWyLlZoeltKwJ\nPc8WNTP4fM1/iBvPzP9dNwJTuEKomvZziV4d0I+dAwzMe4QyZP4sBtsm8HDQ0YOp\nmwIDAQAB\n-----END PUBLIC KEY-----\n"
+                'id' => $accountUrl . '#main-key',
+                'owner' => $accountUrl,
+                'publicKeyPem' => $account->getPublicKeyPem(),
             ],
-#            'followers' => 'https://dhpt.nl/users/jaytaph/followers',
-#            'following' => 'https://dhpt.nl/users/jaytaph/following',
+            'followers' => $accountUrl . '/followers',
+            'following' => $accountUrl . '/following',
         ];
 
         $response = new JsonResponse($data);
@@ -61,30 +84,40 @@ class DefaultController extends AbstractController
             throw new BadRequestHttpException('Invalid resource');
         }
         $resource = str_replace('acct:', '', $resource);
-        if ($resource != "jaytaph@dhpt.nl") {
-            throw new NotFoundHttpException('User not found');
+
+        if (!str_contains($resource, '@')) {
+            throw new BadRequestHttpException('Invalid resource');
+        }
+        [$username, $domain] = explode('@', $resource);
+        if ($domain != Config::SITE_DOMAIN) {
+            throw new BadRequestHttpException('Invalid resource');
+        }
+
+        $account = $this->accountService->getAccount($username);
+        if (!$account) {
+            throw new NotFoundHttpException();
         }
 
         $data = [
-            'subject' => 'acct:jaytaph@dhpt.nl',
+            'subject' => 'acct:' . $account->getUsername() . '@' . Config::SITE_DOMAIN,
             "aliases" => [
-              "https://dhpt.nl/@jaytaph",
-              "https://dhpt.nl/users/jaytaph"
+                Config::SITE_URL . '/@' . $account->getUsername(),
+                Config::SITE_URL . "/users/" . $account->getUsername(),
             ],
             'links' => [
                 [
                     "rel" => "http://webfinger.net/rel/profile-page",
                     "type" =>"text/html",
-                    "href" => "https://dhpt.nl/@jaytaph"
+                    "href" => Config::SITE_URL . '/@' . $account->getUsername()
                 ],
                 [
                     'rel' => 'self',
                     'type' => 'application/activity+json',
-                    'href' => 'https://dhpt.nl/users/jaytaph',
+                    'href' => Config::SITE_URL . '/users/' . $account->getUsername(),
                 ],
                 [
                     "rel" => "http://ostatus.org/schema/1.0/subscribe",
-                    "template" => "https://dhpt.nl/users/jaytaph/follow?uri={uri}"
+                    "template" => Config::SITE_URL . '/@' . $account->getUsername() . "/follow?uri={uri}"
                 ]
             ],
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -16,6 +17,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ParseInboxCommand extends Command
 {
+
+    protected SignatureService $signatureService;
+
+    public function __construct(SignatureService $signatureService)
+    {
+        parent::__construct();
+        $this->signatureService = $signatureService;
+    }
 
     protected function configure(): void
     {
@@ -71,6 +80,11 @@ class ParseInboxCommand extends Command
 
             if (! $this->matchesFilter($filter ?? "", $message['type'])) {
                 continue;
+            }
+
+            if (!$this->signatureService->validateMessage($message)) {
+                print "Invalid signature on line $i\n";
+                exit(1);
             }
 
             if ($mode == "count") {

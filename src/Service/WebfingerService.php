@@ -41,7 +41,7 @@ class WebfingerService
         return null;
     }
 
-    protected function fetchAccountFromWebfinger(string $href): ?Account
+    public function fetchAccount(string $href): ?Account
     {
         $response = $this->authClientService->fetch(Config::LOGGEDIN_USER_URL, $href);
         $data = json_decode($response->getBody()->getContents(), true);
@@ -50,12 +50,15 @@ class WebfingerService
             return null;
         }
 
-        dump($data);
+        $acct = $data['preferredUsername'] . "@" . parse_url($data['id'], PHP_URL_HOST);
+        if (!$this->accountService->hasAccount($acct)) {
+            $account = new Account();
+        } else {
+            $account = $this->accountService->getAccount($acct);
+        }
 
-        $account = new Account();
-        $account->setId($data['id']);
         $account->setUsername($data['preferredUsername']);
-        $account->setAcct($data['preferredUsername'] . "@" . parse_url($data['id'], PHP_URL_HOST));
+        $account->setAcct($acct);
         $account->setAvatar($data['icon']['url'] ?? '');
         $account->setHeader($data['image']['url'] ?? '');
         $account->setDisplayName($data['name'] ?? $data['preferredUsername']);
@@ -67,6 +70,7 @@ class WebfingerService
         $account->setSource([]);
         $account->setEmojis([]);
         $account->setNote($data['summary']);
+        $account->setPublicKeyPem($data['publicKey']['publicKeyPem']);
 
         $account->setCreatedAt(new \DateTimeImmutable($data['published'] ?? "now", new \DateTimeZone('GMT')));
         $account->setLastStatusAt(new \DateTimeImmutable("now", new \DateTimeZone('GMT')));
