@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
-use App\Entity\Account;
 use App\Service\AccountService;
 use App\Service\WebfingerService;
 use Symfony\Component\Console\Attribute\AsCommand;

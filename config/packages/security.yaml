@@ -9,6 +9,7 @@ security:
             memory:
                 users:
                     jaytaph: { password: '$2y$13$T9iC44oygjqlLI4jEOXdJ.OD2S186Ewlny3I6vq0eXYg3srYmUsY2', roles: ['ROLE_USER'] }
+                    cybolic: { password: '$2y$13$qv9a8KD1EIQ5MKwBHWmDh.epG.FZV0R9SzCCynuEyt7akSKsCdMni', roles: ['ROLE_USER'] }
 
     firewalls:
         dev:
@@ -34,6 +35,7 @@ security:
 
     access_control:
         - { path: ^/oauth/authorize, roles: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/oauth/token, roles: PUBLIC_ACCESS }
 
         - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }

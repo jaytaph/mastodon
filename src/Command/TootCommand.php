@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
+use App\ActivityPub;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -46,10 +49,10 @@ class TootCommand extends Command
             'type' => 'Note',
             'summary' => null,
             'inReplyTo' => null,
-            'published' => $dt->format('Y-m-d\TH:i:s\Z'),
+            'published' => $dt->format(ActivityPub::DATETIME_FORMAT),
             'attributedTo' => $senderUrl,
             'to' => [
-                $senderUrl.'/followers',
+                $senderUrl . '/followers',
                 $receiverUrl,
             ],
             'cc' => [],
@@ -58,7 +61,7 @@ class TootCommand extends Command
             'tag' => [],
             'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
         ];
-        
+
         // Set data and create signature for the message body
         $data = [
             '@context' => "https://www.w3.org/ns/activitystreams",
@@ -68,7 +71,7 @@ class TootCommand extends Command
             ],
             'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
             'object' => $obj,
-            'published' => $dt->format('Y-m-d\TH:i:s\Z'),
+            'published' => $dt->format(ActivityPub::DATETIME_FORMAT),
             'to' => 'https://www.w3.org/ns/activitystreams#Public',
             'type' => 'Create',
         ];
@@ -95,7 +98,7 @@ class TootCommand extends Command
         // Send data to the receiver
         try {
             $client = new Client();
-            $result = $client->post($receiverUrl."/inbox", [
+            $result = $client->post($receiverUrl . "/inbox", [
                 'debug' => true,
                 'headers' => $headers,
                 'json' => $data,

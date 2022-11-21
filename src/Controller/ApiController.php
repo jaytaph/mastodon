@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Config;
@@ -10,6 +12,7 @@ use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
 use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 use Psr\Log\LoggerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,10 +33,11 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/accounts/verify_credentials', name: 'api_verify_credentials')]
-    public function verifyCredentials(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function verifyCredentials(): Response
     {
         $user = $this->getUser();
-        $account = $this->accountService->getAccount($user->getUserIdentifier());
+        $account = $this->accountService->findAccount($user->getUserIdentifier());
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -41,9 +45,9 @@ class ApiController extends AbstractController
         return new JsonResponse($this->accountService->toJson($account));
     }
 
-    // @TODO: THis does not have any security checks yet
     #[Route('/api/v1/lists', name: 'api_lists')]
-    public function lists(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function lists(): Response
     {
         $data = [
             [
@@ -62,7 +66,9 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/follow_requests', name: 'api_follow_requests')]
-    public function followRequests(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    #[IsGranted('ROLE_OAUTH2_FOLLOW')]
+    public function followRequests(): Response
     {
         $data = [
         ];
@@ -71,7 +77,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/filters', name: 'api_filters')]
-    public function filters(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function filters(): Response
     {
         $data = [
         ];
@@ -80,7 +87,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/custom_emojis', name: 'api_emojis')]
-    public function customEmojis(Request $request)
+    #[IsGranted('PUBLIC_ACCESS')]
+    public function customEmojis(): Response
     {
         $data = [
               [
@@ -120,7 +128,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/timelines/home', name: 'api_timeline_home')]
-    public function timelineHome(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function timelineHome(): Response
     {
         $data = [
         ];
@@ -129,7 +138,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/timelines/public', name: 'api_timeline_public')]
-    public function timelinePublic(Request $request)
+    #[IsGranted('ROLE_USER')]
+    public function timelinePublic(): Response
     {
         $data = [
         ];
@@ -138,7 +148,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/timelines/tag/{tag}', name: 'api_timeline_tag')]
-    public function timelineTag(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function timelineTag(): Response
     {
         $data = [
         ];
@@ -147,7 +158,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/markers', name: 'api_markers')]
-    public function markers(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function markers(): Response
     {
         $data = [
         ];
@@ -156,7 +168,8 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/notifications', name: 'api_notifications')]
-    public function notifications(Request $request)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function notifications(): Response
     {
         $data = [
         ];
@@ -165,10 +178,11 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/accounts/{id}', name: 'api_account')]
-    public function account(string $id)
+    #[IsGranted('PUBLIC_ACCESS')]
+    public function account(string $id): Response
     {
         $uuid = Uuid::fromString($id);
-        $account = $this->accountService->getAccountById($uuid);
+        $account = $this->accountService->findAccountById($uuid);
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -177,21 +191,33 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/accounts/{id}/statuses', name: 'api_account_statuses')]
-    public function statuses(string $id)
+    #[IsGranted('PUBLIC_ACCESS')]
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function statuses(string $id): Response
     {
+        $uuid = Uuid::fromString($id);
+        $account = $this->accountService->findAccountById($uuid);
+        if (!$account) {
+            throw new NotFoundHttpException();
+        }
+
+        // Only return public statuses when we are not logged in
+        $publicOnly = !$this->isGranted('ROLE_OAUTH2_READ');
+
         $data = [];
 
         return new JsonResponse($data);
     }
 
     #[Route('/api/v1/accounts/{acct}/following', name: 'api_account_following')]
-    public function following(string $acct)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function following(string $acct): Response
     {
         // Only local accounts are allowed
         if (str_contains($acct, '@')) {
             throw new NotFoundHttpException();
         }
-        $account = $this->accountService->getAccount($acct);
+        $account = $this->accountService->findAccount($acct);
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -205,13 +231,14 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/accounts/{acct}/followers', name: 'api_account_followers')]
-    public function followers(string $acct)
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function followers(string $acct): Response
     {
         // Only local accounts are allowed
         if (str_contains($acct, '@')) {
             throw new NotFoundHttpException();
         }
-        $account = $this->accountService->getAccount($acct);
+        $account = $this->accountService->findAccount($acct);
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -225,12 +252,10 @@ class ApiController extends AbstractController
         return new JsonResponse($ret);
     }
 
-
     #[Route('/api/v1/apps', name: 'api_apps', methods: ['POST'])]
+    #[IsGranted('PUBLIC_ACCESS')]
     public function apps(ClientManagerInterface $clientManager, Request $request): Response
     {
-//        return new NotFoundHttpException();
-
         $id = bin2hex(random_bytes(16));
         $secret = 'dhpt_secret_' . bin2hex(random_bytes(32));
 
@@ -262,6 +287,7 @@ class ApiController extends AbstractController
         $clientManager->save($client);
 
         $data = [
+            'name' => $client->getName(),
             'client_id' => $client->getIdentifier(),
             'client_secret' => $client->getSecret(),
         ];
@@ -270,30 +296,35 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/v1/instance', name: 'api_instance')]
+    #[IsGranted('PUBLIC_ACCESS')]
     public function instance(): Response
     {
+        $adminAccount = $this->accountService->findAccount(Config::ADMIN_USER);
+
         $data = [
-            'uri' => 'dhpt.nl',
+            'uri' => Config::SITE_DOMAIN,
             'title' => 'DonkeyHeads Mastodon Instance',
-            'short_description' => 'Run by DonkeyHeads',
             'description' => 'Server written in PHP, so what could possibly go wrong!??',
+            'short_description' => 'Run by DonkeyHeads',
             'email' => 'jthijssen@blafhoest.nl',
-            'version' => '0.0.1',
-//            'urls' => [
-//                'streaming_api' => 'wss://mastodon.social'
-//            ],
-            'stats' => [
-                'user_count' => 3463272,
-                'status_count' => 56236324632,
-                'domain_count' => 5235252,
-            ],
-            'thumbnail' => 'https://dhpt.nl/dh.jpg',
+            'version' => '4.0.1',
             'languages' => [
-                'en'
+                'en',
+                'nl',
             ],
             'registrations' => false,
             'approval_required' => true,
-            'contact_account' => $this->accountService->getAccount(Config::ADMIN_USER),
+            'invites_enabled' => true,
+            'urls' => [
+                'streaming_api' => 'wss://' . Config::SITE_DOMAIN . '/api/v1/streaming',
+            ],
+            'stats' => [
+                'user_count' => 2,
+                'status_count' => 1234,
+                'domain_count' => 1,
+            ],
+            'thumbnail' => 'https://dhpt.nl/dh.jpg',
+            'contact_account' => $this->accountService->toJson($adminAccount),
         ];
 
         return new JsonResponse($data);

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App;
 
-class Config {
+class Config
+{
     // The current administrator of the site.
     public const ADMIN_USER = 'jaytaph';
 

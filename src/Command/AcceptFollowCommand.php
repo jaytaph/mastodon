@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use GuzzleHttp\Client;
@@ -81,7 +83,7 @@ class AcceptFollowCommand extends Command
         // Send data to the receiver
         try {
             $client = new Client();
-            $result = $client->post($receiverUrl."/inbox", [
+            $result = $client->post($receiverUrl . "/inbox", [
 //                'debug' => true,
                 'headers' => $headers,
                 'json' => $data,

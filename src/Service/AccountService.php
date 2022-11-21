@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
+use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,9 +20,14 @@ class AccountService
         $this->doctrine = $doctrine;
     }
 
-    function getAccount(string $acct): Account
+    public function findAccount(string $acct): ?Account
     {
-        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+    }
+
+    public function getAccount(string $acct): Account
+    {
+        $account = $this->findAccount($acct);
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -27,9 +35,9 @@ class AccountService
         return $account;
     }
 
-    function getAccountById(Uuid $id): Account
+    public function getAccountById(Uuid $id): Account
     {
-        $account = $this->doctrine->getRepository(Account::class)->find($id);
+        $account = $this->findAccountById($id);
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -37,12 +45,17 @@ class AccountService
         return $account;
     }
 
-    function hasAccount(string $acct): bool
+    public function findAccountById(Uuid $id): ?Account
+    {
+        return $this->doctrine->getRepository(Account::class)->find($id);
+    }
+
+    public function hasAccount(string $acct): bool
     {
         return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]) != null;
     }
 
-    function storeAccount(Account $account): void
+    public function storeAccount(Account $account): void
     {
         $this->doctrine->persist($account);
         $this->doctrine->flush();
@@ -54,22 +67,23 @@ class AccountService
             'id' => $account->getId()->toBase58(),
             'username' => $account->getUsername(),
             'acct' => $account->getAcct(),
-            'display_name' => $account->getDisplayName(),
-            'locked' => $account->isLocked(),
-            'bot' => $account->isBot(),
-            'created_at' => $account->getCreatedAt()->format(\DateTime::RFC3339),
-            'note' => $account->getNote(),
             'url' => $account->getUrl(),
+            'display_name' => $account->getDisplayName(),
+            'note' => $account->getNote(),
             'avatar' => $account->getAvatar(),
             'avatar_static' => $account->getAvatarStatic(),
             'header' => $account->getHeader(),
             'header_static' => $account->getHeaderStatic(),
+            'locked' => $account->isLocked(),
+            'emojis' => $account->getEmojis(),
+            'discoverable' => true,
+            'created_at' => $account->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
+            'last_status_at' => $account->getLastStatusAt()->format(ActivityPub::DATETIME_FORMAT),
+            'statuses_count' => $this->statusCount($account),
             'followers_count' => $this->followersCount($account),
             'following_count' => $this->followingCount($account),
-            'statuses_count' => $this->statusCount($account),
-            'last_status_at' => $account->getLastStatusAt()->format(\DateTime::RFC3339),
-            'emojis' => $account->getEmojis(),
             'fields' => $account->getFields(),
+            'bot' => $account->isBot(),
         ];
     }
 

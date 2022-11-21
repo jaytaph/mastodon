@@ -1,0 +1,23 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-doctrine/rules.neon
+    - vendor/phpstan/phpstan-mockery/extension.neon
+
+parameters:
+    checkMissingIterableValueType: false
+    doctrine:
+        objectManagerLoader: phpstan-doctrine-orm-bootstrap.php
+    paths:
+        - src
+    level: max
+    symfony:
+        container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
+    scanDirectories:
+        - var/cache/dev/Symfony/Config
+    checkGenericClassInNonGenericObjectType: false
+
+services:
+    errorFormatter.junit:
+        class: PHPStan\Command\ErrorFormatter\JUnitErrorFormatter

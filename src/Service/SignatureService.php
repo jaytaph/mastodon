@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Service;
+declare(strict_types=1);
 
-use App\Config;
-use App\Entity\Account;
-use GuzzleHttp\Client;
+namespace App\Service;
 
 class SignatureService
 {

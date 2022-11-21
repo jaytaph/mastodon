@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-class DefaultController extends AbstractController
+class WebfingerController extends AbstractController
 {
     protected AccountService $accountService;
 
@@ -24,58 +24,6 @@ class DefaultController extends AbstractController
     public function __construct(AccountService $accountService)
     {
         $this->accountService = $accountService;
-    }
-
-    #[Route('/', name: 'app_index')]
-    public function index(): Response
-    {
-        return new Response("DonkeyHeads Mastodon Server - Things will break here");
-    }
-
-    #[Route('/users/{user}/inbox', name: 'app_users_inbox')]
-    public function inbox(string $user, Request $request): Response
-    {
-        file_put_contents("../var/uploads/{$user}-inbox.txt", $request->getCOntent() . "\n", FILE_APPEND);
-
-        return new Response("donkey");
-    }
-
-    #[Route('/users/{acct}', name: 'app_users_show')]
-    public function user(string $acct): Response
-    {
-        // Only local accounts are allowed
-        if (str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->getAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
-
-        $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
-
-        $data = [
-            '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => $accountUrl,
-            'type' => 'Person',
-            'preferredUsername' => $account->getDisplayName(),
-            'name' => $account->getUsername(),
-            'summary' => $account->getNote(),
-            'inbox' => $accountUrl . '/inbox',
-            'outbox' => $accountUrl . '/outbox',
-            'publicKey' => [
-                'id' => $accountUrl . '#main-key',
-                'owner' => $accountUrl,
-                'publicKeyPem' => $account->getPublicKeyPem(),
-            ],
-            'followers' => $accountUrl . '/followers',
-            'following' => $accountUrl . '/following',
-        ];
-
-        $response = new JsonResponse($data);
-        $response->headers->set('Content-Type', 'application/activity+json');
-
-        return $response;
     }
 
     #[Route('/.well-known/webfinger', name: 'app_webfinger')]
@@ -95,7 +43,7 @@ class DefaultController extends AbstractController
             throw new BadRequestHttpException('Invalid resource');
         }
 
-        $account = $this->accountService->getAccount($username);
+        $account = $this->accountService->findAccount($username);
         if (!$account) {
             throw new NotFoundHttpException();
         }
