@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\AccountNotFoundException;
+use App\Exception\SignatureValidationException;
 use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -78,14 +80,16 @@ class ParseInboxCommand extends Command
                 continue;
             }
 
-
             if (! $this->matchesFilter($filter ?? "", $message['type'])) {
                 continue;
             }
 
-            if (!$this->signatureService->validateMessage($message)) {
-                print "Invalid signature on line $i\n";
-                exit(1);
+            try {
+                $this->signatureService->validateMessage($message);
+                print "VALID SIGNATURE ON LINE $i\n";
+            } catch (SignatureValidationException $e) {
+                print "signature error on line $i: {$e->getMessage()}\n";
+                continue;
             }
 
             if ($mode == "count") {

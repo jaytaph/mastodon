@@ -36,7 +36,7 @@ class WebfingerService
 
         foreach ($info['links'] as $link) {
             if ($link['rel'] == 'self') {
-                return $this->fetchAccountFromWebfinger($link['href']);
+                return $this->fetchAccount($link['href']);
             }
         }
 
@@ -45,7 +45,9 @@ class WebfingerService
 
     public function fetchAccount(string $href): ?Account
     {
-        $response = $this->authClientService->fetch(Config::LOGGEDIN_USER_URL, $href);
+        // @TODO: It's not a always needed that we fetch an account as a "user".. we should be able to fetch it as a "client" as well
+//        $response = $this->authClientService->fetch($this->accountService->getLoggedInAccount(), $href);
+        $response = $this->authClientService->fetch($this->accountService->getAccount(Config::ADMIN_USER), $href);
         $data = json_decode($response->getBody()->getContents(), true);
 
         if (!$data || !isset($data['id'])) {

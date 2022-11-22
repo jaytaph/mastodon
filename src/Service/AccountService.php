@@ -9,15 +9,22 @@ use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
 
 class AccountService
 {
     protected EntityManagerInterface $doctrine;
 
-    public function __construct(EntityManagerInterface $doctrine)
+    public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage)
     {
         $this->doctrine = $doctrine;
+        $this->tokenStorage = $tokenStorage;
+    }
+
+    public function getLoggedInAccount(): Account
+    {
+        return $this->getAccount($this->tokenStorage->getToken()->getUserIdentifier());
     }
 
     public function findAccount(string $acct): ?Account

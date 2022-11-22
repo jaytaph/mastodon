@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Exception\SignatureValidationException;
+use ML\JsonLD\JsonLD;
+use ML\JsonLD\NQuads;
+use Symfony\Component\Stopwatch\Stopwatch;
+
 class SignatureService
 {
     protected AccountService $accountService;
@@ -15,42 +20,89 @@ class SignatureService
         $this->webfingerService = $webfingerService;
     }
 
+    public function hasSignature(array $message): bool
+    {
+        return isset($message['signature']);
+    }
 
     public function validateMessage(array $message): bool
     {
+        $stopwatch = new Stopwatch(true);
+        $stopwatch->start('validateMessage');
+
         if (! isset($message['signature'])) {
-            return false;
+            throw SignatureValidationException::noSignature();
         }
 
         $signature = $message['signature'];
+        $signatureValue = $signature['signatureValue'];
+        unset($message['signature']);
+
         if ($signature['type'] != 'RsaSignature2017') {
-            return false;
+            throw SignatureValidationException::incorrectType();
         }
 
+        // Fetch the creator of the message/signature so we have the key
         $creator = substr($signature['creator'], 0, strpos($signature['creator'], '#'));
         $account = $this->webfingerService->fetchAccount($creator);
         if (!$account) {
-            throw new \Exception("Cannot find user $creator");
+            throw SignatureValidationException::accountNotFound($creator);
         }
 
-        $header = [
-            '@context' => 'https://w3id.org/identity/v1',
-            'creator' => $signature['creator'],
-            'created' => $signature['created'],
-        ];
+        // Unset the things that are not signed
+        unset($signature['type']);
+        unset($signature['id']);
+        unset($signature['signatureValue']);
+        $signature['@context'] = 'https://w3id.org/security/v1';
 
+        $stopwatch->lap('validateMessage');
+        $cS = $this->canonicalize($signature);
+        $cM = $this->canonicalize($message);
 
-        unset($message['signature']);
-        $hash = $this->hash($header) . $this->hash($message);
+        $stopwatch->lap('validateMessage');
+        // Create the hash of both the message and the signature
+        $hash = $this->hash($cS. $cM);
 
-        dump($hash);
-        return openssl_verify($hash, base64_decode($signature['signatureValue']), $account->getPublicKeyPem(), OPENSSL_ALGO_SHA256);
+        $ret = openssl_verify($hash, base64_decode($signatureValue), $account->getPublicKeyPem(), OPENSSL_ALGO_SHA256);
+        $event = $stopwatch->stop('validateMessage');
+
+        dump($event);
+
+        return $ret == 1;
     }
 
-    protected function hash(array $data): string
+    protected function hash(string $data): string
     {
-        $json = json_encode($data, JSON_UNESCAPED_SLASHES);
-        dump($json);
-        return hash('sha256', $json);
+        return bin2hex(hash('sha256', $data, true));
     }
+
+    // Converts JSON-LD to a canonical form
+    protected function canonicalize(array $data)
+    {
+        // Convert JSON-LD to RDF
+        $json = json_encode($data);
+        $quads = JsonLD::toRdf($json, ['format' => 'application/nquads']);
+        $nquads = new NQuads();
+        $tmp = $nquads->serialize($quads);
+
+        // sort the quads, as they might not be in the correct order :(
+        $tmp = explode("\n", $tmp);
+        sort($tmp);
+
+        // We have blank identifiers as _:b0, _:b1, etc. We need to replace these with c14n identifiers
+        $ret = "";
+        foreach ($tmp as $v) {
+            if (empty($v)) {
+                continue;
+            }
+            if (str_starts_with($v, "_:b")) {
+                $ret .= "_:cn14n" . substr($v, 3)."\n";
+            } else {
+                $ret .= $v."\n";
+            }
+        }
+
+        return $ret;
+    }
+
 }
