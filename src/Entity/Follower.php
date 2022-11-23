@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Repository\FollowerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: FollowerRepository::class)]
 class Follower
@@ -13,8 +15,8 @@ class Follower
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    private string $id;
+    #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
+    private Uuid $id;
 
     #[ORM\Column(length: 255)]
     private string $user_id;
@@ -25,7 +27,7 @@ class Follower
     #[ORM\Column]
     private bool $accepted;
 
-    public function getId(): string
+    public function getId(): Uuid
     {
         return $this->id;
     }

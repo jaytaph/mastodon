@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Exception\AccountNotFoundException;
 use App\Exception\SignatureValidationException;
+use App\Service\InboxService;
 use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,11 +23,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class ParseInboxCommand extends Command
 {
     protected SignatureService $signatureService;
+    protected InboxService $inboxService;
 
-    public function __construct(SignatureService $signatureService)
+    public function __construct(SignatureService $signatureService, InboxService $inboxService)
     {
         parent::__construct();
+
         $this->signatureService = $signatureService;
+        $this->inboxService = $inboxService;
     }
 
     protected function configure(): void
@@ -84,13 +88,16 @@ class ParseInboxCommand extends Command
                 continue;
             }
 
-            try {
-                $this->signatureService->validateMessage($message);
-                print "VALID SIGNATURE ON LINE $i\n";
-            } catch (SignatureValidationException $e) {
-                print "signature error on line $i: {$e->getMessage()}\n";
-                continue;
-            }
+//            try {
+//                $this->signatureService->validateMessage($message);
+//                print "VALID SIGNATURE ON LINE $i\n";
+//            } catch (SignatureValidationException $e) {
+//                print "signature error on line $i: {$e->getMessage()}\n";
+//                continue;
+//            }
+
+            $this->inboxService->processMessage($message);
+
 
             if ($mode == "count") {
                 if (!isset($counts[$message['type']])) {

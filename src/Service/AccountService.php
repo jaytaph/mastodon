@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
+use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,11 +16,13 @@ use Symfony\Component\Uid\Uuid;
 class AccountService
 {
     protected EntityManagerInterface $doctrine;
+    protected AuthClientService $authClientService;
 
-    public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage)
+    public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage, AuthClientService $authClientService)
     {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
+        $this->authClientService = $authClientService;
     }
 
     public function getLoggedInAccount(): Account
@@ -27,14 +30,27 @@ class AccountService
         return $this->getAccount($this->tokenStorage->getToken()->getUserIdentifier());
     }
 
-    public function findAccount(string $acct): ?Account
+    public function findAccount(string $acct, bool $fetchRemote = false): ?Account
     {
-        return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        if ($fetchRemote && !$account) {
+            $account = $this->fetchRemoteAccount($acct);
+        }
+
+        return $account;
     }
 
-    public function getAccount(string $acct): Account
+    public function getAccount(string $acct, bool $fetchRemote = true): Account
     {
         $account = $this->findAccount($acct);
+        if ($account) {
+            return $account;
+        }
+
+        if ($fetchRemote) {
+            $account = $this->fetchRemoteAccount($acct);
+        }
+
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -60,12 +76,6 @@ class AccountService
     public function hasAccount(string $acct): bool
     {
         return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]) != null;
-    }
-
-    public function storeAccount(Account $account): void
-    {
-        $this->doctrine->persist($account);
-        $this->doctrine->flush();
     }
 
     public function toJson(Account $account): array
@@ -138,5 +148,46 @@ class AccountService
         }
 
         return $ret;
+    }
+
+    public function fetchRemoteAccount(mixed $href)
+    {
+        // @TODO: It's not a always needed that we fetch an account as a "user".. we should be able to fetch it as a "client" as well
+//        $response = $this->authClientService->fetch($this->accountService->getLoggedInAccount(), $href);
+        $response = $this->authClientService->fetch($this->getAccount(Config::ADMIN_USER), $href);
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (!$data || !isset($data['id'])) {
+            return null;
+        }
+
+        $acct = $data['preferredUsername'] . "@" . parse_url($data['id'], PHP_URL_HOST);
+        $account = $this->findAccount($acct);
+        if (! $account) {
+            $account = new Account();
+        }
+
+        $account->setUsername($data['preferredUsername']);
+        $account->setAcct($acct);
+        $account->setAvatar($data['icon']['url'] ?? '');
+        $account->setHeader($data['image']['url'] ?? '');
+        $account->setDisplayName($data['name'] ?? $data['preferredUsername']);
+        $account->setLocked($data['manuallyApprovesFollowers']);
+        $account->setBot($data['type'] == 'Service');
+        $account->setUrl($data['url']);
+        $account->setCreatedAt(new \DateTimeImmutable());
+        $account->setFields($data['attachments'] ?? []);
+        $account->setSource([]);
+        $account->setEmojis([]);
+        $account->setNote($data['summary']);
+        $account->setPublicKeyPem($data['publicKey']['publicKeyPem']);
+
+        $account->setCreatedAt(new \DateTimeImmutable($data['published'] ?? "now", new \DateTimeZone('GMT')));
+        $account->setLastStatusAt(new \DateTimeImmutable("now", new \DateTimeZone('GMT')));
+
+        $this->doctrine->persist($account);
+        $this->doctrine->flush();
+
+        return $account;
     }
 }
