@@ -18,11 +18,11 @@ class Follower
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private Uuid $id;
 
-    #[ORM\Column(length: 255)]
-    private string $user_id;
+    #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: "followers")]
+    private Account $user;
 
-    #[ORM\Column(length: 255)]
-    private string $follow_id;
+    #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: "following")]
+    private Account $follow;
 
     #[ORM\Column]
     private bool $accepted;
@@ -30,30 +30,6 @@ class Follower
     public function getId(): Uuid
     {
         return $this->id;
-    }
-
-    public function getUserId(): string
-    {
-        return $this->user_id;
-    }
-
-    public function setUserId(string $user_id): Follower
-    {
-        $this->user_id = $user_id;
-
-        return $this;
-    }
-
-    public function getFollowId(): string
-    {
-        return $this->follow_id;
-    }
-
-    public function setFollowId(string $follow_id): self
-    {
-        $this->follow_id = $follow_id;
-
-        return $this;
     }
 
     public function isAccepted(): bool
@@ -66,5 +42,25 @@ class Follower
         $this->accepted = $accepted;
 
         return $this;
+    }
+
+    public function getUser(): Account
+    {
+        return $this->user;
+    }
+
+    public function setUser(Account $user): void
+    {
+        $this->user = $user;
+    }
+
+    public function getFollow(): Account
+    {
+        return $this->follow;
+    }
+
+    public function setFollow(Account $follow): void
+    {
+        $this->follow = $follow;
     }
 }

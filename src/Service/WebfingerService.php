@@ -21,22 +21,31 @@ class WebfingerService
 
     public function fetch(string $name): ?Account
     {
-        $user = substr($name, 0, strpos($name, '@'));
-        $domain = substr($name, strpos($name, '@') + 1);
+        if (!strpos($name, '@')) {
+            $name = $name . '@' . Config::SITE_DOMAIN;
+        }
+        $pos = strpos($name, '@');
+        if ($pos === false) {
+            return null;
+        }
+        $user = substr($name, 0, $pos);
+        $domain = substr($name, $pos + 1);
 
         $client = new Client();
         $response = $client->get($domain . "/.well-known/webfinger?resource=acct:" . $user . "@" . $domain, [
             'headers' => [
-                'Accept' => 'application/json'
-            ]
+                'Accept' => 'application/json',
+            ],
         ]);
+
         $info = json_decode($response->getBody()->getContents(), true);
+        if (!is_array($info)) {
+            return null;
+        }
 
-        dump($info);
-
-        foreach ($info['links'] as $link) {
-            if ($link['rel'] == 'self') {
-                return $this->accountService->fetchRemoteAccount($link['href']);
+        foreach ($info['links'] ?? [] as $link) {
+            if ($link['rel'] === 'self') {
+                return $this->accountService->fetchRemoteAccount($link['href']  ?? '');
             }
         }
 

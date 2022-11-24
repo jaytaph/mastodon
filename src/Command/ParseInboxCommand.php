@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\AccountNotFoundException;
-use App\Exception\SignatureValidationException;
 use App\Service\InboxService;
 use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;

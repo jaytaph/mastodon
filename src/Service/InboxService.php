@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\Status;
@@ -109,9 +111,8 @@ class InboxService
         $this->doctrine->persist($status);
         $this->doctrine->flush();
 
-        print "Stored ". $status->getUri()."\n";
+        print "Stored " . $status->getUri() . "\n";
 
         return true;
     }
-
 }
