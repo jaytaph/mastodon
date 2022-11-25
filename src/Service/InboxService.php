@@ -18,11 +18,15 @@ class InboxService
         $this->doctrine = $doctrine;
     }
 
-    public function getInbox(string $account): array
+    public function getInbox(string $account): void
     {
         // ...
     }
 
+    /**
+     * @param array<mixed> $message
+     * @throws \Exception
+     */
     public function processMessage(array $message): bool
     {
         if (!isset($message['type'])) {
@@ -37,17 +41,23 @@ class InboxService
 //            case 'Delete':
 //                return $this->processDeletedMessage($message);
             default:
-                throw new \Exception('Unknown type: ' . $message['type']);
+//                throw new \Exception('Unknown type: ' . $message['type']);
         }
 
         return false;
     }
 
+    /**
+     * @param array<string> $message
+     * @throws \Exception
+     */
     protected function processCreatedMessage(array $message): bool
     {
         if (! isset($message['object'])) {
             return false;
         }
+
+        /** @var array<string> $object */
         $object = $message['object'];
 
         switch ($object['type']) {
@@ -63,10 +73,14 @@ class InboxService
         return false;
     }
 
+    /**
+     * @param array<string> $message
+     * @param array<string> $object
+     * @throws \Exception
+     */
     protected function processCreatedNoteMessage(array $message, array $object): bool
     {
         // @TODO: We probably need to check for forwarded messages first
-
 
 //        $account = $this->accountService->findAccount($message['actor'], true);
 
@@ -74,16 +88,22 @@ class InboxService
         $status->setAccount(null);
         $status->setAccountUri($message['actor']);
         $status->setActivityStreamsType('');  // @TODO ??
-        $status->setAttachmentIds($object['attachment']);
+
+        /** @var array<mixed>|string|null $att */
+        $att = $object['attachment'];
+        $status->setAttachmentIds(is_array($att) ? $att : [$att]);
         $status->setBoostable(false);
 //        $status->setBoostOf();
 //        $status->setBoostOfAccount();
 //        $status->setBoostOfAccountId();
         $status->setContent($object['content']);
-        $status->setContentWarning(false);
+        $status->setContentWarning("");
         $status->setCreatedAt(new \DateTime($object['published'] ?? 'now'));
         $status->setCreatedWithApplicationId('');
-        $status->setEmojiIds($object['emoji'] ?? []);
+
+        /** @var array<mixed>|string|null $emojis */
+        $emojis = $object['emoji'];
+        $status->setEmojiIds(is_array($emojis) ? $emojis : [$emojis]);
         $status->setFederated(false);
 //        $status->setInReplyTo($object['inReplyTo'] ?? null);
         if (isset($object['inReplyTo'])) {
@@ -99,14 +119,15 @@ class InboxService
         $status->setMentionIds([]);
         $status->setPinned(false);
         $status->setReplyable(true);
-        $status->setSensitive($object['sensitive'] ?? false);
-        $status->setTagIds($object['tag']);
+        $status->setSensitive($object['sensitive'] == "true");
+        /** @var array<mixed>|string|null $tags */
+        $tags = $object['tag'];
+        $status->setTagIds(is_array($tags) ? $tags : [$tags]);
         $status->setText($object['content']);
         $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
         $status->setUri($object['id']);
         $status->setUrl($object['url']);
         $status->setVisibility(true);
-
 
         $this->doctrine->persist($status);
         $this->doctrine->flush();

@@ -41,7 +41,7 @@ class UserController extends AbstractController
         if (str_contains($acct, '@')) {
             throw new NotFoundHttpException();
         }
-        $account = $this->accountService->getAccount($acct);
+        $account = $this->accountService->findAccount($acct);
         if (!$account) {
             throw new NotFoundHttpException();
         }

@@ -13,15 +13,17 @@ use Symfony\Component\Uid\Uuid;
 class Follower
 {
     #[ORM\Id]
-    #[ORM\Column]
+    #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private Uuid $id;
 
     #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: "followers")]
+    #[ORM\JoinColumn(nullable: false)]
     private Account $user;
 
     #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: "following")]
+    #[ORM\JoinColumn(nullable: false)]
     private Account $follow;
 
     #[ORM\Column]

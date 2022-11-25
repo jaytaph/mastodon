@@ -58,12 +58,15 @@ class Account
     #[ORM\Column(length: 255)]
     private string $header_static = "";
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $source;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $emojis;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $fields;
 
@@ -222,11 +225,17 @@ class Account
         return $this;
     }
 
+    /**
+     * @return array|mixed[]
+     */
     public function getSource(): array
     {
         return $this->source;
     }
 
+    /**
+     * @param array|mixed[] $source
+     */
     public function setSource(array $source): self
     {
         $this->source = $source;
@@ -234,11 +243,17 @@ class Account
         return $this;
     }
 
+    /**
+     * @return array|mixed[]
+     */
     public function getEmojis(): array
     {
         return $this->emojis;
     }
 
+    /**
+     * @param array|mixed[] $emojis
+     */
     public function setEmojis(array $emojis): self
     {
         $this->emojis = $emojis;
@@ -246,11 +261,17 @@ class Account
         return $this;
     }
 
+    /**
+     * @return array|mixed[]
+     */
     public function getFields(): array
     {
         return $this->fields;
     }
 
+    /**
+     * @param array|mixed[] $fields
+     */
     public function setFields(array $fields): self
     {
         $this->fields = $fields;
@@ -292,9 +313,5 @@ class Account
         $this->privateKeyPem = $privateKeyPem;
 
         return $this;
-    }
-
-    public function isPrivate()
-    {
     }
 }

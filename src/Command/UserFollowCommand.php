@@ -8,6 +8,7 @@ use App\Entity\Follower;
 use App\Service\AccountService;
 use App\Service\WebfingerService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -41,22 +42,21 @@ class UserFollowCommand extends Command
         ;
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $userAcct = $input->getArgument('user');
-        $followerAcct = $input->getArgument('follower');
+        $userAcct = strval($input->getArgument('user'));
+        $followAccount = strval($input->getArgument('follower'));
 
-        if (! $this->accountService->hasAccount($userAcct)) {
-            $this->webfingerService->fetch($userAcct);
-        }
-        if (! $this->accountService->hasAccount($followerAcct)) {
-            $this->webfingerService->fetch($followerAcct);
-        }
+        $userAccount = $this->accountService->getAccount($userAcct);
+        $followAccount = $this->accountService->getAccount($followAccount);
 
         $follower = new Follower();
-        $follower->setUserId($userAcct);
-        $follower->setFollowId($followerAcct);
+        $follower->setUser($userAccount);
+        $follower->setFollow($followAccount);
         $follower->setAccepted(true);
         $this->doctrine->persist($follower);
         $this->doctrine->flush();

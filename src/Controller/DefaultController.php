@@ -47,7 +47,7 @@ class DefaultController extends AbstractController
         if (str_contains($acct, '@')) {
             throw new NotFoundHttpException();
         }
-        $account = $this->accountService->getAccount($acct);
+        $account = $this->accountService->findAccount($acct);
         if (!$account) {
             throw new NotFoundHttpException();
         }
@@ -81,7 +81,7 @@ class DefaultController extends AbstractController
     #[Route('/.well-known/webfinger', name: 'app_webfinger')]
     public function webfinger(Request $request): Response
     {
-        $resource = $request->query->get('resource');
+        $resource = strval($request->query->get('resource'));
         if (! str_starts_with($resource, 'acct:')) {
             throw new BadRequestHttpException('Invalid resource');
         }
@@ -95,7 +95,7 @@ class DefaultController extends AbstractController
             throw new BadRequestHttpException('Invalid resource');
         }
 
-        $account = $this->accountService->getAccount($username);
+        $account = $this->accountService->findAccount($username);
         if (!$account) {
             throw new NotFoundHttpException();
         }

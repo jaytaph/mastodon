@@ -43,15 +43,19 @@ class Status
     #[ORM\Column(type: 'text')]
     private string $content;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $attachmentIds;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $tagIds;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $mentionIds;
 
+    /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
     private array $emojiIds;
 
@@ -65,22 +69,22 @@ class Status
     private string $inReplyToUri;
 
     #[ORM\ManyToOne]
-    private Status $inReplyTo;
+    private ?Status $inReplyTo;
 
     #[ORM\ManyToOne]
-    private Account $inReplyToAccount;
+    private ?Account $inReplyToAccount;
 
     #[ORM\ManyToOne]
-    private Status $boostOf;
+    private ?Status $boostOf;
 
     #[ORM\ManyToOne]
-    private Account $boostOfAccount;
+    private ?Account $boostOfAccount;
 
     #[ORM\Column(type: 'text')]
     private string $contentWarning;
 
-    #[ORM\Column(length: 255)]
-    private string $visibility;
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private bool $visibility;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $sensitive;
@@ -111,7 +115,6 @@ class Status
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $likable;
-
 
     public function getId(): Uuid
     {
@@ -178,11 +181,18 @@ class Status
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getAttachmentIds(): array
     {
         return $this->attachmentIds;
     }
 
+    /**
+     * @param array|mixed[] $attachmentIds
+     * @return $this
+     */
     public function setAttachmentIds(array $attachmentIds): self
     {
         $this->attachmentIds = $attachmentIds;
@@ -190,11 +200,18 @@ class Status
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getTagIds(): array
     {
         return $this->tagIds;
     }
 
+    /**
+     * @param array|mixed[] $tagIds
+     * @return $this
+     */
     public function setTagIds(array $tagIds): self
     {
         $this->tagIds = $tagIds;
@@ -202,11 +219,18 @@ class Status
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getMentionIds(): array
     {
         return $this->mentionIds;
     }
 
+    /**
+     * @param array|mixed[] $mentionIds
+     * @return $this
+     */
     public function setMentionIds(array $mentionIds): self
     {
         $this->mentionIds = $mentionIds;
@@ -214,11 +238,18 @@ class Status
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getEmojiIds(): array
     {
         return $this->emojiIds;
     }
 
+    /**
+     * @param array|mixed[] $emojiIds
+     * @return $this
+     */
     public function setEmojiIds(array $emojiIds): self
     {
         $this->emojiIds = $emojiIds;
@@ -259,18 +290,6 @@ class Status
     public function setInReplyToUri(string $inReplyToUri): self
     {
         $this->inReplyToUri = $inReplyToUri;
-
-        return $this;
-    }
-
-    public function getBoostOfAccountId(): ?string
-    {
-        return $this->boostOfAccountId;
-    }
-
-    public function setBoostOfAccountId(string $boostOfAccountId): self
-    {
-        $this->boostOfAccountId = $boostOfAccountId;
 
         return $this;
     }
@@ -468,17 +487,17 @@ class Status
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function getVisibility(): string
+    public function isVisibility(): bool
     {
         return $this->visibility;
     }
 
     /**
-     * @param string $visibility
+     * @param bool $visibility
      */
-    public function setVisibility(string $visibility): void
+    public function setVisibility(bool $visibility): void
     {
         $this->visibility = $visibility;
     }
