@@ -1,0 +1,48 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - name: Install PHP
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: 8.1
+      - name: Create version.json
+        run: |
+          # Create version.json with correct values
+          VERSION=${GITHUB_REF#refs/*/}
+          COMMIT_SHA=`echo $GITHUB_SHA | cut -b -8`
+          DATE=`date +"%Y-%m-%d %H:%M:%S"`
+          jq -n "{version: \"$VERSION\", sha1: \"$COMMIT_SHA\", date: \"$DATE\"}" > version.json
+
+      - name: use .env.testing
+        run: cp .env.test.github .env.local
+      - name: composer install for production
+        run: |
+          APP_ENV=prod composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs --ansi
+      - name: removing git dir
+        run: rm -rf .git
+      - name: removing cache
+        run: rm -rf var/cache/dev
+      - name: Create tar
+        run: tar czf /tmp/mastodon_${{ env.RELEASE_VERSION }}.tar.gz .
+      - name: Upload release tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: mastodon_${{ env.RELEASE_VERSION }}
+          path: /tmp/mastodon_${{ env.RELEASE_VERSION }}.tar.gz
