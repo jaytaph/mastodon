@@ -58,9 +58,7 @@ class SignatureService
         $signature['@context'] = 'https://w3id.org/security/v1';
 
         // Create the hash of both the message and the signature
-        $cS = $this->canonicalize($signature);
-        $cM = $this->canonicalize($message);
-        $hash = $this->hash($cS . $cM);
+        $hash = $this->hash($this->canonicalize($signature) . $this->canonicalize($message));
 
         $ret = openssl_verify($hash, base64_decode($signatureValue), $account->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
 

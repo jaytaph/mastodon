@@ -132,6 +132,9 @@ class AccountService
         return $this->doctrine->getRepository(Follower::class)->count(['user' => $account]);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function statusCount(Account $account): int
     {
         return 123;

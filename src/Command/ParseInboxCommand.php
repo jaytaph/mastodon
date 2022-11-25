@@ -40,6 +40,7 @@ class ParseInboxCommand extends Command
     }
 
     /**
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int

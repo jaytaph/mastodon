@@ -25,6 +25,7 @@ class OauthTestCommand extends Command
 
     /**
      * @throws GuzzleException
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

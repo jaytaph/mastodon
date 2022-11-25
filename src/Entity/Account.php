@@ -10,6 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * phpmd: @SuppressWarnings(PHPMD.TooManyFields)
+ */
 #[ORM\Entity(repositoryClass: AccountRepository::class)]
 class Account
 {
@@ -26,7 +29,7 @@ class Account
     private string $acct = "";
 
     #[ORM\Column(length: 255)]
-    private string $display_name = "";
+    private string $displayName = "";
 
     #[ORM\Column]
     private bool $locked = false;
@@ -35,10 +38,10 @@ class Account
     private bool $bot = false;
 
     #[ORM\Column]
-    private \DateTimeImmutable $created_at;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column]
-    private \DateTimeImmutable $last_status_at;
+    private \DateTimeImmutable $lastStatusAt;
 
     #[ORM\Column(type: Types::TEXT)]
     private string $note = "";
@@ -50,13 +53,13 @@ class Account
     private string $avatar = "";
 
     #[ORM\Column(length: 255)]
-    private string $avatar_static = "";
+    private string $avatarStatic = "";
 
     #[ORM\Column(length: 255)]
     private string $header = "";
 
     #[ORM\Column(length: 255)]
-    private string $header_static = "";
+    private string $headerStatic = "";
 
     /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
@@ -107,12 +110,12 @@ class Account
 
     public function getDisplayName(): string
     {
-        return $this->display_name;
+        return $this->displayName;
     }
 
-    public function setDisplayName(string $display_name): self
+    public function setDisplayName(string $displayName): self
     {
-        $this->display_name = $display_name;
+        $this->displayName = $displayName;
 
         return $this;
     }
@@ -143,12 +146,12 @@ class Account
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -191,12 +194,12 @@ class Account
 
     public function getAvatarStatic(): string
     {
-        return $this->avatar_static;
+        return $this->avatarStatic;
     }
 
-    public function setAvatarStatic(string $avatar_static): self
+    public function setAvatarStatic(string $avatarStatic): self
     {
-        $this->avatar_static = $avatar_static;
+        $this->avatarStatic = $avatarStatic;
 
         return $this;
     }
@@ -215,12 +218,12 @@ class Account
 
     public function getHeaderStatic(): string
     {
-        return $this->header_static;
+        return $this->headerStatic;
     }
 
-    public function setHeaderStatic(string $header_static): self
+    public function setHeaderStatic(string $headerStatic): self
     {
-        $this->header_static = $header_static;
+        $this->headerStatic = $headerStatic;
 
         return $this;
     }
@@ -281,12 +284,12 @@ class Account
 
     public function getLastStatusAt(): \DateTimeImmutable
     {
-        return $this->last_status_at;
+        return $this->lastStatusAt;
     }
 
-    public function setLastStatusAt(\DateTimeImmutable $last_status_at): self
+    public function setLastStatusAt(\DateTimeImmutable $lastStatusAt): self
     {
-        $this->last_status_at = $last_status_at;
+        $this->lastStatusAt = $lastStatusAt;
 
         return $this;
     }

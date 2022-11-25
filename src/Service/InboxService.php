@@ -18,6 +18,9 @@ class InboxService
         $this->doctrine = $doctrine;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function getInbox(string $account): void
     {
         // ...
@@ -132,7 +135,7 @@ class InboxService
         $this->doctrine->persist($status);
         $this->doctrine->flush();
 
-        print "Stored " . $status->getUri() . "\n";
+        print "Stored " . ($status->getUri() ?? '') . "\n";
 
         return true;
     }

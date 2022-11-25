@@ -14,6 +14,7 @@ use Symfony\Component\Uid\Uuid;
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.LongVariable)
  */
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
 class Status

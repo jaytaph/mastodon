@@ -206,7 +206,7 @@ class ApiController extends AbstractController
         }
 
         // Only return public statuses when we are not logged in
-        $publicOnly = !$this->isGranted('ROLE_OAUTH2_READ');
+//        $publicOnly = !$this->isGranted('ROLE_OAUTH2_READ');
 
         $data = [];
 
