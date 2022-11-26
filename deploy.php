@@ -18,7 +18,7 @@ task('deploy:update_code')->disable();
 after('deploy:update_code', 'rsync');
 
 add('shared_files', []);
-add('shared_dirs', [ 'var/uploads' ]);
+add('shared_dirs', [ 'var/uploads', 'config/jwt' ]);
 
 add('writable_dirs', [ 'var/uploads' ]);
 set('allow_anonymous_stats', false);
