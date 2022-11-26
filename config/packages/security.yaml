@@ -21,8 +21,9 @@ security:
             context: api
             stateless: true
             provider: users_in_memory
+            custom_authenticators:
+                - App\Security\OAuth\DevelopmentAuthenticator
             oauth2: true
-
         main:
             pattern: ^/
             security: true
