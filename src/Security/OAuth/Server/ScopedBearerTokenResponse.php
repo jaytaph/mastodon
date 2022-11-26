@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class ScopedBearerTokenResponse extends BearerTokenResponse
 {
-    public function generateHttpResponse(ResponseInterface $response)
+    public function generateHttpResponse(ResponseInterface $response): ResponseInterface
     {
         $expireDateTime = $this->accessToken->getExpiryDateTime()->getTimestamp();
 

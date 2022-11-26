@@ -45,7 +45,7 @@ class WebfingerService
 
         foreach ($info['links'] ?? [] as $link) {
             if ($link['rel'] === 'self') {
-                return $this->accountService->fetchRemoteAccount($link['href']  ?? '');
+                return $this->accountService->fetchRemoteAccount($this->accountService->getLoggedInAccount(), $link['href']  ?? '');
             }
         }
 

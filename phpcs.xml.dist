@@ -24,8 +24,7 @@
           <property name="newlinesCountBetweenOpenTagAndDeclare" type="int" value="2" />
           <property name="spacesCountAroundEqualsSign" type="int" value="0" />
         </properties>
-      </rule>
-
+    </rule>
 
     <rule ref="Generic.Files.LineLength">
         <properties>

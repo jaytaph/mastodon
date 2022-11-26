@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
-use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,7 +31,7 @@ class AccountService
     public function getLoggedInAccount(): Account
     {
         $uid = $this->tokenStorage->getToken()?->getUserIdentifier();
-        return $this->getAccount((string)$uid);
+        return $this->getAccount((string)$uid, false);
     }
 
     /**
@@ -42,7 +41,7 @@ class AccountService
     {
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
         if ($fetchRemote && !$account) {
-            $account = $this->fetchRemoteAccount($acct);
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
         }
 
         return $account;
@@ -59,7 +58,7 @@ class AccountService
         }
 
         if ($fetchRemote) {
-            $account = $this->fetchRemoteAccount($acct);
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
         }
 
         if (!$account) {
@@ -175,11 +174,10 @@ class AccountService
      * @throws EntityNotFoundException
      * @throws \Exception
      */
-    public function fetchRemoteAccount(string $href): ?Account
+    public function fetchRemoteAccount(Account $source, string $href): ?Account
     {
         // @TODO: It's not a always needed that we fetch an account as a "user".. we should be able to fetch it as a "client" as well
-//        $response = $this->authClientService->fetch($this->accountService->getLoggedInAccount(), $href);
-        $response = $this->authClientService->fetch($this->getAccount(Config::ADMIN_USER), $href);
+        $response = $this->authClientService->fetch($source, $href);
         if (! $response) {
             return null;
         }
