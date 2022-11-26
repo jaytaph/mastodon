@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Config;
 use App\Service\AccountService;
+use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
@@ -17,14 +18,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Uid\Uuid;
 
 class ApiController extends AbstractController
 {
     use AccountTrait;
-
 
     protected AccountService $accountService;
     protected LoggerInterface $logger;
@@ -41,12 +40,12 @@ class ApiController extends AbstractController
     {
         $user = $this->getUser();
         if (is_null($user)) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         $account = $this->accountService->findAccount($user->getUserIdentifier());
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         return new JsonResponse($this->accountService->toJson($account));
@@ -99,35 +98,35 @@ class ApiController extends AbstractController
     {
         $data = [
               [
-                "shortcode" => "aaaa",
-                "url" => "https://files.mastodon.social/custom_emojis/images/000/007/118/original/aaaa.png",
-                "static_url" => "https://files.mastodon.social/custom_emojis/images/000/007/118/static/aaaa.png",
-                "visible_in_picker" => true
+                'shortcode' => 'aaaa',
+                'url' => 'https://files.mastodon.social/custom_emojis/images/000/007/118/original/aaaa.png',
+                'static_url' => 'https://files.mastodon.social/custom_emojis/images/000/007/118/static/aaaa.png',
+                'visible_in_picker' => true
               ],
               [
-                "shortcode" => "AAAAAA",
-                "url" => "https://files.mastodon.social/custom_emojis/images/000/071/387/original/AAAAAA.png",
-                "static_url" => "https://files.mastodon.social/custom_emojis/images/000/071/387/static/AAAAAA.png",
-                "visible_in_picker" => true
+                'shortcode' => 'AAAAAA',
+                'url' => 'https://files.mastodon.social/custom_emojis/images/000/071/387/original/AAAAAA.png',
+                'static_url' => 'https://files.mastodon.social/custom_emojis/images/000/071/387/static/AAAAAA.png',
+                'visible_in_picker' => true
               ],
               [
-                "shortcode" => "blobaww",
-                "url" => "https://files.mastodon.social/custom_emojis/images/000/011/739/original/blobaww.png",
-                "static_url" => "https://files.mastodon.social/custom_emojis/images/000/011/739/static/blobaww.png",
-                "visible_in_picker" => true,
-                "category" => "Blobs"
+                'shortcode' => 'blobaww',
+                'url' => 'https://files.mastodon.social/custom_emojis/images/000/011/739/original/blobaww.png',
+                'static_url' => 'https://files.mastodon.social/custom_emojis/images/000/011/739/static/blobaww.png',
+                'visible_in_picker' => true,
+                'category' => 'Blobs'
               ],
               [
-                "shortcode" => "yikes",
-                "url" => "https://files.mastodon.social/custom_emojis/images/000/031/275/original/yikes.png",
-                "static_url" => "https://files.mastodon.social/custom_emojis/images/000/031/275/static/yikes.png",
-                "visible_in_picker" => true
+                'shortcode' => 'yikes',
+                'url' => 'https://files.mastodon.social/custom_emojis/images/000/031/275/original/yikes.png',
+                'static_url' => 'https://files.mastodon.social/custom_emojis/images/000/031/275/static/yikes.png',
+                'visible_in_picker' => true
               ],
               [
-                "shortcode" => "ziltoid",
-                "url" => "https://files.mastodon.social/custom_emojis/images/000/017/094/original/05252745eb087806.png",
-                "static_url" => "https://files.mastodon.social/custom_emojis/images/000/017/094/static/05252745eb087806.png",
-                "visible_in_picker" => true
+                'shortcode' => 'ziltoid',
+                'url' => 'https://files.mastodon.social/custom_emojis/images/000/017/094/original/05252745eb087806.png',
+                'static_url' => 'https://files.mastodon.social/custom_emojis/images/000/017/094/static/05252745eb087806.png',
+                'visible_in_picker' => true
               ]
         ];
 
@@ -191,7 +190,7 @@ class ApiController extends AbstractController
         $uuid = Uuid::fromString($id);
         $account = $this->accountService->findAccountById($uuid);
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         return new JsonResponse($this->accountService->toJson($account));
@@ -205,7 +204,7 @@ class ApiController extends AbstractController
         $uuid = Uuid::fromString($id);
         $account = $this->accountService->findAccountById($uuid);
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         // Only return public statuses when we are not logged in
@@ -244,6 +243,10 @@ class ApiController extends AbstractController
         return new JsonResponse($ret);
     }
 
+
+    /**
+     * @throws \Exception
+     */
     #[Route('/api/v1/apps', name: 'api_apps', methods: ['POST'])]
     #[IsGranted('PUBLIC_ACCESS')]
     public function apps(ClientManagerInterface $clientManager, Request $request): Response
@@ -254,7 +257,7 @@ class ApiController extends AbstractController
         $client = new Client(strval($request->get('client_name')), $id, $secret);
         $client->setActive(true);
 
-        $scopes = explode(" ", strval($request->get('scopes')));
+        $scopes = explode(' ', strval($request->get('scopes')));
         $grants = ['authorization_code', 'refresh_token'];
 
         $client
@@ -263,7 +266,7 @@ class ApiController extends AbstractController
                     return new RedirectUri($redirectUri);
                 } catch (\Throwable) {
                     // @TODO: Handle invalid redirect URI
-                    return new RedirectUri("https://localhost");
+                    return new RedirectUri('https://localhost');
                 }
             }, explode(' ', strval($request->get('redirect_uris')))));
         $client
@@ -287,6 +290,9 @@ class ApiController extends AbstractController
         return new JsonResponse($data);
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     #[Route('/api/v1/instance', name: 'api_instance')]
     #[IsGranted('PUBLIC_ACCESS')]
     public function instance(): Response

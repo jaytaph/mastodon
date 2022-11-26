@@ -17,6 +17,7 @@ final class Version20221115132223 extends AbstractMigration
         return '';
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
@@ -26,6 +27,7 @@ final class Version20221115132223 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN account.last_status_at IS \'(DC2Type:datetime_immutable)\'');
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs

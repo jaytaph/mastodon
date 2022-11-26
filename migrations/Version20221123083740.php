@@ -17,6 +17,7 @@ final class Version20221123083740 extends AbstractMigration
         return '';
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
@@ -39,6 +40,7 @@ final class Version20221123083740 extends AbstractMigration
         $this->addSql('ALTER TABLE status ADD CONSTRAINT FK_7B00651C17B942A3 FOREIGN KEY (boost_of_account_id) REFERENCES account (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs

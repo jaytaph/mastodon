@@ -36,11 +36,11 @@ class AcceptFollowCommand extends Command
         $url = strval($input->getArgument('url'));
         $id = strval($input->getArgument('id'));
 
-        $dt = new \DateTime("now", new \DateTimeZone('GMT'));
+        $dt = new \DateTime('now', new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
 
-        $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
-        $senderUrl = "https://dhpt.nl/users/jaytaph";
+        $senderKey = 'https://dhpt.nl/users/jaytaph#main-key';
+        $senderUrl = 'https://dhpt.nl/users/jaytaph';
 
         $receiverUrl = $url;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
@@ -55,20 +55,20 @@ class AcceptFollowCommand extends Command
 
         // Set data and create signature for the message body
         $data = [
-            "@context" => "https://www.w3.org/ns/activitystreams",
-            "id" => "https://dhpt.nl/users/jaytaph/statuses/" . Uuid::v4(),
-            "type" =>  "Accept",
-            "actor" => $senderUrl,
-            "object" => $obj,
+            '@context' => 'https://www.w3.org/ns/activitystreams',
+            'id' => 'https://dhpt.nl/users/jaytaph/statuses/' . Uuid::v4(),
+            'type' => 'Accept',
+            'actor' => $senderUrl,
+            'object' => $obj,
         ];
         $data = strval(json_encode($data));
-        $msgDigest = "SHA-256=" . base64_encode(hash("sha256", $data, true));
+        $msgDigest = 'SHA-256=' . base64_encode(hash('sha256', $data, true));
 
         dump($data);
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): post $receiverPath/inbox\nhost: $receiverHost\ndate: $date\ndigest: $msgDigest";
-        $key = strval(file_get_contents("private.pem"));
+        $key = strval(file_get_contents('private.pem'));
         openssl_sign($sigText, $signature, $key, OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
 
@@ -88,7 +88,7 @@ class AcceptFollowCommand extends Command
         // Send data to the receiver
         try {
             $client = new Client();
-            $result = $client->post($receiverUrl . "/inbox", [
+            $result = $client->post($receiverUrl . '/inbox', [
 //                'debug' => true,
                 'headers' => $headers,
                 'json' => $data,

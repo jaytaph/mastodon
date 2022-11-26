@@ -29,12 +29,12 @@ class AuthClientService
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
 
         // Sign the headers with the users private key for authenticity
-        $sigText = "(request-target): get {$receiverPath}\nhost: {$receiverHost}\ndate: {$date}";
+        $sigText = "(request-target): get $receiverPath\nhost: $receiverHost\ndate: $date";
         openssl_sign($sigText, $signature, $account->getPrivateKeyPem() ?? '', OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
 
         // Create signature HTTP header which defines the signature, the key used and the algorithm used and which headers it contains
-        $sigHeader = "keyId=\"{$senderKey}\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date\",signature=\"{$signature}\"";
+        $sigHeader = "keyId=\"$senderKey\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date\",signature=\"$signature\"";
 
         // Set HTTP headers to send
         $headers = [

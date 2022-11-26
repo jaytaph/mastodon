@@ -30,7 +30,7 @@ class UserController extends AbstractController
     public function inbox(string $user, Request $request): Response
     {
         // For now, we store all contents in a file for later processing...
-        file_put_contents("../var/uploads/{$user}-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
+        file_put_contents("../var/uploads/$user-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
 
         return new Response("donkey");
     }

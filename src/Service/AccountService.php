@@ -36,16 +36,11 @@ class AccountService
 
     public function findAccount(string $acct, bool $fetchRemote = false): ?Account
     {
-        try {
-            $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
-        } catch (EntityNotFoundException) {
-            $account = null;
-        }
-
+        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
         if ($fetchRemote && !$account) {
             try {
                 $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
-            } catch (EntityNotFoundException $e) {
+            } catch (EntityNotFoundException) {
                 $account = null;
             }
         }
@@ -140,7 +135,7 @@ class AccountService
     /**
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function statusCount(Account $account): int
+    public function statusCount(): int
     {
         return 123;
 //        return $this->doctrine->getRepository(Statuses::class)->count(['acct_id' => $account->getId()]);

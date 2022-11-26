@@ -17,6 +17,7 @@ final class Version20221117082150 extends AbstractMigration
         return '';
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
@@ -24,6 +25,7 @@ final class Version20221117082150 extends AbstractMigration
         $this->addSql('ALTER TABLE account ADD private_key_pem TEXT DEFAULT NULL');
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs

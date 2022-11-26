@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class WebfingerController extends AbstractController
@@ -45,7 +44,7 @@ class WebfingerController extends AbstractController
 
         $account = $this->accountService->findAccount($username);
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         $data = [
