@@ -23,6 +23,9 @@ use Symfony\Component\Uid\Uuid;
 
 class ApiController extends AbstractController
 {
+    use AccountTrait;
+
+
     protected AccountService $accountService;
     protected LoggerInterface $logger;
 
@@ -217,14 +220,7 @@ class ApiController extends AbstractController
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function following(string $acct): Response
     {
-        // Only local accounts are allowed
-        if (str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->findAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
+        $account = $this->findAccount($acct, localOnly: true);
 
         $ret = [];
         foreach ($this->accountService->getFollowing($account) as $follower) {
@@ -238,15 +234,7 @@ class ApiController extends AbstractController
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function followers(string $acct): Response
     {
-        // Only local accounts are allowed
-        if (str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->findAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
-
+        $account = $this->findAccount($acct, localOnly: true);
 
         $ret = [];
         foreach ($this->accountService->getFollowers($account) as $follower) {

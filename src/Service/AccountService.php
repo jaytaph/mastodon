@@ -34,14 +34,20 @@ class AccountService
         return $this->getAccount((string)$uid, false);
     }
 
-    /**
-     * @throws EntityNotFoundException
-     */
     public function findAccount(string $acct, bool $fetchRemote = false): ?Account
     {
-        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        try {
+            $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
+        } catch (EntityNotFoundException) {
+            $account = null;
+        }
+
         if ($fetchRemote && !$account) {
-            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
+            try {
+                $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
+            } catch (EntityNotFoundException $e) {
+                $account = null;
+            }
         }
 
         return $account;
@@ -171,7 +177,6 @@ class AccountService
     }
 
     /**
-     * @throws EntityNotFoundException
      * @throws \Exception
      */
     public function fetchRemoteAccount(Account $source, string $href): ?Account

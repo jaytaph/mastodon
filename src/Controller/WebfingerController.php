@@ -56,7 +56,7 @@ class WebfingerController extends AbstractController
             ],
             'links' => [
                 [
-                    "rel" => "http://webfinger.net/rel/profile-page",
+                    "rel" => "https://webfinger.net/rel/profile-page",
                     "type" => "text/html",
                     "href" => Config::SITE_URL . '/@' . $account->getUsername()
                 ],
@@ -66,7 +66,7 @@ class WebfingerController extends AbstractController
                     'href' => Config::SITE_URL . '/users/' . $account->getUsername(),
                 ],
                 [
-                    "rel" => "http://ostatus.org/schema/1.0/subscribe",
+                    "rel" => "https://ostatus.org/schema/1.0/subscribe",
                     "template" => Config::SITE_URL . '/@' . $account->getUsername() . "/follow?uri={uri}"
                 ]
             ],
