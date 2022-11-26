@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\ActivityPub;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
@@ -25,10 +23,12 @@ class OauthTestCommand extends Command
     {
     }
 
+    /**
+     * @throws GuzzleException
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-
         $client = new Client();
 
         $response = $client->post("https://localhost:8000/api/v1/apps", [
@@ -46,6 +46,7 @@ class OauthTestCommand extends Command
 
         $response = json_decode($response->getBody()->getContents(), true);
 
+        /** @var array<string> $response */
         $clientId = $response["client_id"];
         $clientSecret = $response["client_secret"];
 
@@ -73,14 +74,6 @@ class OauthTestCommand extends Command
 
         $code = substr($response->getHeader("Location")[0], strpos($response->getHeader("Location")[0], "code=") + 5);
 
-        $body = json_encode([
-                        'client_id' => $clientId,
-                        'client_secret' => $clientSecret,
-                        'grant_type' => 'authorization_code',
-                        'redirect_uri' => 'https://localhost:8000',
-                        'code' => $code,
-                    ]);
-
         $response = $client->post('https://localhost:8000/oauth/token', [
             'headers' => [
                 'Accept' => 'application/json',
@@ -94,9 +87,10 @@ class OauthTestCommand extends Command
                 'code' => $code,
             ]),
         ]);
-        $response = json_decode($response->getBody()->getContents(), true);
-        dump($response);
 
+        $response = json_decode($response->getBody()->getContents(), true);
+
+        /** @var array<string> $response */
         $token = $response['access_token'];
         $response = $client->get('https://localhost:8000/api/v1/accounts/verify_credentials', [
             'headers' => [

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\AccountNotFoundException;
-use App\Exception\SignatureValidationException;
 use App\Service\InboxService;
 use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -14,7 +12,6 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:inbox',
@@ -42,10 +39,12 @@ class ParseInboxCommand extends Command
         ;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-
         $mode = "table";
         if ($input->getOption('raw')) {
             $mode = "raw";
@@ -55,28 +54,32 @@ class ParseInboxCommand extends Command
         }
 
         // Count mode
+        /** @var array<string,int> $counts */
         $counts = [];
 
         // Table mode
+        $table = new Table($output);
+
+        // Table mode
         if ($mode == "table") {
-            $table = new Table($output);
             $table->setStyle('box-double');
             $table->setHeaders(["id", "type", "actor", "object"]);
         }
         if ($mode == "count") {
-            $table = new Table($output);
             $table->setStyle('box-double');
             $table->setHeaders(["type", "count"]);
         }
 
-        $filter = $input->getOption('type');
+        $filter = $input->hasOption('type') ? strval($input->getOption('type')) : null;
 
         $i = 0;
+        /** @var iterable<string> $inbox */
         $inbox = file("jaytaph-inbox.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);
             }
+            /** @var array<string,string|array<string>> $message */
             $message = json_decode($line, true);
             $i++;
             if (!$message) {
@@ -84,7 +87,7 @@ class ParseInboxCommand extends Command
                 continue;
             }
 
-            if (! $this->matchesFilter($filter ?? "", $message['type'])) {
+            if (! $this->matchesFilter($filter, strval($message['type']))) {
                 continue;
             }
 
@@ -100,10 +103,11 @@ class ParseInboxCommand extends Command
 
 
             if ($mode == "count") {
-                if (!isset($counts[$message['type']])) {
-                    $counts[$message['type']] = 0;
+                $idx = is_string($message['type']) ? $message['type'] : "";
+                if (!isset($counts[$idx])) {
+                    $counts[$idx] = 0;
                 }
-                $counts[$message['type']]++;
+                $counts[$idx]++;
             }
 
             if ($mode == "raw") {
@@ -139,7 +143,7 @@ class ParseInboxCommand extends Command
         return Command::SUCCESS;
     }
 
-    protected function matchesFilter(string $filter, string $type): bool
+    protected function matchesFilter(?string $filter, string $type): bool
     {
         if (! $filter) {
             return true;

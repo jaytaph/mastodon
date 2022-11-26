@@ -18,8 +18,11 @@
     </php>
 
     <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+        <testsuite name="Mastodon Unit Test Suite">
+            <directory>tests/Unit/</directory>
+        </testsuite>
+        <testsuite name="Mastodon Functional Test Suite">
+            <directory>tests/Functional/</directory>
         </testsuite>
     </testsuites>
 

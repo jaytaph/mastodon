@@ -25,32 +25,35 @@ class AccountCommand extends Command
         ;
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $url = $input->getArgument('url');
+        $url = strval($input->getArgument('url'));
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
 
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
-        $senderUrl = "https://dhpt.nl/users/jaytaph";
-        $senderPath = parse_url($senderUrl, PHP_URL_PATH);
-        $senderHost = parse_url($senderUrl, PHP_URL_HOST);
+//        $senderUrl = "https://dhpt.nl/users/jaytaph";
+//        $senderPath = parse_url($senderUrl, PHP_URL_PATH);
+//        $senderHost = parse_url($senderUrl, PHP_URL_HOST);
 
         $receiverUrl = $url;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);
         $receiverHost = parse_url($receiverUrl, PHP_URL_HOST);
 
         // Sign the headers with the users private key for authenticity
-        $sigText = "(request-target): get {$receiverPath}\nhost: {$receiverHost}\ndate: {$date}";
-        print_r($sigText);
-        openssl_sign($sigText, $signature, file_get_contents("private.pem"), OPENSSL_ALGO_SHA256);
+        $sigText = "(request-target): get $receiverPath\nhost: $receiverHost\ndate: $date";
+        $key = strval(file_get_contents("private.pem"));
+        openssl_sign($sigText, $signature, $key, OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
         print_r($signature);
 
         // Create signature HTTP header which defines the signature, the key used and the algorithm used and which headers it contains
-        $sigHeader = "keyId=\"{$senderKey}\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date\",signature=\"{$signature}\"";
+        $sigHeader = "keyId=\"$senderKey\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date\",signature=\"$signature\"";
 
         // Set HTTP headers to send
         $headers = [
@@ -74,8 +77,8 @@ class AccountCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->note($result->getStatusCode());
-        $io->note($result->getBody());
+        $io->note((string)$result->getStatusCode());
+        $io->note((string)$result->getBody());
 
         $io->success('All done');
         return Command::SUCCESS;

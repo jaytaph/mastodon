@@ -37,6 +37,10 @@ class ApiController extends AbstractController
     public function verifyCredentials(): Response
     {
         $user = $this->getUser();
+        if (is_null($user)) {
+            throw new NotFoundHttpException();
+        }
+
         $account = $this->accountService->findAccount($user->getUserIdentifier());
         if (!$account) {
             throw new NotFoundHttpException();
@@ -202,7 +206,7 @@ class ApiController extends AbstractController
         }
 
         // Only return public statuses when we are not logged in
-        $publicOnly = !$this->isGranted('ROLE_OAUTH2_READ');
+//        $publicOnly = !$this->isGranted('ROLE_OAUTH2_READ');
 
         $data = [];
 
@@ -259,10 +263,10 @@ class ApiController extends AbstractController
         $id = bin2hex(random_bytes(16));
         $secret = 'dhpt_secret_' . bin2hex(random_bytes(32));
 
-        $client = new Client($request->get('client_name'), $id, $secret);
+        $client = new Client(strval($request->get('client_name')), $id, $secret);
         $client->setActive(true);
 
-        $scopes = explode(" ", $request->get('scopes'));
+        $scopes = explode(" ", strval($request->get('scopes')));
         $grants = ['authorization_code', 'refresh_token'];
 
         $client
@@ -273,7 +277,7 @@ class ApiController extends AbstractController
                     // @TODO: Handle invalid redirect URI
                     return new RedirectUri("https://localhost");
                 }
-            }, explode(' ', $request->get('redirect_uris'))));
+            }, explode(' ', strval($request->get('redirect_uris')))));
         $client
             ->setGrants(...array_map(static function (string $grant): Grant {
                 return new Grant($grant);
@@ -299,7 +303,7 @@ class ApiController extends AbstractController
     #[IsGranted('PUBLIC_ACCESS')]
     public function instance(): Response
     {
-        $adminAccount = $this->accountService->findAccount(Config::ADMIN_USER);
+        $adminAccount = $this->accountService->getAccount(Config::ADMIN_USER);
 
         $data = [
             'uri' => Config::SITE_DOMAIN,

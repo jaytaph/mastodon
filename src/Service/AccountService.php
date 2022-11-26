@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
-use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +16,7 @@ class AccountService
 {
     protected EntityManagerInterface $doctrine;
     protected AuthClientService $authClientService;
+    protected TokenStorageInterface $tokenStorage;
 
     public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage, AuthClientService $authClientService)
     {
@@ -25,21 +25,31 @@ class AccountService
         $this->authClientService = $authClientService;
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     public function getLoggedInAccount(): Account
     {
-        return $this->getAccount($this->tokenStorage->getToken()->getUserIdentifier());
+        $uid = $this->tokenStorage->getToken()?->getUserIdentifier();
+        return $this->getAccount((string)$uid, false);
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     public function findAccount(string $acct, bool $fetchRemote = false): ?Account
     {
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
         if ($fetchRemote && !$account) {
-            $account = $this->fetchRemoteAccount($acct);
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
         }
 
         return $account;
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     public function getAccount(string $acct, bool $fetchRemote = true): Account
     {
         $account = $this->findAccount($acct);
@@ -48,7 +58,7 @@ class AccountService
         }
 
         if ($fetchRemote) {
-            $account = $this->fetchRemoteAccount($acct);
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
         }
 
         if (!$account) {
@@ -58,6 +68,9 @@ class AccountService
         return $account;
     }
 
+    /**
+     * @throws EntityNotFoundException
+     */
     public function getAccountById(Uuid $id): Account
     {
         $account = $this->findAccountById($id);
@@ -78,6 +91,10 @@ class AccountService
         return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]) != null;
     }
 
+    /**
+     * @param Account $account
+     * @return mixed[]
+     */
     public function toJson(Account $account): array
     {
         return [
@@ -106,14 +123,17 @@ class AccountService
 
     public function followersCount(Account $account): int
     {
-        return $this->doctrine->getRepository(Follower::class)->count(['follow_id' => $account->getId()]);
+        return $this->doctrine->getRepository(Follower::class)->count(['follow' => $account]);
     }
 
     public function followingCount(Account $account): int
     {
-        return $this->doctrine->getRepository(Follower::class)->count(['id' => $account->getId()]);
+        return $this->doctrine->getRepository(Follower::class)->count(['user' => $account]);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function statusCount(Account $account): int
     {
         return 123;
@@ -127,12 +147,12 @@ class AccountService
     {
         $ret = [];
 
-        $followers = $this->doctrine->getRepository(Follower::class)->findBy(['follow_id' => $account->getAcct()]);
+        $followers = $this->doctrine->getRepository(Follower::class)->findBy(['follow' => $account]);
         foreach ($followers as $follower) {
-            $ret[] = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $follower->getUserId()]);
+            $ret[] = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $follower->getUser()->getAcct()]);
         }
 
-        return $ret;
+        return array_filter($ret);
     }
 
     /**
@@ -142,26 +162,33 @@ class AccountService
     {
         $ret = [];
 
-        $followers = $this->doctrine->getRepository(Follower::class)->findBy(['user_id' => $account->getAcct()]);
+        $followers = $this->doctrine->getRepository(Follower::class)->findBy(['user' => $account]);
         foreach ($followers as $follower) {
-            $ret[] = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $follower->getFollowId()]);
+            $ret[] = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $follower->getFollow()->getAcct()]);
         }
 
-        return $ret;
+        return array_filter($ret);
     }
 
-    public function fetchRemoteAccount(mixed $href)
+    /**
+     * @throws EntityNotFoundException
+     * @throws \Exception
+     */
+    public function fetchRemoteAccount(Account $source, string $href): ?Account
     {
         // @TODO: It's not a always needed that we fetch an account as a "user".. we should be able to fetch it as a "client" as well
-//        $response = $this->authClientService->fetch($this->accountService->getLoggedInAccount(), $href);
-        $response = $this->authClientService->fetch($this->getAccount(Config::ADMIN_USER), $href);
-        $data = json_decode($response->getBody()->getContents(), true);
+        $response = $this->authClientService->fetch($source, $href);
+        if (! $response) {
+            return null;
+        }
 
+        /** @var array<mixed> $data */
+        $data = json_decode($response->getBody()->getContents(), true);
         if (!$data || !isset($data['id'])) {
             return null;
         }
 
-        $acct = $data['preferredUsername'] . "@" . parse_url($data['id'], PHP_URL_HOST);
+        $acct = $data['preferredUsername'] . "@" . parse_url(strval($data['id']), PHP_URL_HOST);
         $account = $this->findAccount($acct);
         if (! $account) {
             $account = new Account();

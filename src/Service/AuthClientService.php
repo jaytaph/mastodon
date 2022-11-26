@@ -6,19 +6,18 @@ namespace App\Service;
 
 use App\Entity\Account;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
 
 class AuthClientService
 {
     protected Client $client;
 
-    public function __construct()
+    public function __construct(Client $client = null)
     {
-        $this->client = new Client();
-//        $this->client = $client;
+        $this->client = $client ?? new Client([]);
     }
 
-    public function fetch(Account $account, string $href): ?Response
+    public function fetch(Account $account, string $href): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
@@ -31,7 +30,7 @@ class AuthClientService
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): get {$receiverPath}\nhost: {$receiverHost}\ndate: {$date}";
-        openssl_sign($sigText, $signature, $account->getPrivateKeyPem(), OPENSSL_ALGO_SHA256);
+        openssl_sign($sigText, $signature, $account->getPrivateKeyPem() ?? '', OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
 
         // Create signature HTTP header which defines the signature, the key used and the algorithm used and which headers it contains

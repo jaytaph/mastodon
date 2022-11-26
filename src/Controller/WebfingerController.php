@@ -29,7 +29,7 @@ class WebfingerController extends AbstractController
     #[Route('/.well-known/webfinger', name: 'app_webfinger')]
     public function webfinger(Request $request): Response
     {
-        $resource = $request->query->get('resource');
+        $resource = strval($request->query->get('resource'));
         if (! str_starts_with($resource, 'acct:')) {
             throw new BadRequestHttpException('Invalid resource');
         }

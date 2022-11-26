@@ -27,6 +27,9 @@ class TootCommand extends Command
         ;
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -75,15 +78,16 @@ class TootCommand extends Command
             'to' => 'https://www.w3.org/ns/activitystreams#Public',
             'type' => 'Create',
         ];
-        $msgDigest = "SHA-256=" . base64_encode(hash("sha256", json_encode($data), true));
+        $data = (string)json_encode($data);
+        $msgDigest = "SHA-256=" . base64_encode(hash("sha256", $data, true));
 
         // Sign the headers with the users private key for authenticity
-        $sigText = "(request-target): post {$receiverPath}/inbox\nhost: {$receiverHost}\ndate: {$date}\ndigest: {$msgDigest}";
-        openssl_sign($sigText, $signature, file_get_contents("private.pem"), OPENSSL_ALGO_SHA256);
+        $sigText = "(request-target): post $receiverPath/inbox\nhost: $receiverHost\ndate: $date\ndigest: $msgDigest";
+        openssl_sign($sigText, $signature, (string)file_get_contents("private.pem"), OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
 
         // Create signature HTTP header which defines the signature, the key used and the algorithm used and which headers it contains
-        $sigHeader = "keyId=\"{$senderKey}\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"{$signature}\"";
+        $sigHeader = "keyId=\"$senderKey\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"$signature\"";
 
         // Set HTTP headers to send
         $headers = [
@@ -109,8 +113,8 @@ class TootCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->note($result->getStatusCode());
-        $io->note($result->getBody());
+        $io->note((string)$result->getStatusCode());
+        $io->note((string)$result->getBody());
 
         $io->success('All done');
         return Command::SUCCESS;

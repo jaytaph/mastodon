@@ -7,33 +7,34 @@ namespace App\Service;
 use App\Exception\SignatureValidationException;
 use ML\JsonLD\JsonLD;
 use ML\JsonLD\NQuads;
-use Symfony\Component\Stopwatch\Stopwatch;
 
 class SignatureService
 {
     protected AccountService $accountService;
-    protected WebfingerService $webfingerService;
 
-    public function __construct(AccountService $accountService, WebfingerService $webfingerService)
+    public function __construct(AccountService $accountService)
     {
         $this->accountService = $accountService;
-        $this->webfingerService = $webfingerService;
     }
 
+    /**
+     * @param array<string> $message
+     */
     public function hasSignature(array $message): bool
     {
         return isset($message['signature']);
     }
 
+    /**
+     * @param array<string> $message
+     */
     public function validateMessage(array $message): bool
     {
-        $stopwatch = new Stopwatch(true);
-        $stopwatch->start('validateMessage');
-
         if (! isset($message['signature'])) {
             throw SignatureValidationException::noSignature();
         }
 
+        /** @var array<string> $signature */
         $signature = $message['signature'];
         $signatureValue = $signature['signatureValue'];
         unset($message['signature']);
@@ -43,8 +44,9 @@ class SignatureService
         }
 
         // Fetch the creator of the message/signature so we have the key
-        $creator = substr($signature['creator'], 0, strpos($signature['creator'], '#'));
-        $account = $this->webfingerService->fetchAccount($creator);
+        $pos = strpos($signature['creator'], '#');
+        $creator = $pos ? substr($signature['creator'], 0, $pos) : $signature['creator'];
+        $account = $this->accountService->findAccount($creator);
         if (!$account) {
             throw SignatureValidationException::accountNotFound($creator);
         }
@@ -55,18 +57,10 @@ class SignatureService
         unset($signature['signatureValue']);
         $signature['@context'] = 'https://w3id.org/security/v1';
 
-        $stopwatch->lap('validateMessage');
-        $cS = $this->canonicalize($signature);
-        $cM = $this->canonicalize($message);
-
-        $stopwatch->lap('validateMessage');
         // Create the hash of both the message and the signature
-        $hash = $this->hash($cS. $cM);
+        $hash = $this->hash($this->canonicalize($signature) . $this->canonicalize($message));
 
-        $ret = openssl_verify($hash, base64_decode($signatureValue), $account->getPublicKeyPem(), OPENSSL_ALGO_SHA256);
-        $event = $stopwatch->stop('validateMessage');
-
-        dump($event);
+        $ret = openssl_verify($hash, base64_decode($signatureValue), $account->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
 
         return $ret == 1;
     }
@@ -76,11 +70,15 @@ class SignatureService
         return bin2hex(hash('sha256', $data, true));
     }
 
-    // Converts JSON-LD to a canonical form
-    protected function canonicalize(array $data)
+    /**
+     * Converts JSON-LD to a canonical form
+     *
+     * @param array<string> $data
+     */
+    protected function canonicalize(array $data): string
     {
         // Convert JSON-LD to RDF
-        $json = json_encode($data);
+        $json = json_encode($data, JSON_THROW_ON_ERROR);
         $quads = JsonLD::toRdf($json, ['format' => 'application/nquads']);
         $nquads = new NQuads();
         $tmp = $nquads->serialize($quads);
@@ -96,13 +94,12 @@ class SignatureService
                 continue;
             }
             if (str_starts_with($v, "_:b")) {
-                $ret .= "_:cn14n" . substr($v, 3)."\n";
+                $ret .= "_:cn14n" . substr($v, 3) . "\n";
             } else {
-                $ret .= $v."\n";
+                $ret .= $v . "\n";
             }
         }
 
         return $ret;
     }
-
 }

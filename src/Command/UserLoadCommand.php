@@ -43,16 +43,13 @@ class UserLoadCommand extends Command
     {
 
         $io = new SymfonyStyle($input, $output);
-        $name = $input->getArgument('name');
+        $name = strval($input->getArgument('name'));
 
-        $account = $this->webfingerService->fetch($name);
-
+        $account = $this->accountService->findAccount($name, true);
         if (!$account) {
             $io->error("Cannot find user $name");
             return 1;
         }
-
-        $this->accountService->storeAccount($account);
 
         $io->success("saved");
 

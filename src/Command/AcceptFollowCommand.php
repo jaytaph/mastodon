@@ -27,11 +27,14 @@ class AcceptFollowCommand extends Command
         ;
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $url = $input->getArgument('url');
-        $id = $input->getArgument('id');
+        $url = strval($input->getArgument('url'));
+        $id = strval($input->getArgument('id'));
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
@@ -58,17 +61,19 @@ class AcceptFollowCommand extends Command
             "actor" => $senderUrl,
             "object" => $obj,
         ];
-        $msgDigest = "SHA-256=" . base64_encode(hash("sha256", json_encode($data), true));
+        $data = strval(json_encode($data));
+        $msgDigest = "SHA-256=" . base64_encode(hash("sha256", $data, true));
 
         dump($data);
 
         // Sign the headers with the users private key for authenticity
-        $sigText = "(request-target): post {$receiverPath}/inbox\nhost: {$receiverHost}\ndate: {$date}\ndigest: {$msgDigest}";
-        openssl_sign($sigText, $signature, file_get_contents("private.pem"), OPENSSL_ALGO_SHA256);
+        $sigText = "(request-target): post $receiverPath/inbox\nhost: $receiverHost\ndate: $date\ndigest: $msgDigest";
+        $key = strval(file_get_contents("private.pem"));
+        openssl_sign($sigText, $signature, $key, OPENSSL_ALGO_SHA256);
         $signature = base64_encode($signature);
 
         // Create signature HTTP header which defines the signature, the key used and the algorithm used and which headers it contains
-        $sigHeader = "keyId=\"{$senderKey}\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"{$signature}\"";
+        $sigHeader = "keyId=\"$senderKey\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"$signature\"";
 
         // Set HTTP headers to send
         $headers = [
@@ -94,7 +99,7 @@ class AcceptFollowCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->note($result->getBody());
+        $io->note((string)$result->getBody());
 
         $io->success('All done');
         return Command::SUCCESS;

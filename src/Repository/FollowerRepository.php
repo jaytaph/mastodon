@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Follower|null find($id, $lockMode = null, $lockVersion = null)
  * @method Follower|null findOneBy(array $criteria, array $orderBy = null)
  * @method Follower[]    findAll()
- * @method Follower[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Follower[]    findBy(array $xcriteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class FollowerRepository extends ServiceEntityRepository
 {
