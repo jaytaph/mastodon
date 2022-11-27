@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use App\Config;
 use App\Service\AccountService;
+use App\Service\MediaService;
+use App\Service\StatusService;
 use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
@@ -15,6 +17,7 @@ use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,11 +29,19 @@ class ApiController extends AbstractController
     use AccountTrait;
 
     protected AccountService $accountService;
+    protected StatusService $statusService;
+    protected MediaService $mediaService;
     protected LoggerInterface $logger;
 
-    public function __construct(AccountService $accountService, LoggerInterface $logger)
+    public function __construct(
+        AccountService $accountService,
+        StatusService $statusService,
+        MediaService $mediaService,
+        LoggerInterface $logger)
     {
         $this->accountService = $accountService;
+        $this->statusService = $statusService;
+        $this->mediaService = $mediaService;
         $this->logger = $logger;
     }
 
@@ -196,12 +207,11 @@ class ApiController extends AbstractController
         return new JsonResponse($this->accountService->toJson($account));
     }
 
-    #[Route('/api/v1/accounts/{id}/statuses', name: 'api_account_statuses')]
+    #[Route('/api/v1/accounts/{uuid}/statuses', name: 'api_account_statuses')]
     #[IsGranted('PUBLIC_ACCESS')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function statuses(string $id): Response
+    public function statuses(string $uuid): Response
     {
-        $uuid = Uuid::fromString($id);
         $account = $this->accountService->findAccountById($uuid);
         if (!$account) {
             throw $this->createNotFoundException();
@@ -215,11 +225,11 @@ class ApiController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/api/v1/accounts/{acct}/following', name: 'api_account_following')]
+    #[Route('/api/v1/accounts/{uuid}/following', name: 'api_account_following')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function following(string $acct): Response
+    public function following(string $uuid): Response
     {
-        $account = $this->findAccount($acct, localOnly: true);
+        $account = $this->findAccountById($uuid);
 
         $ret = [];
         foreach ($this->accountService->getFollowing($account) as $follower) {
@@ -229,11 +239,11 @@ class ApiController extends AbstractController
         return new JsonResponse($ret);
     }
 
-    #[Route('/api/v1/accounts/{acct}/followers', name: 'api_account_followers')]
+    #[Route('/api/v1/accounts/{uuid}/followers', name: 'api_account_followers')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function followers(string $acct): Response
+    public function followers(string $uuid): Response
     {
-        $account = $this->findAccount($acct, localOnly: true);
+        $account = $this->findAccountById($uuid);
 
         $ret = [];
         foreach ($this->accountService->getFollowers($account) as $follower) {
@@ -317,8 +327,8 @@ class ApiController extends AbstractController
                 'streaming_api' => 'wss://' . Config::SITE_DOMAIN . '/api/v1/streaming',
             ],
             'stats' => [
-                'user_count' => 2,
-                'status_count' => 1234,
+                'user_count' => $this->accountService->getLocalAccountCount(),
+                'status_count' => $this->statusService->getLocalStatusCount(),
                 'domain_count' => 1,
             ],
             'thumbnail' => 'https://dhpt.nl/dh.jpg',
@@ -327,4 +337,46 @@ class ApiController extends AbstractController
 
         return new JsonResponse($data);
     }
+
+    #[Route('/api/v1/media', name: 'api_media_upload', methods: 'POST')]
+    #[IsGranted('ROLE_OAUTH2_WRITE')]
+    public function mediaUpload(Request $request): Response
+    {
+        /** @var UploadedFile $file */
+        $file = $request->files->get('file');
+        $mediaAttachment = $this->mediaService->createMediaAttachment($file);
+
+        return new JsonResponse($mediaAttachment->toArray());
+    }
+
+    #[Route('/api/v1/media/{uuid}', name: 'api_media_edit', methods: 'PUT')]
+    #[IsGranted('ROLE_OAUTH2_WRITE')]
+    public function mediaEdit(Request $request, string $uuid): Response
+    {
+        $mediaAttachment = $this->mediaService->findMediaAttachmentById(Uuid::fromString($uuid));
+        if (!$mediaAttachment) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($request->request->has('description')) {
+            $mediaAttachment->setDescription(strval($request->get('description')));
+        }
+        if ($request->request->has('focus')) {
+            $mediaAttachment->setFocus($request->get('focus'));
+        }
+        if ($request->request->has('blurhash')) {
+            $mediaAttachment->setBlurhash(strval($request->get('blurhash')));
+        }
+        if ($request->request->has('meta')) {
+            $mediaAttachment->setMeta($request->get('meta'));
+        }
+        if ($request->request->has('remote_url')) {
+            $mediaAttachment->setRemoteUrl(strval($request->get('remote_url')));
+        }
+
+        $this->mediaService->save($mediaAttachment);
+
+        return new JsonResponse($mediaAttachment->toArray());
+    }
+
 }

@@ -14,7 +14,7 @@ final class Version20221117082150 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Added pub/priv key to account table';
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */

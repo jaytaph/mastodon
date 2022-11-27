@@ -3,6 +3,8 @@ league_oauth2_server:
         private_key: '%env(resolve:OAUTH_PRIVATE_KEY)%'
         private_key_passphrase: '%env(resolve:OAUTH_PASSPHRASE)%'
         encryption_key: '%env(resolve:OAUTH_ENCRYPTION_KEY)%'
+        enable_refresh_token_grant: false
+        access_token_ttl: P999Y         # 999 years, which should be unlimited enough
     resource_server:
         public_key: '%env(resolve:OAUTH_PUBLIC_KEY)%'
     scopes:

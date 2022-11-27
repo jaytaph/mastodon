@@ -14,7 +14,7 @@ final class Version20221123083740 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Initial status table';
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */

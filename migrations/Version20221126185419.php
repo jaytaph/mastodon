@@ -10,25 +10,23 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20221116114825 extends AbstractMigration
+final class Version20221126185419 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Initial follower table';
+        return 'Update visiblity in status table';
     }
 
-    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE follower (id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL, follow_id VARCHAR(255) NOT NULL, accepted BOOLEAN NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('ALTER TABLE status ALTER visibility TYPE BOOLEAN USING visibility::boolean');
     }
 
-    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
-        $this->addSql('DROP TABLE follower');
+        $this->addSql('ALTER TABLE status ALTER visibility TYPE VARCHAR(255)');
     }
 }

@@ -14,7 +14,7 @@ final class Version20221118103722 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'OAuth2 tables';
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */

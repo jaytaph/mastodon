@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\expr;
 
 class AccountService
 {
@@ -72,9 +73,9 @@ class AccountService
     /**
      * @throws EntityNotFoundException
      */
-    public function getAccountById(Uuid $id): Account
+    public function getAccountById(string|Uuid $uuid): Account
     {
-        $account = $this->findAccountById($id);
+        $account = $this->findAccountById($uuid);
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -82,9 +83,11 @@ class AccountService
         return $account;
     }
 
-    public function findAccountById(Uuid $id): ?Account
+    public function findAccountById(string|Uuid $uuid): ?Account
     {
-        return $this->doctrine->getRepository(Account::class)->find($id);
+        $uuid = ($uuid instanceof Uuid) ? $uuid : Uuid::fromString($uuid);
+
+        return $this->doctrine->getRepository(Account::class)->find($uuid);
     }
 
     public function hasAccount(string $acct): bool
@@ -216,5 +219,18 @@ class AccountService
         $this->doctrine->flush();
 
         return $account;
+    }
+
+    public function getLocalAccountCount(): int
+    {
+        $qb = $this->doctrine->getRepository(Account::class)->createQueryBuilder('a');
+
+        /** @var int $total */
+        $total = $qb->select('COUNT(a)')
+            ->where($qb->expr()->isNotNull('a.privateKeyPem'))
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        return $total;
     }
 }

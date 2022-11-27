@@ -14,7 +14,7 @@ final class Version20221115132223 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Initial account table';
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */

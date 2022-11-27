@@ -317,4 +317,9 @@ class Account
 
         return $this;
     }
+
+    public function isLocal(): bool
+    {
+        return $this->privateKeyPem !== null;
+    }
 }

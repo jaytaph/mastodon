@@ -25,3 +25,5 @@ config/packages/jwt/public.pem
 /.phpcs-cache
 /phpcs.xml
 ###< squizlabs/php_codesniffer ###
+
+/public/media

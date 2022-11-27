@@ -14,7 +14,7 @@ final class Version20221117083917 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Account id is a UUID';
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
