@@ -18,18 +18,18 @@ class Account
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
-    #[ORM\GeneratedValue(strategy: "CUSTOM")]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private Uuid $id;
 
     #[ORM\Column(length: 255)]
-    private string $username = "";
+    private string $username = '';
 
     #[ORM\Column(length: 255)]
-    private string $acct = "";
+    private string $acct = '';
 
     #[ORM\Column(length: 255)]
-    private string $displayName = "";
+    private string $displayName = '';
 
     #[ORM\Column]
     private bool $locked = false;
@@ -44,22 +44,22 @@ class Account
     private \DateTimeImmutable $lastStatusAt;
 
     #[ORM\Column(type: Types::TEXT)]
-    private string $note = "";
+    private string $note = '';
 
     #[ORM\Column(length: 255)]
-    private string $url = "";
+    private string $url = '';
 
     #[ORM\Column(length: 255)]
-    private string $avatar = "";
+    private string $avatar = '';
 
     #[ORM\Column(length: 255)]
-    private string $avatarStatic = "";
+    private string $avatarStatic = '';
 
     #[ORM\Column(length: 255)]
-    private string $header = "";
+    private string $header = '';
 
     #[ORM\Column(length: 255)]
-    private string $headerStatic = "";
+    private string $headerStatic = '';
 
     /** @var array<string, mixed> array  */
     #[ORM\Column(type: Types::JSON)]
@@ -316,5 +316,10 @@ class Account
         $this->privateKeyPem = $privateKeyPem;
 
         return $this;
+    }
+
+    public function isLocal(): bool
+    {
+        return $this->privateKeyPem !== null;
     }
 }

@@ -14,12 +14,6 @@
 .phpunit.result.cache
 ###< phpunit/phpunit ###
 
-###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
-###< symfony/phpunit-bridge ###
-
-
 config/packages/jwt/private.pem
 config/packages/jwt/public.pem
 
@@ -31,3 +25,5 @@ config/packages/jwt/public.pem
 /.phpcs-cache
 /phpcs.xml
 ###< squizlabs/php_codesniffer ###
+
+/public/media

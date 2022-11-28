@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class WebfingerController extends AbstractController
@@ -45,7 +44,7 @@ class WebfingerController extends AbstractController
 
         $account = $this->accountService->findAccount($username);
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         $data = [
@@ -56,7 +55,7 @@ class WebfingerController extends AbstractController
             ],
             'links' => [
                 [
-                    "rel" => "http://webfinger.net/rel/profile-page",
+                    "rel" => "https://webfinger.net/rel/profile-page",
                     "type" => "text/html",
                     "href" => Config::SITE_URL . '/@' . $account->getUsername()
                 ],
@@ -66,7 +65,7 @@ class WebfingerController extends AbstractController
                     'href' => Config::SITE_URL . '/users/' . $account->getUsername(),
                 ],
                 [
-                    "rel" => "http://ostatus.org/schema/1.0/subscribe",
+                    "rel" => "https://ostatus.org/schema/1.0/subscribe",
                     "template" => Config::SITE_URL . '/@' . $account->getUsername() . "/follow?uri={uri}"
                 ]
             ],

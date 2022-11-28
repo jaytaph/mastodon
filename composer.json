@@ -13,6 +13,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.13",
         "guzzlehttp/guzzle": "^7.5",
+        "kornrunner/blurhash": "^1.2",
         "league/oauth2-server-bundle": "dev-master",
         "ml/json-ld": "^1.2",
         "sensio/framework-extra-bundle": "^6.1",
@@ -46,7 +47,8 @@
         "symfony/web-link": "6.0.*",
         "symfony/yaml": "6.0.*",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+      "ext-gd": "*"
     },
     "config": {
         "platform": {
@@ -88,10 +90,12 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "post-install-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "[ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths $(pwd)/vendor/slevomat/coding-standard/SlevomatCodingStandard"
         ],
         "post-update-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "[ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths $(pwd)/vendor/slevomat/coding-standard/SlevomatCodingStandard"
         ]
     },
     "conflict": {

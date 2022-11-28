@@ -27,6 +27,9 @@ class SignatureService
 
     /**
      * @param array<string> $message
+     * @return bool
+     * @throws SignatureValidationException
+     * @throws \JsonException
      */
     public function validateMessage(array $message): bool
     {
@@ -74,6 +77,8 @@ class SignatureService
      * Converts JSON-LD to a canonical form
      *
      * @param array<string> $data
+     * @return string
+     * @throws \JsonException
      */
     protected function canonicalize(array $data): string
     {

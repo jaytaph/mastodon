@@ -11,11 +11,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends AbstractController
 {
+    use AccountTrait;
+
     protected AccountService $accountService;
 
     /**
@@ -35,7 +36,7 @@ class DefaultController extends AbstractController
     #[Route('/users/{user}/inbox', name: 'app_users_inbox')]
     public function inbox(string $user, Request $request): Response
     {
-        file_put_contents("../var/uploads/{$user}-inbox.txt", $request->getCOntent() . "\n", FILE_APPEND);
+        file_put_contents("../var/uploads/$user-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
 
         return new Response("donkey");
     }
@@ -43,14 +44,7 @@ class DefaultController extends AbstractController
     #[Route('/users/{acct}', name: 'app_users_show')]
     public function user(string $acct): Response
     {
-        // Only local accounts are allowed
-        if (str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->findAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
+        $account = $this->findAccount($acct, localOnly: true);
 
         $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
 
@@ -97,7 +91,7 @@ class DefaultController extends AbstractController
 
         $account = $this->accountService->findAccount($username);
         if (!$account) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         $data = [
@@ -108,7 +102,7 @@ class DefaultController extends AbstractController
             ],
             'links' => [
                 [
-                    "rel" => "http://webfinger.net/rel/profile-page",
+                    "rel" => "https://webfinger.net/rel/profile-page",
                     "type" => "text/html",
                     "href" => Config::SITE_URL . '/@' . $account->getUsername()
                 ],
@@ -118,7 +112,7 @@ class DefaultController extends AbstractController
                     'href' => Config::SITE_URL . '/users/' . $account->getUsername(),
                 ],
                 [
-                    "rel" => "http://ostatus.org/schema/1.0/subscribe",
+                    "rel" => "https://ostatus.org/schema/1.0/subscribe",
                     "template" => Config::SITE_URL . '/@' . $account->getUsername() . "/follow?uri={uri}"
                 ]
             ],

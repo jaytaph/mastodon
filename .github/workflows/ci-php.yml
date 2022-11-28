@@ -92,7 +92,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
       - name: Mess detection
-        run: vendor/bin/phpmd src/ text ruleset.phpmd.xml
+        run: vendor/bin/phpmd src/ text ruleset.xml
     strategy:
       max-parallel: 3
       matrix:

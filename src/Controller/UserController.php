@@ -10,11 +10,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
+    use AccountTrait;
+
     protected AccountService $accountService;
 
     /**
@@ -29,7 +30,7 @@ class UserController extends AbstractController
     public function inbox(string $user, Request $request): Response
     {
         // For now, we store all contents in a file for later processing...
-        file_put_contents("../var/uploads/{$user}-inbox.txt", $request->getCOntent() . "\n", FILE_APPEND);
+        file_put_contents("../var/uploads/$user-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
 
         return new Response("donkey");
     }
@@ -37,14 +38,7 @@ class UserController extends AbstractController
     #[Route('/users/{acct}', name: 'app_users_show')]
     public function user(string $acct): Response
     {
-        // Only local accounts are allowed
-        if (str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->findAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
+        $account = $this->findAccount($acct, localOnly: true);
 
         $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
 

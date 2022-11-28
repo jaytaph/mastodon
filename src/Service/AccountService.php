@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\expr;
 
 class AccountService
 {
@@ -34,14 +35,15 @@ class AccountService
         return $this->getAccount((string)$uid, false);
     }
 
-    /**
-     * @throws EntityNotFoundException
-     */
     public function findAccount(string $acct, bool $fetchRemote = false): ?Account
     {
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
         if ($fetchRemote && !$account) {
-            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
+            try {
+                $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
+            } catch (EntityNotFoundException) {
+                $account = null;
+            }
         }
 
         return $account;
@@ -71,9 +73,9 @@ class AccountService
     /**
      * @throws EntityNotFoundException
      */
-    public function getAccountById(Uuid $id): Account
+    public function getAccountById(string|Uuid $uuid): Account
     {
-        $account = $this->findAccountById($id);
+        $account = $this->findAccountById($uuid);
         if (!$account) {
             throw new EntityNotFoundException();
         }
@@ -81,9 +83,11 @@ class AccountService
         return $account;
     }
 
-    public function findAccountById(Uuid $id): ?Account
+    public function findAccountById(string|Uuid $uuid): ?Account
     {
-        return $this->doctrine->getRepository(Account::class)->find($id);
+        $uuid = ($uuid instanceof Uuid) ? $uuid : Uuid::fromString($uuid);
+
+        return $this->doctrine->getRepository(Account::class)->find($uuid);
     }
 
     public function hasAccount(string $acct): bool
@@ -134,7 +138,7 @@ class AccountService
     /**
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function statusCount(Account $account): int
+    public function statusCount(): int
     {
         return 123;
 //        return $this->doctrine->getRepository(Statuses::class)->count(['acct_id' => $account->getId()]);
@@ -171,7 +175,6 @@ class AccountService
     }
 
     /**
-     * @throws EntityNotFoundException
      * @throws \Exception
      */
     public function fetchRemoteAccount(Account $source, string $href): ?Account
@@ -216,5 +219,18 @@ class AccountService
         $this->doctrine->flush();
 
         return $account;
+    }
+
+    public function getLocalAccountCount(): int
+    {
+        $qb = $this->doctrine->getRepository(Account::class)->createQueryBuilder('a');
+
+        /** @var int $total */
+        $total = $qb->select('COUNT(a)')
+            ->where($qb->expr()->isNotNull('a.privateKeyPem'))
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        return $total;
     }
 }
