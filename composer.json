@@ -120,7 +120,7 @@
         "phpstan/phpstan-mockery": "^1.1",
         "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
-        "psalm/plugin-symfony": "^3.1",
+        "psalm/plugin-symfony": "^4.0",
         "slevomat/coding-standard": "^8.0",
         "spatie/phpunit-snapshot-assertions": "^4.2",
         "squizlabs/php_codesniffer": "^3.6",
