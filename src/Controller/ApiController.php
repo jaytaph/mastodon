@@ -37,8 +37,8 @@ class ApiController extends AbstractController
         AccountService $accountService,
         StatusService $statusService,
         MediaService $mediaService,
-        LoggerInterface $logger)
-    {
+        LoggerInterface $logger
+    ) {
         $this->accountService = $accountService;
         $this->statusService = $statusService;
         $this->mediaService = $mediaService;
@@ -362,13 +362,21 @@ class ApiController extends AbstractController
             $mediaAttachment->setDescription(strval($request->get('description')));
         }
         if ($request->request->has('focus')) {
-            $mediaAttachment->setFocus($request->get('focus'));
+            $f = $request->get('focus');
+            if (!is_array($f)) {
+                $f = [$f];
+            }
+            $mediaAttachment->setFocus($f);
         }
         if ($request->request->has('blurhash')) {
             $mediaAttachment->setBlurhash(strval($request->get('blurhash')));
         }
         if ($request->request->has('meta')) {
-            $mediaAttachment->setMeta($request->get('meta'));
+            $m = $request->get('meta');
+            if (!is_array($m)) {
+                $m = [$m];
+            }
+            $mediaAttachment->setMeta($m);
         }
         if ($request->request->has('remote_url')) {
             $mediaAttachment->setRemoteUrl(strval($request->get('remote_url')));
@@ -378,5 +386,4 @@ class ApiController extends AbstractController
 
         return new JsonResponse($mediaAttachment->toArray());
     }
-
 }

@@ -518,5 +518,4 @@ class Status
 
         return $this;
     }
-
 }

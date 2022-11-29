@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\ActivityPub;
 use App\Config;
-use App\Entity\Account;
-use App\Entity\Follower;
 use App\Entity\MediaAttachment;
-use App\Entity\Status;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityNotFoundException;
 use kornrunner\Blurhash\Blurhash;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\expr;
 
 class MediaService
 {
     protected EntityManagerInterface $doctrine;
     protected string $imagePath;
+
+    protected const DEFAULT_BLURHASH = '00Pj0^';
 
     public function __construct(EntityManagerInterface $doctrine, string $imagePath)
     {
@@ -60,7 +54,7 @@ class MediaService
         $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/images/' . $filename);
 
         // @TODO: Lets do a blurhash that actually isn't very slow
-        $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath .'/'. $filename));
+        $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath . '/' . $filename));
 //        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
 
         $this->save($mediaAttachment);
@@ -72,10 +66,13 @@ class MediaService
     {
         $image = $this->imageCreateFromAny($path);
         if (!$image) {
-            return '00Pj0^';        // Simple gray block
+            return self::DEFAULT_BLURHASH;        // Simple gray block
         }
 
         $image = imagescale($image, 32, 32, IMG_BICUBIC_FIXED);
+        if (!$image) {
+            return self::DEFAULT_BLURHASH;
+        }
         $width = imagesx($image);
         $height = imagesy($image);
 
@@ -84,7 +81,10 @@ class MediaService
             $row = [];
             for ($x = 0; $x < $width; ++$x) {
                 $index = imagecolorat($image, $x, $y);
-                $colors = imagecolorsforindex($image, $index);
+                $colors = imagecolorsforindex($image, intval($index));
+                if (!$colors) {
+                    $row[] = [0, 0, 0];
+                }
 
                 $row[] = [$colors['red'], $colors['green'], $colors['blue']];
             }
@@ -96,37 +96,27 @@ class MediaService
         return Blurhash::encode($pixels, $components_x, $components_y);
     }
 
-    function imageCreateFromAny(string $filepath): \GdImage|false
+    protected function imageCreateFromAny(string $filepath): \GdImage|false
     {
         $info = @getimagesize($filepath);
         if (!is_array($info)) {
             return false;
         }
 
-        $allowedTypes = array(
-            IMAGETYPE_GIF,  // [] gif
-            IMAGETYPE_JPEG,  // [] jpg
-            IMAGETYPE_PNG,  // [] png
-            //6   // [] bmp
-        );
+        $allowedTypes = [ IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG ];
         if (!in_array($info[2], $allowedTypes)) {
             return false;
         }
+
         switch ($info[2]) {
-            case IMAGETYPE_GIF :
-                $im = imageCreateFromGif($filepath);
-            break;
-            case IMAGETYPE_JPEG :
-                $im = imageCreateFromJpeg($filepath);
-            break;
-            case IMAGETYPE_PNG :
-                $im = imageCreateFromPng($filepath);
-            break;
-//            case 6 :
-//                $im = imageCreateFromBmp($filepath);
-//            break;
+            case IMAGETYPE_GIF:
+                return imageCreateFromGif($filepath);
+            case IMAGETYPE_JPEG:
+                return imageCreateFromJpeg($filepath);
+            case IMAGETYPE_PNG:
+                return imageCreateFromPng($filepath);
         }
 
-        return $im;
+        return false;
     }
 }

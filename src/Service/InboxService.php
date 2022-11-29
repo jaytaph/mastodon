@@ -89,18 +89,9 @@ class InboxService
 
         // @TODO: We probably need to check for forwarded messages first
 
-        if ($message['id'] == 'https://toet.dnzm.nl/users/max/statuses/01GHBQM3Y3QE56J8NC8BBD3YFX/activity') {
-            $a = 1;
-        }
-
         $status = $this->statusService->findStatusByURI($message['id']);
         if (!$status) {
             $status = new Status();
-        }
-
-        if (! isset($message['actor'])) {
-            dd($message);
-            exit;
         }
 
         $account = $this->accountService->findAccountByURI($message['actor']);
