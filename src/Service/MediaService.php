@@ -49,31 +49,33 @@ class MediaService
 
         $id = $mediaAttachment->getId();
         $filename = $id . '.' . $file->guessExtension();
-//        $imageData = $file->openFile()->fread($file->getSize());
         $file->move($this->imagePath, $filename);
 
         $mediaAttachment->setFilename($filename);
         $mediaAttachment->setType('image');
         $mediaAttachment->setDescription('Uploaded via API');
-        $mediaAttachment->setUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setPreviewUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setTextUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/' . $filename);
+        $mediaAttachment->setUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setPreviewUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setTextUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/images/' . $filename);
 
         // @TODO: Lets do a blurhash that actually isn't very slow
-//        $blurhash = Blurhash::encode($this->getImagePixels($imageData), 4, 3);
-        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
+        $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath .'/'. $filename));
+//        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
 
         $this->save($mediaAttachment);
 
         return $mediaAttachment;
     }
 
-    protected function getImagePixels($data): array
+    protected function generateBlurhash(string $path): string
     {
-        // Yeah, this is definitely slow as f...
+        $image = $this->imageCreateFromAny($path);
+        if (!$image) {
+            return '00Pj0^';        // Simple gray block
+        }
 
-        $image = imagecreatefromstring($data);
+        $image = imagescale($image, 32, 32, IMG_BICUBIC_FIXED);
         $width = imagesx($image);
         $height = imagesy($image);
 
@@ -86,9 +88,45 @@ class MediaService
 
                 $row[] = [$colors['red'], $colors['green'], $colors['blue']];
             }
-
             $pixels[] = $row;
         }
-        return $pixels;
+
+        $components_x = 4;
+        $components_y = 3;
+        return Blurhash::encode($pixels, $components_x, $components_y);
+    }
+
+    function imageCreateFromAny(string $filepath): \GdImage|false
+    {
+        $info = @getimagesize($filepath);
+        if (!is_array($info)) {
+            return false;
+        }
+
+        $allowedTypes = array(
+            IMAGETYPE_GIF,  // [] gif
+            IMAGETYPE_JPEG,  // [] jpg
+            IMAGETYPE_PNG,  // [] png
+            //6   // [] bmp
+        );
+        if (!in_array($info[2], $allowedTypes)) {
+            return false;
+        }
+        switch ($info[2]) {
+            case IMAGETYPE_GIF :
+                $im = imageCreateFromGif($filepath);
+            break;
+            case IMAGETYPE_JPEG :
+                $im = imageCreateFromJpeg($filepath);
+            break;
+            case IMAGETYPE_PNG :
+                $im = imageCreateFromPng($filepath);
+            break;
+//            case 6 :
+//                $im = imageCreateFromBmp($filepath);
+//            break;
+        }
+
+        return $im;
     }
 }

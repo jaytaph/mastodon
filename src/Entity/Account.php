@@ -47,7 +47,7 @@ class Account
     private string $note = '';
 
     #[ORM\Column(length: 255)]
-    private string $url = '';
+    private string $uri = '';
 
     #[ORM\Column(length: 255)]
     private string $avatar = '';
@@ -168,14 +168,14 @@ class Account
         return $this;
     }
 
-    public function getUrl(): string
+    public function getUri(): string
     {
-        return $this->url;
+        return $this->uri;
     }
 
-    public function setUrl(string $url): self
+    public function setUri(string $uri): self
     {
-        $this->url = $url;
+        $this->uri = $uri;
 
         return $this;
     }

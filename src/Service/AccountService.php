@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
+use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,6 +33,10 @@ class AccountService
     public function getLoggedInAccount(): Account
     {
         $uid = $this->tokenStorage->getToken()?->getUserIdentifier();
+        if (!$uid) {
+            // When we are not logged in, for instance when running from the commandline, we use the admin user as the default logged in user
+            $uid = Config::ADMIN_USER;
+        }
         return $this->getAccount((string)$uid, false);
     }
 
@@ -105,7 +110,7 @@ class AccountService
             'id' => $account->getId()->toBase58(),
             'username' => $account->getUsername(),
             'acct' => $account->getAcct(),
-            'url' => $account->getUrl(),
+            'url' => $account->getUri(),
             'display_name' => $account->getDisplayName(),
             'note' => $account->getNote(),
             'avatar' => $account->getAvatar(),
@@ -204,7 +209,8 @@ class AccountService
         $account->setDisplayName($data['name'] ?? $data['preferredUsername']);
         $account->setLocked($data['manuallyApprovesFollowers']);
         $account->setBot($data['type'] == 'Service');
-        $account->setUrl($data['url']);
+        $account->setUri($data['id']);
+        $account->setUri($data['id']);
         $account->setCreatedAt(new \DateTimeImmutable());
         $account->setFields($data['attachments'] ?? []);
         $account->setSource([]);
@@ -232,5 +238,17 @@ class AccountService
             ->getSingleScalarResult();
         
         return $total;
+    }
+
+    public function findAccountByURI(string $uri, bool $fetchRemote = true): ?Account
+    {
+        print "Loading: ". $uri."\n";
+
+        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['uri' => $uri]);
+        if (!$account && $fetchRemote) {
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $uri);
+        }
+
+        return $account;
     }
 }

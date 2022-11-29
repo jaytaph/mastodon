@@ -117,6 +117,10 @@ class Status
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $likable;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private Account $owner;
+
     public function getId(): Uuid
     {
         return $this->id;
@@ -502,4 +506,17 @@ class Status
     {
         $this->visibility = $visibility;
     }
+
+    public function getOwner(): Account
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(Account $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
 }
