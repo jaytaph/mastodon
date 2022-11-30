@@ -10,6 +10,8 @@ use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use League\Bundle\OAuth2ServerBundle\Entity\Client;
+use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -18,14 +20,32 @@ class AccountService
     protected EntityManagerInterface $doctrine;
     protected AuthClientService $authClientService;
     protected TokenStorageInterface $tokenStorage;
+    protected ClientRepository $clientRepository;
 
-    public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage, AuthClientService $authClientService)
-    {
+    public function __construct(
+        EntityManagerInterface $doctrine,
+        TokenStorageInterface $tokenStorage,
+        AuthClientService $authClientService,
+        ClientRepository $clientRepository
+    ) {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
         $this->authClientService = $authClientService;
+        $this->clientRepository = $clientRepository;
     }
 
+    public function getLoggedInApplication(): string
+    {
+        $token = $this->tokenStorage->getToken();
+        if ($token === null) {
+            return '';
+        }
+
+        $clientId = $token->getAttribute('oauth_client_id') ?? 0;
+
+        $client = $this->clientRepository->getClientEntity($clientId);
+        return $client?->getName() ?? '';
+    }
     /**
      * @throws EntityNotFoundException
      */

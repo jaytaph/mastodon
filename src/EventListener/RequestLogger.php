@@ -20,12 +20,18 @@ class RequestLogger implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
+        if (! $event->isMainRequest()) {
+            return;
+        }
+
+        $req = $event->getRequest();
         $data = [
-            'method' => $event->getRequest()->getMethod(),
-            'uri' => $event->getRequest()->getRequestUri(),
-            'headers' => $event->getRequest()->headers->all(),
-            'query' => $event->getRequest()->query->all(),
-            'post' => $event->getRequest()->request->all(),
+            'method' => $req->getMethod(),
+            'uri' => $req->getRequestUri(),
+            'headers' => $req->headers->all(),
+            'query' => $req->query->all(),
+            'post' => $req->request->all(),
+            'json' => $req->getContent(),
         ];
 
         file_put_contents('requestlogger.txt', json_encode($data) . "\n", FILE_APPEND);
