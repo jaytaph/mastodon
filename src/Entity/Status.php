@@ -84,8 +84,8 @@ class Status
     #[ORM\Column(type: 'text')]
     private string $contentWarning;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private bool $visibility;
+    #[ORM\Column(length: 255)]
+    private string $visibility;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $sensitive;
@@ -116,6 +116,10 @@ class Status
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $likable;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private Account $owner;
 
     public function getId(): Uuid
     {
@@ -488,18 +492,30 @@ class Status
     }
 
     /**
-     * @return bool
+     * @return string
      */
-    public function isVisibility(): bool
+    public function getVisibility(): string
     {
         return $this->visibility;
     }
 
     /**
-     * @param bool $visibility
+     * @param string $visibility
      */
-    public function setVisibility(bool $visibility): void
+    public function setVisibility(string $visibility): void
     {
         $this->visibility = $visibility;
+    }
+
+    public function getOwner(): Account
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(Account $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 }

@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use App\Config;
 use App\Repository\MediaAttachmentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -137,11 +138,18 @@ class MediaAttachment
         return $this;
     }
 
+    /**
+     * @return array|mixed[]
+     */
     public function getMeta(): array
     {
         return $this->meta;
     }
 
+    /**
+     * @param array|mixed[] $meta
+     * @return $this
+     */
     public function setMeta(array $meta): self
     {
         $this->meta = $meta;
@@ -149,7 +157,11 @@ class MediaAttachment
         return $this;
     }
 
-    public function toArray() {
+    /**
+     * @return array|mixed[]
+     */
+    public function toArray(): array
+    {
         $ret = [
             'id' => $this->getId(),
             'type' => $this->getType(),
@@ -180,11 +192,18 @@ class MediaAttachment
         return $this;
     }
 
+    /**
+     * @return array|mixed[]
+     */
     public function getFocus(): array
     {
         return $this->focus;
     }
 
+    /**
+     * @param array|mixed[] $focus
+     * @return $this
+     */
     public function setFocus(array $focus): self
     {
         $this->focus = $focus;

@@ -22,7 +22,7 @@ class AuthClientService
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format('D, d M Y H:i:s T');
 
-        $senderKey = $account->getUrl() . "#main-key";
+        $senderKey = $account->getUri() . "#main-key";
 
         $receiverUrl = $href;
         $receiverPath = parse_url($receiverUrl, PHP_URL_PATH);

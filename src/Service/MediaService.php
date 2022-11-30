@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\ActivityPub;
 use App\Config;
-use App\Entity\Account;
-use App\Entity\Follower;
 use App\Entity\MediaAttachment;
-use App\Entity\Status;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityNotFoundException;
 use kornrunner\Blurhash\Blurhash;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\expr;
 
 class MediaService
 {
     protected EntityManagerInterface $doctrine;
     protected string $imagePath;
+
+    protected const DEFAULT_BLURHASH = '00Pj0^';
 
     public function __construct(EntityManagerInterface $doctrine, string $imagePath)
     {
@@ -49,31 +43,36 @@ class MediaService
 
         $id = $mediaAttachment->getId();
         $filename = $id . '.' . $file->guessExtension();
-//        $imageData = $file->openFile()->fread($file->getSize());
         $file->move($this->imagePath, $filename);
 
         $mediaAttachment->setFilename($filename);
         $mediaAttachment->setType('image');
         $mediaAttachment->setDescription('Uploaded via API');
-        $mediaAttachment->setUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setPreviewUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setTextUrl(Config::SITE_URL . '/media/' . $filename);
-        $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/' . $filename);
+        $mediaAttachment->setUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setPreviewUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setTextUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/images/' . $filename);
 
         // @TODO: Lets do a blurhash that actually isn't very slow
-//        $blurhash = Blurhash::encode($this->getImagePixels($imageData), 4, 3);
-        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
+        $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath . '/' . $filename));
+//        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
 
         $this->save($mediaAttachment);
 
         return $mediaAttachment;
     }
 
-    protected function getImagePixels($data): array
+    protected function generateBlurhash(string $path): string
     {
-        // Yeah, this is definitely slow as f...
+        $image = $this->imageCreateFromAny($path);
+        if (!$image) {
+            return self::DEFAULT_BLURHASH;        // Simple gray block
+        }
 
-        $image = imagecreatefromstring($data);
+        $image = imagescale($image, 32, 32, IMG_BICUBIC_FIXED);
+        if (!$image) {
+            return self::DEFAULT_BLURHASH;
+        }
         $width = imagesx($image);
         $height = imagesy($image);
 
@@ -82,13 +81,42 @@ class MediaService
             $row = [];
             for ($x = 0; $x < $width; ++$x) {
                 $index = imagecolorat($image, $x, $y);
-                $colors = imagecolorsforindex($image, $index);
+                $colors = imagecolorsforindex($image, intval($index));
+                if (!$colors) {
+                    $row[] = [0, 0, 0];
+                }
 
                 $row[] = [$colors['red'], $colors['green'], $colors['blue']];
             }
-
             $pixels[] = $row;
         }
-        return $pixels;
+
+        $components_x = 4;
+        $components_y = 3;
+        return Blurhash::encode($pixels, $components_x, $components_y);
+    }
+
+    protected function imageCreateFromAny(string $filepath): \GdImage|false
+    {
+        $info = @getimagesize($filepath);
+        if (!is_array($info)) {
+            return false;
+        }
+
+        $allowedTypes = [ IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG ];
+        if (!in_array($info[2], $allowedTypes)) {
+            return false;
+        }
+
+        switch ($info[2]) {
+            case IMAGETYPE_GIF:
+                return imageCreateFromGif($filepath);
+            case IMAGETYPE_JPEG:
+                return imageCreateFromJpeg($filepath);
+            case IMAGETYPE_PNG:
+                return imageCreateFromPng($filepath);
+        }
+
+        return false;
     }
 }

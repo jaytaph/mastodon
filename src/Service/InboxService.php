@@ -10,11 +10,13 @@ use Doctrine\ORM\EntityManagerInterface;
 class InboxService
 {
     protected AccountService $accountService;
+    protected StatusService $statusService;
     protected EntityManagerInterface $doctrine;
 
-    public function __construct(AccountService $accountService, EntityManagerInterface $doctrine)
+    public function __construct(AccountService $accountService, StatusService $statusService, EntityManagerInterface $doctrine)
     {
         $this->accountService = $accountService;
+        $this->statusService = $statusService;
         $this->doctrine = $doctrine;
     }
 
@@ -83,14 +85,21 @@ class InboxService
      */
     protected function processCreatedNoteMessage(array $message, array $object): bool
     {
+        $owner = $this->accountService->getLoggedInAccount();
+
         // @TODO: We probably need to check for forwarded messages first
 
-//        $account = $this->accountService->findAccount($message['actor'], true);
+        $status = $this->statusService->findStatusByURI($message['id']);
+        if (!$status) {
+            $status = new Status();
+        }
 
-        $status = new Status();
-        $status->setAccount(null);
+        $account = $this->accountService->findAccountByURI($message['actor']);
+        $status->setAccount($account);
         $status->setAccountUri($message['actor']);
         $status->setActivityStreamsType('');  // @TODO ??
+
+        $status->setOwner($owner);
 
         /** @var array<mixed>|string|null $att */
         $att = $object['attachment'];
@@ -105,7 +114,7 @@ class InboxService
         $status->setCreatedWithApplicationId('');
 
         /** @var array<mixed>|string|null $emojis */
-        $emojis = $object['emoji'];
+        $emojis = $object['emoji'] ?? [];
         $status->setEmojiIds(is_array($emojis) ? $emojis : [$emojis]);
         $status->setFederated(false);
 //        $status->setInReplyTo($object['inReplyTo'] ?? null);

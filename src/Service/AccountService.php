@@ -5,33 +5,57 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
+use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use League\Bundle\OAuth2ServerBundle\Entity\Client;
+use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\expr;
 
 class AccountService
 {
     protected EntityManagerInterface $doctrine;
     protected AuthClientService $authClientService;
     protected TokenStorageInterface $tokenStorage;
+    protected ClientRepository $clientRepository;
 
-    public function __construct(EntityManagerInterface $doctrine, TokenStorageInterface $tokenStorage, AuthClientService $authClientService)
-    {
+    public function __construct(
+        EntityManagerInterface $doctrine,
+        TokenStorageInterface $tokenStorage,
+        AuthClientService $authClientService,
+        ClientRepository $clientRepository
+    ) {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
         $this->authClientService = $authClientService;
+        $this->clientRepository = $clientRepository;
     }
 
+    public function getLoggedInApplication(): string
+    {
+        $token = $this->tokenStorage->getToken();
+        if ($token === null) {
+            return '';
+        }
+
+        $clientId = $token->getAttribute('oauth_client_id') ?? 0;
+
+        $client = $this->clientRepository->getClientEntity($clientId);
+        return $client?->getName() ?? '';
+    }
     /**
      * @throws EntityNotFoundException
      */
     public function getLoggedInAccount(): Account
     {
         $uid = $this->tokenStorage->getToken()?->getUserIdentifier();
+        if (!$uid) {
+            // When we are not logged in, for instance when running from the commandline, we use the admin user as the default logged in user
+            $uid = Config::ADMIN_USER;
+        }
         return $this->getAccount((string)$uid, false);
     }
 
@@ -105,7 +129,7 @@ class AccountService
             'id' => $account->getId()->toBase58(),
             'username' => $account->getUsername(),
             'acct' => $account->getAcct(),
-            'url' => $account->getUrl(),
+            'url' => $account->getUri(),
             'display_name' => $account->getDisplayName(),
             'note' => $account->getNote(),
             'avatar' => $account->getAvatar(),
@@ -117,7 +141,7 @@ class AccountService
             'discoverable' => true,
             'created_at' => $account->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
             'last_status_at' => $account->getLastStatusAt()->format(ActivityPub::DATETIME_FORMAT),
-            'statuses_count' => $this->statusCount($account),
+            'statuses_count' => 123,
             'followers_count' => $this->followersCount($account),
             'following_count' => $this->followingCount($account),
             'fields' => $account->getFields(),
@@ -133,15 +157,6 @@ class AccountService
     public function followingCount(Account $account): int
     {
         return $this->doctrine->getRepository(Follower::class)->count(['user' => $account]);
-    }
-
-    /**
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function statusCount(): int
-    {
-        return 123;
-//        return $this->doctrine->getRepository(Statuses::class)->count(['acct_id' => $account->getId()]);
     }
 
     /**
@@ -204,7 +219,7 @@ class AccountService
         $account->setDisplayName($data['name'] ?? $data['preferredUsername']);
         $account->setLocked($data['manuallyApprovesFollowers']);
         $account->setBot($data['type'] == 'Service');
-        $account->setUrl($data['url']);
+        $account->setUri(strval($data['id']));
         $account->setCreatedAt(new \DateTimeImmutable());
         $account->setFields($data['attachments'] ?? []);
         $account->setSource([]);
@@ -230,7 +245,19 @@ class AccountService
             ->where($qb->expr()->isNotNull('a.privateKeyPem'))
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         return $total;
+    }
+
+    public function findAccountByURI(string $uri, bool $fetchRemote = true): ?Account
+    {
+        print "Loading: " . $uri . "\n";
+
+        $account = $this->doctrine->getRepository(Account::class)->findOneBy(['uri' => $uri]);
+        if (!$account && $fetchRemote) {
+            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $uri);
+        }
+
+        return $account;
     }
 }

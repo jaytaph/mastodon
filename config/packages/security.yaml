@@ -40,6 +40,7 @@ security:
 
         - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/custom_emojis, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/accounts/verify_credentials, roles: ROLE_OAUTH2_READ }
         - { path: ^/api, roles: ROLE_USER }
 
