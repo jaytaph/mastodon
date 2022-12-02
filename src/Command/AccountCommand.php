@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\ActivityPub;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -34,7 +35,7 @@ class AccountCommand extends Command
         $url = strval($input->getArgument('url'));
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format('D, d M Y H:i:s T');
+        $date = $dt->format(ActivityPub::DATETIME_FORMAT);
 
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
 //        $senderUrl = "https://dhpt.nl/users/jaytaph";

@@ -30,31 +30,4 @@ class BaseApiController extends AbstractController
         $this->mediaService = $mediaService;
         $this->logger = $logger;
     }
-
-    protected function findAccount(string $acct, bool $localOnly = false): Account
-    {
-        if ($localOnly && str_contains($acct, '@')) {
-            throw new NotFoundHttpException();
-        }
-        $account = $this->accountService->findAccount($acct);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
-
-        return $account;
-    }
-
-    protected function findAccountById(string|Uuid $uuid): Account
-    {
-        if (!$uuid instanceof Uuid) {
-            $uuid = Uuid::fromString($uuid);
-        }
-
-        $account = $this->accountService->findAccountById($uuid);
-        if (!$account) {
-            throw new NotFoundHttpException();
-        }
-
-        return $account;
-    }
 }

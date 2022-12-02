@@ -4,20 +4,27 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\ActivityPub;
 use App\Config;
 use App\Entity\Account;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class StatusService
 {
     protected EntityManagerInterface $doctrine;
     protected AccountService $accountService;
+    protected MediaService $mediaService;
 
-    public function __construct(EntityManagerInterface $doctrine, AccountService $accountService)
-    {
+    public function __construct(
+        EntityManagerInterface $doctrine,
+        AccountService $accountService,
+        MediaService $mediaService
+    ) {
         $this->doctrine = $doctrine;
         $this->accountService = $accountService;
+        $this->mediaService = $mediaService;
     }
 
     public function getLocalStatusCount(): int
@@ -46,8 +53,8 @@ class StatusService
 
         // @TODO: check for character limits
 
-        $status->setUri(Config::SITE_URL . '/status/' . $status->getId()->toBase58());
-        $status->setUrl(Config::SITE_URL . '/status/' . $status->getId()->toBase58());
+        $status->setUri(Config::SITE_URL . '/users/'.$owner->getAcct().'/status/' . $status->getId()->toBase58());
+        $status->setUrl(Config::SITE_URL . '/@'.$owner->getAcct().'/status/' . $status->getId()->toBase58());
         $status->setLocal(true);
         $status->setOwner($owner);
         $status->setAccount($owner);
@@ -89,13 +96,13 @@ class StatusService
     {
         return [
             'id' => $status->getId()->toBase58(),
-            'created_at' => $status->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'created_at' => $status->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
             'in_reply_to_id' => $status->getInReplyTo()?->getId()->toBase58(),
             'in_reply_to_account_id' => $status->getInReplyTo()?->getAccount()->getId()->toBase58(),
             'sensitive' => $status->isSensitive(),
             'spoiler_text' => $status->getContentWarning(),
             'visibility' => $status->getVisibility(),
-            'language' => $status->getLanguage(),
+            'language' => 'en', // $status->getLanguage(),
             'uri' => $status->getUri(),
             'url' => $status->getUrl(),
             'replies_count' => 0,
@@ -108,14 +115,93 @@ class StatusService
             'pinned' => false,
             'content' => $status->getContent(),
             'reblog' => null,
-            'application' => $status->getCreatedWithApplicationId(),
-            'account' => $this->accountService->toJson($status->getOwner()),
-            'media_attachments' => $status->getAttachmentIds(),
+            'application' => [
+                'name' => $status->getCreatedWithApplicationId(),
+                'vapid_key' => 'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M='
+            ],
+            'account' => $this->accountService->toJson($status->getAccount()),
+            'media_attachments' => $this->toMediaAttachmentJson($status->getAttachmentIds()),
             'mentions' => $status->getMentionIds(),
-            'tags' => $status->getTagIds(),
+            'tags' => $this->toTagJson($status->getTagIds()),
             'emojis' => $status->getEmojiIds(),
             'card' => null,
             'poll' => null,
         ];
+    }
+
+    public function getTimelineForAccount(Account $account, bool $local = true, bool $remote = false, bool $onlyMedia = false, string $maxId = '', string $sinceId = '', string $minId = '', int $limit = 40)
+    {
+        $qb = $this->doctrine->createQueryBuilder()
+            ->select('s')
+            ->from(Status::class, 's')
+            ->where('s.owner = :owner')
+            ->setParameter('owner', $account)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults($limit);
+
+        if ($local && !$remote) {
+            $qb->andWhere('s.local = true');
+        }
+        if ($remote && !$local) {
+            $qb->andWhere('s.local = false');
+        }
+        if ($onlyMedia) {
+            $qb->andWhere('s.attachmentIds IS NOT NULL');
+        }
+
+        if ($minId !== '') {
+            $minId = Uuid::fromBase58($minId);
+            $status = $this->doctrine->getRepository(Status::class)->find($minId);
+            $qb->andWhere('s.createdAt > :minCreatedAt')
+                ->setParameter('minCreatedAt', $status->getCreatedAt());
+        }
+        if ($sinceId !== '') {
+            $sinceId = Uuid::fromBase58($sinceId);
+            $status = $this->doctrine->getRepository(Status::class)->find($sinceId);
+            $qb->andWhere('s.createdAt > :sinceCreatedAt')
+                ->setParameter('sinceCreatedAt', $status->getCreatedAt());
+        }
+        if ($maxId !== '') {
+            $maxId = Uuid::fromBase58($maxId);
+            $status = $this->doctrine->getRepository(Status::class)->find($maxId);
+            $qb->andWhere('s.createdAt < :maxCreatedAt')
+                ->setParameter('maxCreatedAt', $status->getCreatedAt());
+        }
+
+        $ret = [];
+        $result = $qb->getQuery()->getResult();
+        foreach ($result as $entry) {
+            /** @var Status $entry */
+            $ret[] = $this->toJson($entry);
+        }
+
+        return $ret;
+    }
+
+    protected function toMediaAttachmentJson(array $attachmentIds): array
+    {
+        $ret = [];
+
+        foreach ($attachmentIds as $id) {
+            $media = $this->mediaService->findMediaAttachmentById(Uuid::fromString($id));
+            $ret[] = $this->mediaService->toJson($media);
+        }
+
+        return $ret;
+    }
+
+    protected function toTagJson(array $tagIds): array
+    {
+        $ret = [];
+
+        foreach ($tagIds as $tag) {
+            $ret[] = [
+                'name' => $tag['name'],
+                'url' => $tag['url'] ?? $tag['href'] ?? '',
+                'history' => [],
+            ];
+        }
+
+        return $ret;
     }
 }

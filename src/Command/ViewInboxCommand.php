@@ -14,10 +14,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'app:inbox',
+    name: 'app:inbox:view',
     description: 'Add a short description for your command',
 )]
-class ParseInboxCommand extends Command
+class ViewInboxCommand extends Command
 {
     protected SignatureService $signatureService;
     protected InboxService $inboxService;
@@ -98,9 +98,6 @@ class ParseInboxCommand extends Command
 //                print "signature error on line $i: {$e->getMessage()}\n";
 //                continue;
 //            }
-
-            $this->inboxService->processMessage($message);
-
 
             if ($mode == "count") {
                 $idx = is_string($message['type']) ? $message['type'] : "";

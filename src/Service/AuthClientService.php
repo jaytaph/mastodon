@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\ActivityPub;
 use App\Entity\Account;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +21,7 @@ class AuthClientService
     public function fetch(Account $account, string $href): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format('D, d M Y H:i:s T');
+        $date = $dt->format(ActivityPub::DATETIME_FORMAT);
 
         $senderKey = $account->getUri() . "#main-key";
 
