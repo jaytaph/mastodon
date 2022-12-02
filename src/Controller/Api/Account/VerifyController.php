@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class VerifyController extends BaseApiController
 {
-    #[Route('/api/v1/accounts/verify_credentials', name: 'api_verify_credentials')]
+    #[Route('/api/v1/accounts/verify_credentials', name: 'api_verify_credentials', priority: 10)]
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function verifyCredentials(): Response
     {

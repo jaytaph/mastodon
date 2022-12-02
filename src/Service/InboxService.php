@@ -132,14 +132,19 @@ class InboxService
         $status->setPinned(false);
         $status->setReplyable(true);
         $status->setSensitive($object['sensitive'] == "true");
+
         /** @var array<mixed>|string|null $tags */
         $tags = $object['tag'];
+        if (is_array($tags) && isset($tags['type'])) {
+            $tags = [$tags];
+        }
         $status->setTagIds(is_array($tags) ? $tags : [$tags]);
+
         $status->setText($object['content']);
         $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
         $status->setUri($object['id']);
         $status->setUrl($object['url']);
-        $status->setVisibility(true);
+        $status->setVisibility($object['visibility'] ?? 'public');
 
         $this->doctrine->persist($status);
         $this->doctrine->flush();

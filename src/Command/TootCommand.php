@@ -36,7 +36,7 @@ class TootCommand extends Command
         $msg = $input->getArgument('msg');
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format('D, d M Y H:i:s T');
+        $date = $dt->format(ActivityPub::DATETIME_FORMAT);
 
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
         $senderUrl = "https://dhpt.nl/users/jaytaph";

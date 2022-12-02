@@ -27,11 +27,18 @@ class AccountService
         TokenStorageInterface $tokenStorage,
         AuthClientService $authClientService,
         ClientRepository $clientRepository
-    ) {
+    )
+    {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
         $this->authClientService = $authClientService;
         $this->clientRepository = $clientRepository;
+
+
+        $userName = $this->tokenStorage->getToken()?->getUserIdentifier();
+        if ($userName) {
+            $this->setLoggedInAccount($userName);
+        }
     }
 
     public function getLoggedInApplication(): string
@@ -46,17 +53,14 @@ class AccountService
         $client = $this->clientRepository->getClientEntity($clientId);
         return $client?->getName() ?? '';
     }
-    /**
-     * @throws EntityNotFoundException
-     */
-    public function getLoggedInAccount(): Account
+
+    public function setLoggedInAccount($acct) {
+        $this->loggedinUser = $this->findAccount($acct);
+    }
+
+    public function getLoggedInAccount(): ?Account
     {
-        $uid = $this->tokenStorage->getToken()?->getUserIdentifier();
-        if (!$uid) {
-            // When we are not logged in, for instance when running from the commandline, we use the admin user as the default logged in user
-            $uid = Config::ADMIN_USER;
-        }
-        return $this->getAccount((string)$uid, false);
+        return $this->loggedinUser;
     }
 
     public function findAccount(string $acct, bool $fetchRemote = false): ?Account

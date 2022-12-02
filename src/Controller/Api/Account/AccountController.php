@@ -9,19 +9,14 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Uid\Uuid;
 
 class AccountController extends BaseApiController
 {
-    #[Route('/api/v1/accounts/{id}', name: 'api_account')]
+    #[Route('/api/v1/accounts/{uuid}', name: 'api_account')]
     #[IsGranted('PUBLIC_ACCESS')]
-    public function account(string $id): Response
+    public function account(string $uuid): Response
     {
-        $uuid = Uuid::fromString($id);
-        $account = $this->accountService->findAccountById($uuid);
-        if (!$account) {
-            throw $this->createNotFoundException();
-        }
+        $account = $this->findAccountById($uuid);
 
         return new JsonResponse($this->accountService->toJson($account));
     }
