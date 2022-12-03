@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\Account;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -32,7 +33,7 @@ class InboxService
      * @param array<mixed> $message
      * @throws \Exception
      */
-    public function processMessage(array $message): bool
+    public function processMessage(Account $source, array $message): bool
     {
         if (!isset($message['type'])) {
             throw new \Exception('type not set');
@@ -40,11 +41,11 @@ class InboxService
 
         switch ($message['type']) {
             case 'Create':
-                return $this->processCreatedMessage($message);
+                return $this->processCreatedMessage($source, $message);
 //            case 'Update':
-//                return $this->processUpdatedMessage($message);
+//                return $this->processUpdatedMessage($source, $message);
 //            case 'Delete':
-//                return $this->processDeletedMessage($message);
+//                return $this->processDeletedMessage($source, $message);
             default:
 //                throw new \Exception('Unknown type: ' . $message['type']);
         }
@@ -56,7 +57,7 @@ class InboxService
      * @param array<string> $message
      * @throws \Exception
      */
-    protected function processCreatedMessage(array $message): bool
+    protected function processCreatedMessage(Account $source, array $message): bool
     {
         if (! isset($message['object'])) {
             return false;
@@ -67,7 +68,7 @@ class InboxService
 
         switch ($object['type']) {
             case 'Note':
-                return $this->processCreatedNoteMessage($message, $object);
+                return $this->processCreatedNoteMessage($source, $message, $object);
             case 'Question':
 //                return $this->processCreatedQuestionMessage($message, $object);
                 break;
@@ -83,10 +84,8 @@ class InboxService
      * @param array<string> $object
      * @throws \Exception
      */
-    protected function processCreatedNoteMessage(array $message, array $object): bool
+    protected function processCreatedNoteMessage(Account $source, array $message, array $object): bool
     {
-        $owner = $this->accountService->getLoggedInAccount();
-
         // @TODO: We probably need to check for forwarded messages first
 
         $status = $this->statusService->findStatusByURI($message['id']);
@@ -99,7 +98,7 @@ class InboxService
         $status->setAccountUri($message['actor']);
         $status->setActivityStreamsType('');  // @TODO ??
 
-        $status->setOwner($owner);
+        $status->setOwner($source);
 
         /** @var array<mixed>|string|null $att */
         $att = $object['attachment'];

@@ -38,6 +38,7 @@ class StatusService
     }
 
     /**
+     * @param mixed[] $data
      * @throws \Exception
      */
     public function createStatus(array $data, Account $owner, string $applicationId = ''): Status
@@ -53,8 +54,8 @@ class StatusService
 
         // @TODO: check for character limits
 
-        $status->setUri(Config::SITE_URL . '/users/'.$owner->getAcct().'/status/' . $status->getId()->toBase58());
-        $status->setUrl(Config::SITE_URL . '/@'.$owner->getAcct().'/status/' . $status->getId()->toBase58());
+        $status->setUri(Config::SITE_URL . '/users/' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
+        $status->setUrl(Config::SITE_URL . '/@' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
         $status->setLocal(true);
         $status->setOwner($owner);
         $status->setAccount($owner);
@@ -92,13 +93,17 @@ class StatusService
     }
 
 
+    /**
+     * @param Status $status
+     * @return mixed[]
+     */
     public function toJson(Status $status): array
     {
         return [
             'id' => $status->getId()->toBase58(),
-            'created_at' => $status->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
+            'created_at' => $status->getCreatedAt()?->format(ActivityPub::DATETIME_FORMAT),
             'in_reply_to_id' => $status->getInReplyTo()?->getId()->toBase58(),
-            'in_reply_to_account_id' => $status->getInReplyTo()?->getAccount()->getId()->toBase58(),
+            'in_reply_to_account_id' => $status->getInReplyTo()?->getAccount()?->getId()->toBase58(),
             'sensitive' => $status->isSensitive(),
             'spoiler_text' => $status->getContentWarning(),
             'visibility' => $status->getVisibility(),
@@ -117,7 +122,8 @@ class StatusService
             'reblog' => null,
             'application' => [
                 'name' => $status->getCreatedWithApplicationId(),
-                'vapid_key' => 'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M='
+                // @TODO: This is not a correct key
+                'vapid_key' => 'BCk-AAAAAA-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
             ],
             'account' => $this->accountService->toJson($status->getAccount()),
             'media_attachments' => $this->toMediaAttachmentJson($status->getAttachmentIds()),
@@ -129,13 +135,25 @@ class StatusService
         ];
     }
 
-    public function getTimelineForAccount(Account $account, bool $local = true, bool $remote = false, bool $onlyMedia = false, string $maxId = '', string $sinceId = '', string $minId = '', int $limit = 40)
-    {
+    /**
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @return mixed[]
+     */
+    public function getTimelineForAccount(
+        Account $account,
+        bool $local = true,
+        bool $remote = false,
+        bool $onlyMedia = false,
+        string $maxId = '',
+        string $sinceId = '',
+        string $minId = '',
+        int $limit = 40
+    ): array {
         $qb = $this->doctrine->createQueryBuilder()
             ->select('s')
             ->from(Status::class, 's')
             ->where('s.owner = :owner')
-            ->setParameter('owner', $account)
+            ->setParameter('owner', $account->getId())
             ->orderBy('s.createdAt', 'DESC')
             ->setMaxResults($limit);
 
@@ -152,20 +170,26 @@ class StatusService
         if ($minId !== '') {
             $minId = Uuid::fromBase58($minId);
             $status = $this->doctrine->getRepository(Status::class)->find($minId);
-            $qb->andWhere('s.createdAt > :minCreatedAt')
-                ->setParameter('minCreatedAt', $status->getCreatedAt());
+            if ($status) {
+                $qb->andWhere('s.createdAt > :minCreatedAt')
+                    ->setParameter('minCreatedAt', $status->getCreatedAt());
+            }
         }
         if ($sinceId !== '') {
             $sinceId = Uuid::fromBase58($sinceId);
             $status = $this->doctrine->getRepository(Status::class)->find($sinceId);
-            $qb->andWhere('s.createdAt > :sinceCreatedAt')
-                ->setParameter('sinceCreatedAt', $status->getCreatedAt());
+            if ($status) {
+                $qb->andWhere('s.createdAt > :sinceCreatedAt')
+                    ->setParameter('sinceCreatedAt', $status->getCreatedAt());
+            }
         }
         if ($maxId !== '') {
             $maxId = Uuid::fromBase58($maxId);
             $status = $this->doctrine->getRepository(Status::class)->find($maxId);
-            $qb->andWhere('s.createdAt < :maxCreatedAt')
-                ->setParameter('maxCreatedAt', $status->getCreatedAt());
+            if ($status) {
+                $qb->andWhere('s.createdAt < :maxCreatedAt')
+                    ->setParameter('maxCreatedAt', $status->getCreatedAt());
+            }
         }
 
         $ret = [];
@@ -178,22 +202,34 @@ class StatusService
         return $ret;
     }
 
+    /**
+     * @param mixed[] $attachmentIds
+     * @return mixed[]
+     */
     protected function toMediaAttachmentJson(array $attachmentIds): array
     {
         $ret = [];
 
+        /** @var string $id */
         foreach ($attachmentIds as $id) {
             $media = $this->mediaService->findMediaAttachmentById(Uuid::fromString($id));
-            $ret[] = $this->mediaService->toJson($media);
+            if ($media) {
+                $ret[] = $this->mediaService->toJson($media);
+            }
         }
 
         return $ret;
     }
 
+    /**
+     * @param mixed[] $tagIds
+     * @return mixed[]
+     */
     protected function toTagJson(array $tagIds): array
     {
         $ret = [];
 
+        /** @var array<string, string> $tag */
         foreach ($tagIds as $tag) {
             $ret[] = [
                 'name' => $tag['name'],

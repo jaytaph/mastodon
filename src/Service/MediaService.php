@@ -91,11 +91,12 @@ class MediaService
             $pixels[] = $row;
         }
 
-        $components_x = 4;
-        $components_y = 3;
-        return Blurhash::encode($pixels, $components_x, $components_y);
+        $componentsX = 4;
+        $componentsY = 3;
+        return Blurhash::encode($pixels, $componentsX, $componentsY);
     }
 
+    /** @SuppressWarnings(PHPMD.ErrorControlOperator) */
     protected function imageCreateFromAny(string $filepath): \GdImage|false
     {
         $info = @getimagesize($filepath);
@@ -120,6 +121,9 @@ class MediaService
         return false;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function toJson(MediaAttachment $media): array
     {
         return [

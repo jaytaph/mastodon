@@ -39,6 +39,9 @@ class UserController extends AbstractController
     public function user(string $acct): Response
     {
         $account = $this->findAccount($acct, localOnly: true);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
 
         $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
 

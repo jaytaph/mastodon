@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Entity\MediaAttachment;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -28,6 +27,7 @@ class ConvertTagsCommand extends Command
 
 
     /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int

@@ -21,5 +21,4 @@ class FilterController extends BaseApiController
 
         return new JsonResponse($data);
     }
-
 }

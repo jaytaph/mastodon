@@ -28,6 +28,7 @@ class ConvertMediaCommand extends Command
 
 
     /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,6 +47,7 @@ class ConvertMediaCommand extends Command
 
             $attachmentIds = [];
             foreach ($mediaIds as $mediaId) {
+                /** @var mixed[] $mediaId */
                 if (!isset($mediaId['type'])) {
                     $attachmentIds[] = $mediaId;
                     continue;
@@ -57,7 +59,7 @@ class ConvertMediaCommand extends Command
                 $media->setRemoteUrl($mediaId['remoteUrl'] ?? '');
                 $media->setPreviewUrl($mediaId['previewUrl'] ?? '');
                 $media->setTextUrl($mediaId['textUrl'] ?? '');
-                $media->setType($mediaId['type']);
+                $media->setType(strval($mediaId['type']));
                 $media->setDescription($mediaId['description'] ?? '');
                 $media->setFocus([]);
                 $media->setMeta([]);

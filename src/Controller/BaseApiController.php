@@ -10,6 +10,7 @@ use App\Service\StatusService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+/** @SuppressWarnings(PHPMD.NumberOfChildren) */
 class BaseApiController extends AbstractController
 {
     use AccountTrait;

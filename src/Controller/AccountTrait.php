@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\Account;
 use App\Service\AccountService;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
 
 trait AccountTrait
@@ -36,14 +35,13 @@ trait AccountTrait
         return $this->accountService->findAccountById($uuid);
     }
 
-    protected function getOAuthUser(): Account
+    protected function getOauthUser(): Account
     {
         $account = $this->accountService->getLoggedInAccount();
-        if (!$account) {
-            throw new AccessDeniedHttpException('You must be logged in to access this resource.');
+        if ($account) {
+            return $account;
         }
 
-        return $account;
+        throw new AccessDeniedHttpException('You must be logged in to access this resource.');
     }
-
 }

@@ -23,29 +23,31 @@ class MediaAttachment
     private string $type = '';
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $url = null;
+    private string $url;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $preview_url = null;
+    private string $previewUrl;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $text_url = null;
+    private string $textUrl;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $remote_url = null;
+    private string $remoteUrl;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $description = null;
+    private string $description;
 
     #[ORM\Column(length: 255)]
-    private ?string $blurhash = null;
+    private string $blurhash;
 
+    /** @var mixed[] */
     #[ORM\Column]
     private array $meta = [];
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $filename = null;
 
+    /** @var mixed[] */
     #[ORM\Column]
     private array $focus = [];
 
@@ -80,36 +82,36 @@ class MediaAttachment
 
     public function getPreviewUrl(): ?string
     {
-        return $this->preview_url;
+        return $this->previewUrl;
     }
 
-    public function setPreviewUrl(string $preview_url): self
+    public function setPreviewUrl(string $previewUrl): self
     {
-        $this->preview_url = $preview_url;
+        $this->previewUrl = $previewUrl;
 
         return $this;
     }
 
     public function getTextUrl(): ?string
     {
-        return $this->text_url;
+        return $this->textUrl;
     }
 
-    public function setTextUrl(string $text_url): self
+    public function setTextUrl(string $textUrl): self
     {
-        $this->text_url = $text_url;
+        $this->textUrl = $textUrl;
 
         return $this;
     }
 
     public function getRemoteUrl(): ?string
     {
-        return $this->remote_url;
+        return $this->remoteUrl;
     }
 
-    public function setRemoteUrl(string $remote_url): self
+    public function setRemoteUrl(string $remoteUrl): self
     {
-        $this->remote_url = $remote_url;
+        $this->remoteUrl = $remoteUrl;
 
         return $this;
     }

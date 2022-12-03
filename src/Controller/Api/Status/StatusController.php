@@ -17,13 +17,15 @@ class StatusController extends BaseApiController
     #[IsGranted('ROLE_OAUTH2_WRITE')]
     public function createStatus(Request $request): Response
     {
-        $account = $this->accountService->getLoggedInAccount();
+        $account = $this->getOauthUser();
         $app = $this->accountService->getLoggedInApplication();
 
         $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            $data = [];
+        }
         $status = $this->statusService->createStatus($data, $account, $app);
 
         return new JsonResponse($this->statusService->toJson($status));
     }
-
 }
