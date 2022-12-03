@@ -8,7 +8,7 @@ on:
 
 jobs:
   composer-install:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -31,7 +31,7 @@ jobs:
   php-linting-psalm:
     needs:
       - composer-install
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -57,7 +57,7 @@ jobs:
   php-linting-psr12:
     needs:
       - composer-install
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -79,7 +79,7 @@ jobs:
   php-linting-phpmd:
     needs:
       - composer-install
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -92,7 +92,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
       - name: Mess detection
-        run: vendor/bin/phpmd src/ text ruleset.xml
+        run: vendor/bin/phpmd src/ text ruleset.phpmd.xml
     strategy:
       max-parallel: 3
       matrix:
@@ -101,7 +101,7 @@ jobs:
   php-linting-stan:
     needs:
       - composer-install
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: postgres:12
@@ -137,7 +137,7 @@ jobs:
   php-security-check:
     needs:
       - composer-install
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3

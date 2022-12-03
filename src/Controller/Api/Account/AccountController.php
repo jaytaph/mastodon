@@ -17,6 +17,9 @@ class AccountController extends BaseApiController
     public function account(string $uuid): Response
     {
         $account = $this->findAccountById($uuid);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
 
         return new JsonResponse($this->accountService->toJson($account));
     }

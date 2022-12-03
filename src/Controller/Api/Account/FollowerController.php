@@ -17,6 +17,9 @@ class FollowerController extends BaseApiController
     public function following(string $uuid): Response
     {
         $account = $this->findAccountById($uuid);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
 
         $ret = [];
         foreach ($this->accountService->getFollowing($account) as $follower) {
@@ -31,6 +34,9 @@ class FollowerController extends BaseApiController
     public function followers(string $uuid): Response
     {
         $account = $this->findAccountById($uuid);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
 
         $ret = [];
         foreach ($this->accountService->getFollowers($account) as $follower) {
@@ -50,5 +56,4 @@ class FollowerController extends BaseApiController
 
         return new JsonResponse($data);
     }
-
 }

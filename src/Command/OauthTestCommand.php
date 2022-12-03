@@ -67,7 +67,7 @@ class OauthTestCommand extends Command
             "state" => Uuid::v4(),
         ];
 
-        $authUrl = 'https://'.$url.'/oauth/authorize?' . http_build_query($params);
+        $authUrl = 'https://' . $url . '/oauth/authorize?' . http_build_query($params);
 
         $response = $client->get($authUrl, [
             'allow_redirects' => false,
@@ -85,7 +85,7 @@ class OauthTestCommand extends Command
         dump($code);
 //        $code = 'nv_noKKrli9XN5rRjJiGaTyR43lKZ6x6NcOGF9UgtKQ';
 
-        $response = $client->post('https://'.$url.'/oauth/token', [
+        $response = $client->post('https://' . $url . '/oauth/token', [
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
@@ -104,7 +104,7 @@ class OauthTestCommand extends Command
 
         /** @var array<string> $response */
         $token = $response['access_token'];
-        $response = $client->get('https://'.$url.'/api/v1/accounts/verify_credentials', [
+        $response = $client->get('https://' . $url . '/api/v1/accounts/verify_credentials', [
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',

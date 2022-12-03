@@ -15,7 +15,6 @@ use Symfony\Component\Uid\Uuid;
 
 class MediaController extends BaseApiController
 {
-
     #[Route('/api/v1/media', name: 'api_media_upload', methods: 'POST')]
     #[IsGranted('ROLE_OAUTH2_WRITE')]
     public function mediaUpload(Request $request): Response

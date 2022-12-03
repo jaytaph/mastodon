@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
-use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
-use League\Bundle\OAuth2ServerBundle\Entity\Client;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
@@ -21,14 +19,14 @@ class AccountService
     protected AuthClientService $authClientService;
     protected TokenStorageInterface $tokenStorage;
     protected ClientRepository $clientRepository;
+    protected ?Account $loggedinUser = null;
 
     public function __construct(
         EntityManagerInterface $doctrine,
         TokenStorageInterface $tokenStorage,
         AuthClientService $authClientService,
         ClientRepository $clientRepository
-    )
-    {
+    ) {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
         $this->authClientService = $authClientService;
@@ -48,13 +46,14 @@ class AccountService
             return '';
         }
 
-        $clientId = $token->getAttribute('oauth_client_id') ?? 0;
+        $clientId = strval($token->getAttribute('oauth_client_id'));
 
         $client = $this->clientRepository->getClientEntity($clientId);
         return $client?->getName() ?? '';
     }
 
-    public function setLoggedInAccount($acct) {
+    public function setLoggedInAccount(string $acct): void
+    {
         $this->loggedinUser = $this->findAccount($acct);
     }
 
@@ -63,15 +62,12 @@ class AccountService
         return $this->loggedinUser;
     }
 
-    public function findAccount(string $acct, bool $fetchRemote = false): ?Account
+    public function findAccount(string $acct, bool $fetchRemote = false, ?Account $source = null): ?Account
     {
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]);
-        if ($fetchRemote && !$account) {
-            try {
-                $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
-            } catch (EntityNotFoundException) {
-                $account = null;
-            }
+
+        if ($fetchRemote && !$account && $source) {
+            $account = $this->fetchRemoteAccount($source, $acct);
         }
 
         return $account;
@@ -80,15 +76,15 @@ class AccountService
     /**
      * @throws EntityNotFoundException
      */
-    public function getAccount(string $acct, bool $fetchRemote = true): Account
+    public function getAccount(string $acct, bool $fetchRemote = true, ?Account $source = null): Account
     {
         $account = $this->findAccount($acct);
         if ($account) {
             return $account;
         }
 
-        if ($fetchRemote) {
-            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $acct);
+        if ($fetchRemote && $source) {
+            $account = $this->fetchRemoteAccount($source, $acct);
         }
 
         if (!$account) {
@@ -127,8 +123,12 @@ class AccountService
      * @param Account $account
      * @return mixed[]
      */
-    public function toJson(Account $account): array
+    public function toJson(?Account $account): array
     {
+        if (!$account) {
+            return [];
+        }
+
         return [
             'id' => $account->getId()->toBase58(),
             'username' => $account->getUsername(),
@@ -193,9 +193,6 @@ class AccountService
         return array_filter($ret);
     }
 
-    /**
-     * @throws \Exception
-     */
     public function fetchRemoteAccount(Account $source, string $href): ?Account
     {
         // @TODO: It's not a always needed that we fetch an account as a "user".. we should be able to fetch it as a "client" as well
@@ -253,13 +250,13 @@ class AccountService
         return $total;
     }
 
-    public function findAccountByURI(string $uri, bool $fetchRemote = true): ?Account
+    public function findAccountByURI(string $uri, bool $fetchRemote = true, ?Account $source = null): ?Account
     {
         print "Loading: " . $uri . "\n";
 
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['uri' => $uri]);
-        if (!$account && $fetchRemote) {
-            $account = $this->fetchRemoteAccount($this->getLoggedInAccount(), $uri);
+        if (!$account && $fetchRemote && $source) {
+            $account = $this->fetchRemoteAccount($source, $uri);
         }
 
         return $account;

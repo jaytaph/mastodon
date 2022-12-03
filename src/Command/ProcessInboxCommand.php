@@ -11,9 +11,7 @@ use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -36,12 +34,17 @@ class ProcessInboxCommand extends Command
     }
 
     /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->accountService->setLoggedInAccount(Config::ADMIN_USER);
+        $source = $this->accountService->getLoggedInAccount();
+        if (!$source) {
+            return Command::FAILURE;
+        }
 
         $i = 0;
 
@@ -64,7 +67,7 @@ class ProcessInboxCommand extends Command
                 continue;
             }
 
-            $this->inboxService->processMessage($message);
+            $this->inboxService->processMessage($source, $message);
 
             $progressBar->advance();
             if ($i % 100 == 0) {

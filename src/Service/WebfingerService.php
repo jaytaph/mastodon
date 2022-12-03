@@ -19,7 +19,7 @@ class WebfingerService
         $this->authClientService = $authClientService;
     }
 
-    public function fetch(string $name): ?Account
+    public function fetch(Account $source, string $name): ?Account
     {
         if (!strpos($name, '@')) {
             $name = $name . '@' . Config::SITE_DOMAIN;
@@ -45,7 +45,7 @@ class WebfingerService
 
         foreach ($info['links'] ?? [] as $link) {
             if ($link['rel'] === 'self') {
-                return $this->accountService->fetchRemoteAccount($this->accountService->getLoggedInAccount(), $link['href']  ?? '');
+                return $this->accountService->fetchRemoteAccount($source, $link['href'] ?? '');
             }
         }
 
