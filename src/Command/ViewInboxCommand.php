@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Service\InboxService;
-use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -19,14 +18,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class ViewInboxCommand extends Command
 {
-    protected SignatureService $signatureService;
     protected InboxService $inboxService;
 
-    public function __construct(SignatureService $signatureService, InboxService $inboxService)
+    public function __construct(InboxService $inboxService)
     {
         parent::__construct();
 
-        $this->signatureService = $signatureService;
         $this->inboxService = $inboxService;
     }
 
@@ -90,14 +87,6 @@ class ViewInboxCommand extends Command
             if (! $this->matchesFilter($filter, strval($message['type']))) {
                 continue;
             }
-
-//            try {
-//                $this->signatureService->validateMessage($message);
-//                print "VALID SIGNATURE ON LINE $i\n";
-//            } catch (SignatureValidationException $e) {
-//                print "signature error on line $i: {$e->getMessage()}\n";
-//                continue;
-//            }
 
             if ($mode == "count") {
                 $idx = is_string($message['type']) ? $message['type'] : "";

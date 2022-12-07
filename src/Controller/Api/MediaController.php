@@ -21,7 +21,7 @@ class MediaController extends BaseApiController
     {
         /** @var UploadedFile $file */
         $file = $request->files->get('file');
-        $mediaAttachment = $this->mediaService->createMediaAttachment($file);
+        $mediaAttachment = $this->mediaService->createMediaAttachmentFromFile($file);
 
         return new JsonResponse($mediaAttachment->toArray());
     }

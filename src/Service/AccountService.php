@@ -261,4 +261,21 @@ class AccountService
 
         return $account;
     }
+
+    /**
+     * Retrieves the creator from a specific message
+     */
+    public function fetchMessageCreator(Account $source, array $message): ?Account
+    {
+        if (!$message['signature']) {
+            return null;
+        }
+
+        // Fetch the creator of the message/signature
+        $signature = $message['signature'];
+        $pos = strpos($signature['creator'], '#');
+        $creator = $pos ? substr($signature['creator'], 0, $pos) : $signature['creator'];
+
+        return $this->findAccount($creator, true, $source);
+    }
 }

@@ -7,8 +7,10 @@ namespace App\Service;
 use App\ActivityPub;
 use App\Config;
 use App\Entity\Account;
+use App\Entity\MediaAttachment;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\DocBlock;
 use Symfony\Component\Uid\Uuid;
 
 class StatusService
@@ -16,15 +18,21 @@ class StatusService
     protected EntityManagerInterface $doctrine;
     protected AccountService $accountService;
     protected MediaService $mediaService;
+    protected TagService $tagService;
+    protected EmojiService $emojiService;
 
     public function __construct(
         EntityManagerInterface $doctrine,
         AccountService $accountService,
-        MediaService $mediaService
+        MediaService $mediaService,
+        TagService $tagService,
+        EmojiService $emojiService
     ) {
         $this->doctrine = $doctrine;
         $this->accountService = $accountService;
         $this->mediaService = $mediaService;
+        $this->tagService = $tagService;
+        $this->emojiService = $emojiService;
     }
 
     public function getLocalStatusCount(): int
@@ -38,6 +46,8 @@ class StatusService
     }
 
     /**
+     * This is different than createStatusFromObject. It would be nice if we can somehow reuse the code.
+     *
      * @param mixed[] $data
      * @throws \Exception
      */
@@ -239,5 +249,99 @@ class StatusService
         }
 
         return $ret;
+    }
+
+    public function createStatusFromObject(Account $owner, array $object): ?Status
+    {
+        $status = new Status();
+
+        $author = $this->accountService->findAccountByUri($object['attributedTo']);      // The creator/author of the status
+        if (!$author) {
+            // We cannot find the author who has created this status. That account might have been deleted.
+        }
+
+        $status->setOwner($owner);      // The receiver of the status
+        $status->setAccount($author);
+        $status->setAccountUri($author ? $author->getUri() : '');
+        $status->setActivityStreamsType('');  // @TODO ??
+        $status->setBoostable(false);
+//        $status->setBoostOf();
+//        $status->setBoostOfAccount();
+//        $status->setBoostOfAccountId();
+        $status->setContent($object['content'] ?? $object['name']);     // Add URL? (https://docs.joinmastodon.org/spec/activitypub/#payloads)
+        $status->setContentWarning($object['summary'] ?? '');
+        $status->setCreatedAt(new \DateTime($object['published'] ?? 'now'));
+        $status->setCreatedWithApplicationId('');
+        $status->setFederated(false);
+        $status->setLanguage('');
+        $status->setLikable(true);
+        $status->setLocal(false);
+        $status->setPinned(false);
+        $status->setReplyable(true);
+        $status->setSensitive($object['sensitive'] == "true");
+        $status->setText($object['content']);
+        $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
+        $status->setUri($object['id']);
+        $status->setUrl($object['url']);
+        $status->setVisibility($object['visibility'] ?? 'public');
+
+        $this->processTags($status, $object['tag'] ?? []);
+        $this->processAttachments($status, $object['attachment'] ?? []);
+//        $status->setMentionIds([]);
+//        $this->createEmojis($status, $object['emoji'] ?? []);
+
+        // Set the inreplyto status
+//        $status->setInReplyTo($object['inReplyTo'] ?? null);
+//         if (isset($object['inReplyTo'])) {
+//            $account = $this->accountService->findAccount($object['inReplyTo'], true);
+//            if ($account) {
+//                $status->setInReplyToAccount($account);
+//            }
+//        }
+//        $status->setInReplyToUri($object['inReplyTo'] ?? '');
+
+        $this->doctrine->persist($status);
+        $this->doctrine->flush();
+
+        return $status;
+    }
+
+    protected function processAttachments(Status $status, array $attachments): void
+    {
+        if (isset($attachments['type'])) {
+                $attachments = [ $attachments ];
+        }
+
+        // Create media attachments from the given attachments
+        foreach ($attachments as $attachment) {
+            $media = $this->mediaService->findOrCreateAttachment($attachment);
+
+            $status->addAttachment($media);
+        }
+    }
+
+    protected function processTags(Status $status, array $tags): void
+    {
+        if (isset($tags['type'])) {
+            $tags = [ $tags ];
+        }
+
+        // Create (or update counts for) tags within the message
+        foreach ($tags as $entry) {
+            if ($entry['type'] == 'Hashtag') {
+                $tag = $this->tagService->findOrCreateTag($entry);
+                $status->addTag($tag);
+            }
+            if ($entry['type'] == 'Mention') {
+                $account = $this->accountService->findAccountByUri($entry['href']);
+                if ($account) {
+                    $status->addMention($account);
+                }
+            }
+            if ($entry['type'] == 'Emoji') {
+                $emoji = $this->emojiService->findOrCreateEmoji($entry);
+                $status->addEmoji($emoji);
+            }
+        }
     }
 }

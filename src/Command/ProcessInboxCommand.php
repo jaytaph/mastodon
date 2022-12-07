@@ -7,7 +7,6 @@ namespace App\Command;
 use App\Config;
 use App\Service\AccountService;
 use App\Service\InboxService;
-use App\Service\SignatureService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -20,15 +19,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class ProcessInboxCommand extends Command
 {
-    protected SignatureService $signatureService;
     protected InboxService $inboxService;
     protected AccountService $accountService;
 
-    public function __construct(SignatureService $signatureService, InboxService $inboxService, AccountService $accountService)
+    public function __construct(InboxService $inboxService, AccountService $accountService)
     {
         parent::__construct();
 
-        $this->signatureService = $signatureService;
         $this->inboxService = $inboxService;
         $this->accountService = $accountService;
     }
@@ -67,7 +64,7 @@ class ProcessInboxCommand extends Command
                 continue;
             }
 
-            $this->inboxService->processMessage($source, $message);
+            $this->inboxService->processMessage($source, $message, validateMessage: false);
 
             $progressBar->advance();
             if ($i % 100 == 0) {

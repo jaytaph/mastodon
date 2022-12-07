@@ -35,7 +35,7 @@ class MediaService
         $this->doctrine->flush();
     }
 
-    public function createMediaAttachment(UploadedFile $file): MediaAttachment
+    public function createMediaAttachmentFromFile(UploadedFile $file): MediaAttachment
     {
         // Persist so we can get an ID
         $mediaAttachment = new MediaAttachment();
@@ -57,7 +57,8 @@ class MediaService
         $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath . '/' . $filename));
 //        $mediaAttachment->setBlurHash('LEHLk~WB2yk8pyo0adR*.7kCMdnj');
 
-        $this->save($mediaAttachment);
+        $this->doctrine->persist($mediaAttachment);
+        $this->doctrine->flush();
 
         return $mediaAttachment;
     }
@@ -136,5 +137,25 @@ class MediaService
             'description' => $media->getDescription(),
             'blurhash' => $media->getBlurHash(),
         ];
+    }
+
+    public function findOrCreateAttachment(array $data): MediaAttachment
+    {
+        $media = new MediaAttachment();
+        $media->setBlurhash($data['blurhash']);
+        $media->setDescription($data['description'] ?? '');
+        $media->setFilename($data['filename'] ?? '');
+        $media->setFocus($data['focus'] ?? []);
+        $media->setMeta($data['meta'] ?? []);
+        $media->setPreviewUrl($data['preview_url'] ?? $data['url']);
+        $media->setRemoteUrl($data['remote_url'] ?? $data['url']);
+        $media->setTextUrl($data['text_url'] ?? $data['url']);
+        $media->setType($data['type']);
+        $media->setUrl($data['url']);
+
+        $this->doctrine->persist($media);
+        $this->doctrine->flush();
+
+        return $media;
     }
 }

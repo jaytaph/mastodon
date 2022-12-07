@@ -5,20 +5,23 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
-use App\Entity\Status;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\Inbox\TypeProcessorInterface;
 
 class InboxService
 {
+    /** @var TypeProcessorInterface[] */
+    protected array $processors = [];
+    protected MessageService $messageService;
     protected AccountService $accountService;
-    protected StatusService $statusService;
-    protected EntityManagerInterface $doctrine;
 
-    public function __construct(AccountService $accountService, StatusService $statusService, EntityManagerInterface $doctrine)
+    /** @param TypeProcessorInterface[] $processors */
+    public function __construct(iterable $processors, MessageService $messageService, AccountService $accountService)
     {
+        $processors = $processors instanceof \Traversable ? iterator_to_array($processors) : $processors;
+        $this->processors = $processors;
+
+        $this->messageService = $messageService;
         $this->accountService = $accountService;
-        $this->statusService = $statusService;
-        $this->doctrine = $doctrine;
     }
 
     /**
@@ -30,126 +33,28 @@ class InboxService
     }
 
     /**
-     * @param array<mixed> $message
-     * @throws \Exception
+     * @param mixed[] $message
      */
-    public function processMessage(Account $source, array $message): bool
+    public function processMessage(Account $source, array $message, bool $validateMessage = true): bool
     {
         if (!isset($message['type'])) {
-            throw new \Exception('type not set');
-        }
-
-        switch ($message['type']) {
-            case 'Create':
-                return $this->processCreatedMessage($source, $message);
-//            case 'Update':
-//                return $this->processUpdatedMessage($source, $message);
-//            case 'Delete':
-//                return $this->processDeletedMessage($source, $message);
-            default:
-//                throw new \Exception('Unknown type: ' . $message['type']);
-        }
-
-        return false;
-    }
-
-    /**
-     * @param array<string> $message
-     * @throws \Exception
-     */
-    protected function processCreatedMessage(Account $source, array $message): bool
-    {
-        if (! isset($message['object'])) {
             return false;
         }
 
-        /** @var array<string> $object */
-        $object = $message['object'];
+        // Validate message if it has a signature
+        if ($validateMessage && $this->messageService->hasSignature($message)) {
+            $creator = $this->accountService->fetchMessageCreator($source, $message);
+            if (!$creator || !$this->messageService->validate($creator, $message)) {
+                return false;
+            }
+        }
 
-        switch ($object['type']) {
-            case 'Note':
-                return $this->processCreatedNoteMessage($source, $message, $object);
-            case 'Question':
-//                return $this->processCreatedQuestionMessage($message, $object);
-                break;
-            default:
-                throw new \Exception('Unknown object type: ' . $object['type']);
+        foreach ($this->processors as $processor) {
+            if ($processor->canProcess(strtolower($message['type']))) {
+                return $processor->process($source, $message);
+            }
         }
 
         return false;
-    }
-
-    /**
-     * @param array<string> $message
-     * @param array<string> $object
-     * @throws \Exception
-     */
-    protected function processCreatedNoteMessage(Account $source, array $message, array $object): bool
-    {
-        // @TODO: We probably need to check for forwarded messages first
-
-        $status = $this->statusService->findStatusByURI($message['id']);
-        if (!$status) {
-            $status = new Status();
-        }
-
-        $account = $this->accountService->findAccountByURI($message['actor']);
-        $status->setAccount($account);
-        $status->setAccountUri($message['actor']);
-        $status->setActivityStreamsType('');  // @TODO ??
-
-        $status->setOwner($source);
-
-        /** @var array<mixed>|string|null $att */
-        $att = $object['attachment'];
-        $status->setAttachmentIds(is_array($att) ? $att : [$att]);
-        $status->setBoostable(false);
-//        $status->setBoostOf();
-//        $status->setBoostOfAccount();
-//        $status->setBoostOfAccountId();
-        $status->setContent($object['content']);
-        $status->setContentWarning("");
-        $status->setCreatedAt(new \DateTime($object['published'] ?? 'now'));
-        $status->setCreatedWithApplicationId('');
-
-        /** @var array<mixed>|string|null $emojis */
-        $emojis = $object['emoji'] ?? [];
-        $status->setEmojiIds(is_array($emojis) ? $emojis : [$emojis]);
-        $status->setFederated(false);
-//        $status->setInReplyTo($object['inReplyTo'] ?? null);
-        if (isset($object['inReplyTo'])) {
-//            $account = $this->accountService->findAccount($object['inReplyTo'], true);
-//            if ($account) {
-//                $status->setInReplyToAccount($account);
-//            }
-        }
-        $status->setInReplyToUri($object['inReplyTo'] ?? '');
-        $status->setLanguage('');
-        $status->setLikable(true);
-        $status->setLocal(false);
-        $status->setMentionIds([]);
-        $status->setPinned(false);
-        $status->setReplyable(true);
-        $status->setSensitive($object['sensitive'] == "true");
-
-        /** @var array<mixed>|string|null $tags */
-        $tags = $object['tag'];
-        if (is_array($tags) && isset($tags['type'])) {
-            $tags = [$tags];
-        }
-        $status->setTagIds(is_array($tags) ? $tags : [$tags]);
-
-        $status->setText($object['content']);
-        $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
-        $status->setUri($object['id']);
-        $status->setUrl($object['url']);
-        $status->setVisibility($object['visibility'] ?? 'public');
-
-        $this->doctrine->persist($status);
-        $this->doctrine->flush();
-
-        print "Stored " . ($status->getUri() ?? '') . "\n";
-
-        return true;
     }
 }

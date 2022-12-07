@@ -11,6 +11,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
@@ -29,6 +30,8 @@ class OauthTestCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
         $client = new Client();
 
         $url = "localhost:8000";
@@ -50,14 +53,6 @@ class OauthTestCommand extends Command
         /** @var array<string> $response */
         $clientId = $response["client_id"];
         $clientSecret = $response["client_secret"];
-
-        dump([
-            $clientId,
-            $clientSecret,
-        ]);
-
-//        $clientId = 'Fyq_ldNW3FCaR9UigGvo1vZdj3AU9B13aLrq19j8wO8';
-//        $clientSecret = 'Q0mXK5M_aZhBf8MA4HiXMrZzL4-wCGtDAE8BBEhE5Es';
 
         $params = [
             "client_id" => $clientId,
@@ -82,8 +77,6 @@ class OauthTestCommand extends Command
         ]);
 
         $code = substr($response->getHeader("Location")[0], strpos($response->getHeader("Location")[0], "code=") + 5);
-        dump($code);
-//        $code = 'nv_noKKrli9XN5rRjJiGaTyR43lKZ6x6NcOGF9UgtKQ';
 
         $response = $client->post('https://' . $url . '/oauth/token', [
             'headers' => [
@@ -100,7 +93,6 @@ class OauthTestCommand extends Command
         ]);
 
         $response = json_decode($response->getBody()->getContents(), true);
-        dump($response);
 
         /** @var array<string> $response */
         $token = $response['access_token'];
@@ -111,9 +103,8 @@ class OauthTestCommand extends Command
                 'Authorization' => 'Bearer ' . $token,
             ],
         ]);
-        dump($response->getStatusCode());
         $response = json_decode($response->getBody()->getContents(), true);
-        dump($response);
+        $io->success($response);
 
         return Command::SUCCESS;
     }

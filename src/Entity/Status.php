@@ -29,6 +29,9 @@ class Status
     #[ORM\JoinColumn(nullable: true)]
     private ?Account $account;
 
+    #[ORM\Column(type: 'text', nullable: false)]
+    private string $accountUri;
+
     #[ORM\Column(type: 'datetime', nullable: false)]
     private \DateTimeInterface $createdAt;
 
@@ -45,40 +48,41 @@ class Status
     private string $content;
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private array $attachmentIds;
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private array $tagIds;
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private array $mentionIds;
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private array $emojiIds;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $local;
 
-    #[ORM\Column(type: 'text', nullable: false)]
-    private string $accountUri;
-
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private string $inReplyToUri;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Status $inReplyTo;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Account $inReplyToAccount;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Status $boostOf;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Account $boostOfAccount;
 
     #[ORM\Column(type: 'text')]
@@ -118,7 +122,6 @@ class Status
     private bool $likable;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
     private Account $owner;
 
     public function getId(): Uuid
@@ -517,5 +520,25 @@ class Status
         $this->owner = $owner;
 
         return $this;
+    }
+
+    public function addMention(Account $account): void
+    {
+        $this->mentionIds[] = $account->getId();
+    }
+
+    public function addTag(Tag $tag): void
+    {
+        $this->tagIds[] = $tag->getId();
+    }
+
+    public function addEmoji(Emoji $emoji): void
+    {
+        $this->emojiIds[] = $emoji->getId();
+    }
+
+    public function addAttachment(MediaAttachment $media): void
+    {
+        $this->attachmentIds[] = $media->getId();
     }
 }
