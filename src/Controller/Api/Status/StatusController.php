@@ -28,4 +28,27 @@ class StatusController extends BaseApiController
 
         return new JsonResponse($this->statusService->toJson($status));
     }
+
+    #[Route('/api/v1/statuses/{uuid}/context', name: 'api_account_status_context')]
+    #[IsGranted('ROLE_OAUTH2_READ')]
+    public function context(Request $request, string $uuid): Response
+    {
+        // $account = $this->getOauthUser();
+
+        $status = $this->statusService->findStatusById($uuid);
+        if (!$status) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($status->isPrivate()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $ret = [
+            'ancestors' => [],
+            'descendants' => [],
+        ];
+
+        return new JsonResponse($ret);
+    }
 }

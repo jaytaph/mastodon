@@ -35,4 +35,9 @@ class TagService
 
         return $tag;
     }
+
+    public function fetch(mixed $id): ?Tag
+    {
+        return $this->doctrine->getRepository(Tag::class)->find($id);
+    }
 }

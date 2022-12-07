@@ -72,7 +72,7 @@ class StatusService
         $status->setAccountUri($owner->getUri());
         $status->setActivityStreamsType('Note');
         $status->setSensitive($data['sensitive'] ?? false);
-        $status->setVisibility($data['visibility'] ?? 'public');
+        $status->setVisibility($data['visibility'] ?? Status::VISIBILITY_PUBLIC);
         $status->setCreatedAt(new \DateTimeImmutable());
         $status->setUpdatedAt(new \DateTimeImmutable());
         $status->setContentWarning($data['spoiler_text'] ?? '');
@@ -109,7 +109,7 @@ class StatusService
      */
     public function toJson(Status $status): array
     {
-        return [
+        $json = [
             'id' => $status->getId()->toBase58(),
             'created_at' => $status->getCreatedAt()?->format(ActivityPub::DATETIME_FORMAT),
             'in_reply_to_id' => $status->getInReplyTo()?->getId()->toBase58(),
@@ -129,20 +129,29 @@ class StatusService
             'bookmarked' => false,
             'pinned' => false,
             'content' => $status->getContent(),
-            'reblog' => null,
-            'application' => [
-                'name' => $status->getCreatedWithApplicationId(),
-                // @TODO: This is not a correct key
-                'vapid_key' => 'BCk-AAAAAA-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
-            ],
             'account' => $this->accountService->toJson($status->getAccount()),
+            'reblog' => null,
             'media_attachments' => $this->toMediaAttachmentJson($status->getAttachmentIds()),
-            'mentions' => $status->getMentionIds(),
-            'tags' => $this->toTagJson($status->getTagIds()),
-            'emojis' => $status->getEmojiIds(),
+            'mentions' => [],
+            'tags' => [],
+            'emojis' => [],
+//            'mentions' => $status->getMentionIds(),
+//            'tags' => $this->toTagJson($status->getTagIds()),
+//            'emojis' => $status->getEmojiIds(),
             'card' => null,
             'poll' => null,
         ];
+
+
+        if ($status->getCreatedWithApplicationId()) {
+            $json['application'] = [
+                'name' => $status->getCreatedWithApplicationId(),
+                // @TODO: This is not a correct key
+                'vapid_key' => 'BCk-AAAAAA-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
+            ];
+        }
+
+        return $json;
     }
 
     /**
@@ -205,6 +214,10 @@ class StatusService
         $ret = [];
         $result = $qb->getQuery()->getResult();
         foreach ($result as $entry) {
+            if (! $entry->getAccount()) {
+                continue;
+            }
+
             /** @var Status $entry */
             $ret[] = $this->toJson($entry);
         }
@@ -231,6 +244,15 @@ class StatusService
         return $ret;
     }
 
+    public function findStatusById(string|Uuid $uuid): ?Status
+    {
+        if (is_string($uuid)) {
+            $uuid = Uuid::fromString($uuid);
+        }
+
+        return $this->doctrine->getRepository(Status::class)->find($uuid);
+    }
+
     /**
      * @param mixed[] $tagIds
      * @return mixed[]
@@ -239,13 +261,11 @@ class StatusService
     {
         $ret = [];
 
-        /** @var array<string, string> $tag */
-        foreach ($tagIds as $tag) {
-            $ret[] = [
-                'name' => $tag['name'],
-                'url' => $tag['url'] ?? $tag['href'] ?? '',
-                'history' => [],
-            ];
+        foreach ($tagIds as $id) {
+            $tag = $this->tagService->fetch($id);
+            if ($tag) {
+                $ret[] = $tag->toArray();
+            }
         }
 
         return $ret;
@@ -283,7 +303,7 @@ class StatusService
         $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
         $status->setUri($object['id']);
         $status->setUrl($object['url']);
-        $status->setVisibility($object['visibility'] ?? 'public');
+        $status->setVisibility($object['visibility'] ?? Status::VISIBILITY_PUBLIC);
 
         $this->processTags($status, $object['tag'] ?? []);
         $this->processAttachments($status, $object['attachment'] ?? []);

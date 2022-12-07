@@ -80,4 +80,13 @@ class Tag
 
         return $this;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'type' => $this->getType(),
+            'name' => $this->getName(),
+            'href' => $this->getHref(),
+        ];
+    }
 }

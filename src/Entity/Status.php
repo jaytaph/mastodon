@@ -19,6 +19,10 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
 class Status
 {
+    public const VISIBILITY_PRIVATE = 'private';
+    public const VISIBILITY_PUBLIC = 'public';
+    public const VISIBILITY_UNLISTED = 'unlisted';
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
@@ -48,20 +52,20 @@ class Status
     private string $content;
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private array $attachmentIds;
+    #[ORM\Column(type: Types::JSON, nullable: false)]
+    private array $attachmentIds = [];
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private array $tagIds;
+    #[ORM\Column(type: Types::JSON, nullable: false)]
+    private array $tagIds = [];
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private array $mentionIds;
+    #[ORM\Column(type: Types::JSON, nullable: false)]
+    private array $mentionIds = [];
 
     /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private array $emojiIds;
+    #[ORM\Column(type: Types::JSON, nullable: false)]
+    private array $emojiIds = [];
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $local;
@@ -540,5 +544,10 @@ class Status
     public function addAttachment(MediaAttachment $media): void
     {
         $this->attachmentIds[] = $media->getId();
+    }
+
+    public function isPrivate()
+    {
+        return $this->visibility === self::VISIBILITY_PRIVATE;
     }
 }
