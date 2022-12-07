@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Config;
 use App\Service\AccountService;
+use App\Service\InboxService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,20 +18,30 @@ class UserController extends AbstractController
     use AccountTrait;
 
     protected AccountService $accountService;
+    protected InboxService $inboxService;
 
-    /**
-     * @param AccountService $accountService
-     */
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $accountService, InboxService $inboxService)
     {
         $this->accountService = $accountService;
+        $this->inboxService = $inboxService;
     }
 
-    #[Route('/users/{user}/inbox', name: 'app_users_inbox')]
-    public function inbox(string $user, Request $request): Response
+    #[Route('/users/{acct}/inbox', name: 'app_users_inbox')]
+    public function inbox(string $acct, Request $request): Response
     {
+        $account = $this->findAccount($acct, localOnly: true);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
+
         // For now, we store all contents in a file for later processing...
-        file_put_contents("../var/uploads/$user-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
+        // @TODO: Path injection
+        file_put_contents("../var/uploads/$acct-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
+
+        $message = json_decode($request->getContent(), true);
+        if ($message) {
+            $this->inboxService->processMessage($account, $message);
+        }
 
         return new Response("donkey");
     }
