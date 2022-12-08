@@ -44,11 +44,21 @@ class StatusController extends BaseApiController
             throw $this->createAccessDeniedException();
         }
 
-        $ret = [
-            'ancestors' => [],
-            'descendants' => [],
-        ];
+        $ancestors = [];
+        if ($status->getInReplyTo()) {
+            $ancestors[] = $this->statusService->toJson($status->getInReplyTo());
+        }
 
-        return new JsonResponse($ret);
+
+        $descendants = [];
+        foreach ($this->statusService->getParents($status) as $parentStatus) {
+            $descendants[] = $this->statusService->toJson($parentStatus);
+        }
+
+
+        return new JsonResponse([
+            'ancestors' => $ancestors,
+            'descendants' => $descendants,
+        ]);
     }
 }

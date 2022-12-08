@@ -40,7 +40,7 @@ class StatusService
         return $this->doctrine->getRepository(Status::class)->count(['local' => true]);
     }
 
-    public function findStatusByURI(string $uri): ?Status
+    public function findStatusByUri(string $uri): ?Status
     {
         return $this->doctrine->getRepository(Status::class)->findOneBy(['uri' => $uri]);
     }
@@ -253,6 +253,11 @@ class StatusService
         return $this->doctrine->getRepository(Status::class)->find($uuid);
     }
 
+    public function getParents(Status $status): array
+    {
+        return $this->doctrine->getRepository(Status::class)->findBy(['inReplyTo' => $status->getId()]);
+    }
+
     /**
      * @param mixed[] $tagIds
      * @return mixed[]
@@ -310,15 +315,14 @@ class StatusService
 //        $status->setMentionIds([]);
 //        $this->createEmojis($status, $object['emoji'] ?? []);
 
-        // Set the inreplyto status
-//        $status->setInReplyTo($object['inReplyTo'] ?? null);
-//         if (isset($object['inReplyTo'])) {
-//            $account = $this->accountService->findAccount($object['inReplyTo'], true);
-//            if ($account) {
-//                $status->setInReplyToAccount($account);
-//            }
-//        }
-//        $status->setInReplyToUri($object['inReplyTo'] ?? '');
+
+        if (isset($object['inReplyTo'])) {
+            $inReplyTo = $this->findStatusByUri($object['inReplyTo']);
+            if ($inReplyTo) {
+                $status->setInReplyTo($inReplyTo);
+                $status->setInReplyToUri($inReplyTo->getUri());
+            }
+        }
 
         $this->doctrine->persist($status);
         $this->doctrine->flush();
