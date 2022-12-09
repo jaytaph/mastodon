@@ -137,14 +137,29 @@ class StatusService
             'media_attachments' => $this->toMediaAttachmentJson($status->getAttachmentIds()),
             'mentions' => [],
             'tags' => [],
-            'emojis' => [],
+            'emojis' => $this->toEmojiJson($status->getEmojiIds()),
 //            'mentions' => $status->getMentionIds(),
 //            'tags' => $this->toTagJson($status->getTagIds()),
 //            'emojis' => $status->getEmojiIds(),
-            'card' => null,
-            'poll' => null,
         ];
 
+
+        if ($status->getPoll() !== null) {
+            $poll = $status->getPoll();
+
+            $json['poll'] = [
+                'id' => $poll->getId()->toBase58(),
+                'expires_at' => $poll->getExpiresAt()?->format(ActivityPub::DATETIME_FORMAT),
+                'expired' => $poll->isExpired(),
+                'multiple' => $poll->isMultiple(),
+                'votes_count' => $poll->getVotesCount(),
+                'voters_count' => $poll->getVotersCount(),
+                'voted' => false,
+                'own_votes' => [],
+                'options' => $this->toPollOptionJson($poll->getOptions()),
+                'emojis' => [],
+            ];
+        }
 
         if ($status->getCreatedWithApplicationId()) {
             $json['application'] = [
@@ -374,5 +389,46 @@ class StatusService
                 $status->addEmoji($emoji);
             }
         }
+    }
+
+    protected function toPollOptionJson(array $options): array
+    {
+        if (isset($options['oneOf']) && count($options['oneOf'])) {
+            $options = $options['oneOf'];
+        } else {
+            $options = $options['anyOf'];
+        }
+
+        $ret = [];
+        foreach ($options as $option) {
+            $ret[] = [
+                'title' => $option['name'],
+                'votes_count' => $option['replies']['totalItems'] ?? 0,
+            ];
+        }
+
+        return $ret;
+    }
+
+    protected function toEmojiJson(array $emojiIds)
+    {
+        $ret = [];
+
+        foreach ($emojiIds as $id) {
+            $emoji = $this->emojiService->findEmojiById($id);
+            if (!$emoji) {
+                continue;
+            }
+
+            $ret[] = [
+                'shortcode' => substr($emoji->getName(), 1, -1),
+                'url' => $emoji->getIconUrl(),
+                'static_url' => $emoji->getIconUrl(),
+                'visible_in_picker' => false,
+                'category' => 'custom',
+            ];
+        }
+
+        return $ret;
     }
 }

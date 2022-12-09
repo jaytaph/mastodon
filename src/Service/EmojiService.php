@@ -35,4 +35,9 @@ class EmojiService
 
         return $emoji;
     }
+
+    public function findEmojiById(mixed $id): ?Emoji
+    {
+        return $this->doctrine->getRepository(Emoji::class)->find($id);
+    }
 }
