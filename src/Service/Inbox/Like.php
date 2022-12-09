@@ -8,12 +8,14 @@ use App\Entity\Account;
 
 class Like implements TypeProcessorInterface
 {
-    public function process(Account $source, array $message): bool {
+    public function process(Account $source, array $message): bool
+    {
         // Like is the message send when we liked a certain post
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'like';
     }
 }

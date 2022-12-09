@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Emoji;
-use App\Entity\Tag;
 use Doctrine\ORM\EntityManagerInterface;
 
 class EmojiService

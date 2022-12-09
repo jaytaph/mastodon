@@ -45,7 +45,7 @@ class Follow implements TypeProcessorInterface
         // Send back accept response
         $data = [
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => 'https://dhpt.nl/users/'. $source->getAcct().'/' . Uuid::v4(),
+            'id' => 'https://dhpt.nl/users/' . $source->getAcct() . '/' . Uuid::v4(),
             'type' => 'Accept',
             'actor' => $message['object'],
             'object' => $message,
@@ -60,7 +60,8 @@ class Follow implements TypeProcessorInterface
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'follow';
     }
 }

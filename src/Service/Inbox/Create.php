@@ -41,7 +41,8 @@ class Create implements TypeProcessorInterface
         return false;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'create';
     }
 
@@ -64,5 +65,4 @@ class Create implements TypeProcessorInterface
 
         return $status !== null;
     }
-
 }

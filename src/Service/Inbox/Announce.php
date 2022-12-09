@@ -8,11 +8,13 @@ use App\Entity\Account;
 
 class Announce implements TypeProcessorInterface
 {
-    public function process(Account $source, array $message): bool {
+    public function process(Account $source, array $message): bool
+    {
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'announce';
     }
 }

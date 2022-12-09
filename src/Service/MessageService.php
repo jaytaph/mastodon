@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
-use ML\JsonLD\JsonLD;
-use ML\JsonLD\NQuads;
 
 class MessageService
 {
-
     /**
      * Converts JSON-LD to a canonical form
      *

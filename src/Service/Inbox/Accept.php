@@ -46,7 +46,8 @@ class Accept implements TypeProcessorInterface
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'accept';
     }
 }

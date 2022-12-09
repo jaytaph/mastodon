@@ -7,10 +7,8 @@ namespace App\Service;
 use App\ActivityPub;
 use App\Config;
 use App\Entity\Account;
-use App\Entity\MediaAttachment;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\DocBlock;
 use Symfony\Component\Uid\Uuid;
 
 class StatusService

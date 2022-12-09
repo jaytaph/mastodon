@@ -19,7 +19,8 @@ class Update implements TypeProcessorInterface
         $this->pollService = $pollService;
     }
 
-    public function process(Account $source, array $message): bool {
+    public function process(Account $source, array $message): bool
+    {
 
         $object = $message['object'];
         if (!$object) {
@@ -43,7 +44,8 @@ class Update implements TypeProcessorInterface
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'update';
     }
 
