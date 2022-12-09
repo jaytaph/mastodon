@@ -72,7 +72,7 @@ class ProcessInboxCommand extends Command
                 continue;
             }
 
-            $this->inboxService->processMessage($source, $message, validateMessage: true);
+            $this->inboxService->processMessage($source, $message, validateMessage: false);
 
             $progressBar->advance();
             if ($i % 100 == 0) {

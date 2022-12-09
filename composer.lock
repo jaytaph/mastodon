@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "347779c9ee4a452f773090ec899f943d",
+    "content-hash": "186af1e9e79e97d2bfce7e3386b896bb",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -71,6 +71,56 @@
                 "source": "https://github.com/defuse/php-encryption/tree/v2.3.1"
             },
             "time": "2021-04-09T23:57:26+00:00"
+        },
+        {
+            "name": "digitalbazaar/json-ld",
+            "version": "0.4.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/digitalbazaar/php-json-ld.git",
+                "reference": "dc1bd23f0ee2efd27ccf636d32d2738dabcee182"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/digitalbazaar/php-json-ld/zipball/dc1bd23f0ee2efd27ccf636d32d2738dabcee182",
+                "reference": "dc1bd23f0ee2efd27ccf636d32d2738dabcee182",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "jsonld.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Digital Bazaar, Inc.",
+                    "email": "support@digitalbazaar.com"
+                }
+            ],
+            "description": "A JSON-LD Processor and API implementation in PHP.",
+            "homepage": "https://github.com/digitalbazaar/php-json-ld",
+            "keywords": [
+                "JSON-LD",
+                "Linked Data",
+                "RDF",
+                "Semantic Web",
+                "json",
+                "jsonld"
+            ],
+            "support": {
+                "issues": "https://github.com/digitalbazaar/php-json-ld/issues",
+                "source": "https://github.com/digitalbazaar/php-json-ld/tree/0.4.7"
+            },
+            "time": "2016-04-25T04:17:52+00:00"
         },
         {
             "name": "doctrine/annotations",
@@ -13613,14 +13663,14 @@
     "platform": {
         "php": ">=8.0.2",
         "ext-ctype": "*",
-        "ext-iconv": "*",
-        "ext-openssl": "*",
+        "ext-exif": "*",
         "ext-gd": "*",
-        "ext-exif": "*"
+        "ext-iconv": "*",
+        "ext-openssl": "*"
     },
     "platform-dev": [],
     "platform-overrides": {
         "php": "8.0.2"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.2.0"
 }

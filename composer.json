@@ -6,8 +6,11 @@
     "require": {
         "php": ">=8.0.2",
         "ext-ctype": "*",
+        "ext-exif": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
         "ext-openssl": "*",
+        "digitalbazaar/json-ld": "^0.4.7",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.7",
         "doctrine/doctrine-migrations-bundle": "^3.2",
@@ -47,9 +50,7 @@
         "symfony/web-link": "6.0.*",
         "symfony/yaml": "6.0.*",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0",
-      "ext-gd": "*",
-      "ext-exif": "*"
+        "twig/twig": "^2.12|^3.0"
     },
     "config": {
         "platform": {
@@ -70,7 +71,10 @@
     "autoload": {
         "psr-4": {
             "App\\": "src/"
-        }
+        },
+        "classmap": [
+            "vendor/digitalbazaar/json-ld/jsonld.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

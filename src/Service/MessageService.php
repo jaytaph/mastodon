@@ -10,6 +10,7 @@ use ML\JsonLD\NQuads;
 
 class MessageService
 {
+
     /**
      * Converts JSON-LD to a canonical form
      *
@@ -19,27 +20,16 @@ class MessageService
      */
     public function canonicalize(array $data): string
     {
-        // Convert JSON-LD to RDF
-        $json = json_encode($data, JSON_THROW_ON_ERROR);
-        $quads = JsonLD::toRdf($json, ['format' => 'application/nquads']);
-        $nquads = new NQuads();
-        $tmp = $nquads->serialize($quads);
-
-        // sort the quads, as they might not be in the correct order :(
-        $tmp = explode("\n", $tmp);
-        sort($tmp);
-
-        // We have blank identifiers as _:b0, _:b1, etc. We need to replace these with c14n identifiers
-        $ret = "";
-        foreach ($tmp as $v) {
-            if (empty($v)) {
-                continue;
-            }
-            if (str_starts_with($v, "_:b")) {
-                $ret .= "_:cn14n" . substr($v, 3) . "\n";
-            } else {
-                $ret .= $v . "\n";
-            }
+        try {
+            $ret = jsonld_normalize(
+                $this->array2object($data),
+                [
+                    'algorithm' => 'URDNA2015',
+                    'format' => 'application/nquads',
+                ]
+            );
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Cannot canonicalize message', 0, $e);
         }
 
         return $ret;
@@ -47,7 +37,7 @@ class MessageService
 
     protected function hash(string $data): string
     {
-        return bin2hex(hash('sha256', $data, true));
+        return hash('sha256', $data);
     }
 
     /**
@@ -64,6 +54,7 @@ class MessageService
      * @param Account $creator
      * @param array $message
      * @return bool
+     * @throws \JsonException
      */
     public function validate(Account $creator, array $message): bool
     {
@@ -84,13 +75,11 @@ class MessageService
         unset($signature['type']);
         unset($signature['id']);
         unset($signature['signatureValue']);
-        $signature['@context'] = 'https://w3id.org/security/v1';
+        $signature['@context'] = 'https://w3id.org/identity/v1';
 
         // Create the hash of both the message and the signature
         $messageHash = $this->hash($this->canonicalize($signature)) . $this->hash($this->canonicalize($message));
-
         $ret = openssl_verify($messageHash, base64_decode($signatureValue), $creator->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
-        dd($ret);
         return $ret == 1;
     }
 
@@ -98,5 +87,11 @@ class MessageService
     {
         // Hashing the message does not require canonicalization. We just need to make sure we send the message as-is within the HTTP POST body
         return "SHA-256=" . base64_encode(hash('sha256', $message, true));
+    }
+
+    protected function array2object(array $data)
+    {
+        $json = json_encode($data);
+        return json_decode($json, false, 512, JSON_THROW_ON_ERROR);
     }
 }

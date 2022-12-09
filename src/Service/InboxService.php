@@ -44,10 +44,10 @@ class InboxService
         // Validate message if it has a signature
         if ($validateMessage && $this->messageService->hasSignature($message)) {
             $creator = $this->accountService->fetchMessageCreator($source, $message);
-            if (!$creator || !$this->messageService->validate($creator, $message)) {
-                dump($creator);
-                dump($message);
-                dd("Cannot validate message from {$creator->getAcct()}");
+            if (!$creator) {
+                return false;
+            }
+            if (!$this->messageService->validate($creator, $message)) {
                 return false;
             }
         }
