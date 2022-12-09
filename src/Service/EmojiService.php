@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Emoji;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class EmojiService
 {
@@ -16,15 +17,24 @@ class EmojiService
         $this->doctrine = $doctrine;
     }
 
+    /**
+     * @param array<string,string|string[]> $data
+     * @return Emoji
+     */
     public function findOrCreateEmoji(array $data): Emoji
     {
         $emoji = $this->doctrine->getRepository(Emoji::class)->findOneBy(['name' => $data['name']]);
         if (!$emoji) {
             $emoji = new Emoji();
+            /** @phpstan-ignore-next-line */
             $emoji->setType($data['type']);
+            /** @phpstan-ignore-next-line */
             $emoji->setName($data['name']);
+            /** @phpstan-ignore-next-line */
             $emoji->setIconType($data['icon']['type']);
+            /** @phpstan-ignore-next-line */
             $emoji->setIconMediaType($data['icon']['mediaType']);
+            /** @phpstan-ignore-next-line */
             $emoji->setIconUrl($data['icon']['url']);
             $emoji->setUpdatedAt(new \DateTimeImmutable());
 
@@ -35,7 +45,7 @@ class EmojiService
         return $emoji;
     }
 
-    public function findEmojiById(mixed $id): ?Emoji
+    public function findEmojiById(Uuid $id): ?Emoji
     {
         return $this->doctrine->getRepository(Emoji::class)->find($id);
     }

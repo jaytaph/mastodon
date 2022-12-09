@@ -31,7 +31,7 @@ class StatusController extends BaseApiController
 
     #[Route('/api/v1/statuses/{uuid}/context', name: 'api_account_status_context')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function context(Request $request, string $uuid): Response
+    public function context(string $uuid): Response
     {
         // $account = $this->getOauthUser();
 

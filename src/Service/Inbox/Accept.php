@@ -23,6 +23,11 @@ class Accept implements TypeProcessorInterface
         $this->doctrine = $doctrine;
     }
 
+    /**
+     * @param Account $source
+     * @param string[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         $actor = $this->accountService->findAccount($message['actor'], true, $source);

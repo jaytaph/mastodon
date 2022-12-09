@@ -40,6 +40,7 @@ class UserController extends AbstractController
 
         $message = json_decode($request->getContent(), true);
         if ($message) {
+            /** @var array<string,string|string[]> $message */
             $this->inboxService->processMessage($account, $message);
         }
 

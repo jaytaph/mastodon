@@ -11,6 +11,9 @@ use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class StatusService
 {
     protected EntityManagerInterface $doctrine;
@@ -147,7 +150,7 @@ class StatusService
 
             $json['poll'] = [
                 'id' => $poll->getId()->toBase58(),
-                'expires_at' => $poll->getExpiresAt()?->format(ActivityPub::DATETIME_FORMAT),
+                'expires_at' => $poll->getExpiresAt()->format(ActivityPub::DATETIME_FORMAT),
                 'expired' => $poll->isExpired(),
                 'multiple' => $poll->isMultiple(),
                 'votes_count' => $poll->getVotesCount(),
@@ -269,13 +272,17 @@ class StatusService
         return $this->doctrine->getRepository(Status::class)->find($uuid);
     }
 
+    /**
+     * @param Status $status
+     * @return Status[]
+     */
     public function getParents(Status $status): array
     {
         return $this->doctrine->getRepository(Status::class)->findBy(['inReplyTo' => $status->getId()]);
     }
 
     /**
-     * @param mixed[] $tagIds
+     * @param Uuid[] $tagIds
      * @return mixed[]
      */
     protected function toTagJson(array $tagIds): array
@@ -292,10 +299,17 @@ class StatusService
         return $ret;
     }
 
+    /**
+     * @param Account $owner
+     * @param array<string,string|string[]> $object
+     * @return Status|null
+     * @throws \Exception
+     */
     public function createStatusFromObject(Account $owner, array $object): ?Status
     {
         $status = new Status();
 
+        /** @phpstan-ignore-next-line */
         $author = $this->accountService->findAccountByUri($object['attributedTo']);      // The creator/author of the status
         if (!$author) {
             // We cannot find the author who has created this status. That account might have been deleted.
@@ -309,8 +323,11 @@ class StatusService
 //        $status->setBoostOf();
 //        $status->setBoostOfAccount();
 //        $status->setBoostOfAccountId();
+        /** @phpstan-ignore-next-line */
         $status->setContent($object['content'] ?? $object['name']);     // Add URL? (https://docs.joinmastodon.org/spec/activitypub/#payloads)
+        /** @phpstan-ignore-next-line */
         $status->setContentWarning($object['summary'] ?? '');
+        /** @phpstan-ignore-next-line */
         $status->setCreatedAt(new \DateTime($object['published'] ?? 'now'));
         $status->setCreatedWithApplicationId('');
         $status->setFederated(false);
@@ -320,22 +337,30 @@ class StatusService
         $status->setPinned(false);
         $status->setReplyable(true);
         $status->setSensitive($object['sensitive'] == "true");
+        /** @phpstan-ignore-next-line */
         $status->setText($object['content']);
+        /** @phpstan-ignore-next-line */
         $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
+        /** @phpstan-ignore-next-line */
         $status->setUri($object['id']);
+        /** @phpstan-ignore-next-line */
         $status->setUrl($object['url']);
+        /** @phpstan-ignore-next-line */
         $status->setVisibility($object['visibility'] ?? Status::VISIBILITY_PUBLIC);
-
+        /** @phpstan-ignore-next-line */
         $this->processTags($status, $object['tag'] ?? []);
+        /** @phpstan-ignore-next-line */
         $this->processAttachments($status, $object['attachment'] ?? []);
 //        $status->setMentionIds([]);
 //        $this->createEmojis($status, $object['emoji'] ?? []);
 
 
         if (isset($object['inReplyTo'])) {
+            /** @phpstan-ignore-next-line */
             $inReplyTo = $this->findStatusByUri($object['inReplyTo']);
             if ($inReplyTo) {
                 $status->setInReplyTo($inReplyTo);
+                /** @phpstan-ignore-next-line */
                 $status->setInReplyToUri($inReplyTo->getUri());
             }
         }
@@ -350,6 +375,11 @@ class StatusService
         return $status;
     }
 
+    /**
+     * @param Status $status
+     * @param array<string,string|string[]> $attachments
+     * @return void
+     */
     protected function processAttachments(Status $status, array $attachments): void
     {
         if (isset($attachments['type'])) {
@@ -358,12 +388,18 @@ class StatusService
 
         // Create media attachments from the given attachments
         foreach ($attachments as $attachment) {
+            /** @var array<string,string|string[]> $attachment */
             $media = $this->mediaService->findOrCreateAttachment($attachment);
 
             $status->addAttachment($media);
         }
     }
 
+    /**
+     * @param Status $status
+     * @param mixed[] $tags
+     * @return void
+     */
     protected function processTags(Status $status, array $tags): void
     {
         if (isset($tags['type'])) {
@@ -372,11 +408,13 @@ class StatusService
 
         // Create (or update counts for) tags within the message
         foreach ($tags as $entry) {
+            /** @var array<string,string|string[]> $entry */
             if ($entry['type'] == 'Hashtag') {
                 $tag = $this->tagService->findOrCreateTag($entry);
                 $status->addTag($tag);
             }
             if ($entry['type'] == 'Mention') {
+                /** @phpstan-ignore-next-line */
                 $account = $this->accountService->findAccountByUri($entry['href']);
                 if ($account) {
                     $status->addMention($account);
@@ -389,8 +427,13 @@ class StatusService
         }
     }
 
+    /**
+     * @param array<string,string|string[]> $options
+     * @return mixed[]
+     */
     protected function toPollOptionJson(array $options): array
     {
+        /** @phpstan-ignore-next-line */
         if (isset($options['oneOf']) && count($options['oneOf'])) {
             $options = $options['oneOf'];
         } else {
@@ -398,7 +441,9 @@ class StatusService
         }
 
         $ret = [];
+        /** @var string[] $options */
         foreach ($options as $option) {
+            /** @var array<string|string[]> $option */
             $ret[] = [
                 'title' => $option['name'],
                 'votes_count' => $option['replies']['totalItems'] ?? 0,
@@ -408,7 +453,11 @@ class StatusService
         return $ret;
     }
 
-    protected function toEmojiJson(array $emojiIds)
+    /**
+     * @param Uuid[] $emojiIds
+     * @return mixed[]
+     */
+    protected function toEmojiJson(array $emojiIds): array
     {
         $ret = [];
 
@@ -419,7 +468,7 @@ class StatusService
             }
 
             $ret[] = [
-                'shortcode' => substr($emoji->getName(), 1, -1),
+                'shortcode' => substr($emoji->getName() ?? '', 1, -1),
                 'url' => $emoji->getIconUrl(),
                 'static_url' => $emoji->getIconUrl(),
                 'visible_in_picker' => false,

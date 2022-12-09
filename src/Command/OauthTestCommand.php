@@ -104,7 +104,7 @@ class OauthTestCommand extends Command
             ],
         ]);
         $response = json_decode($response->getBody()->getContents(), true);
-        $io->success($response);
+        $io->success(strval($response));
 
         return Command::SUCCESS;
     }

@@ -24,6 +24,11 @@ class Follow implements TypeProcessorInterface
         $this->authClientService = $authClientService;
     }
 
+    /**
+     * @param Account $source
+     * @param string[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         // Store in the followers table
@@ -51,8 +56,9 @@ class Follow implements TypeProcessorInterface
             'object' => $message,
         ];
 
+        /** @var array<string,string|string[]> $data */
         $result = $this->authClientService->send($source, $actor, $data);
-        if ($result->getStatusCode() >= 200 && $result->getStatusCode() < 300) {
+        if ($result && $result->getStatusCode() >= 200 && $result->getStatusCode() < 300) {
             $this->doctrine->persist($follower);
             $this->doctrine->flush();
         }

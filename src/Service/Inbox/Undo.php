@@ -8,6 +8,11 @@ use App\Entity\Account;
 
 class Undo implements TypeProcessorInterface
 {
+    /**
+     * @param Account $source
+     * @param mixed[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         return true;

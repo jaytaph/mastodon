@@ -11,7 +11,7 @@ class MessageService
     /**
      * Converts JSON-LD to a canonical form
      *
-     * @param array<string> $data
+     * @param array<string,string|string[]> $data
      * @return string
      * @throws \JsonException
      */
@@ -29,7 +29,7 @@ class MessageService
             throw new \RuntimeException('Cannot canonicalize message', 0, $e);
         }
 
-        return $ret;
+        return strval($ret);
     }
 
     protected function hash(string $data): string
@@ -38,7 +38,7 @@ class MessageService
     }
 
     /**
-     * @param array<string> $message
+     * @param array<string,string|string[]> $message
      */
     public function hasSignature(array $message): bool
     {
@@ -48,8 +48,8 @@ class MessageService
     /**
      * Validates a message that has been created by 'creator'
      *
-     * @param Account $creator
-     * @param array $message
+     * @param Account $creator*
+     * @param array<string,string|string[]> $message
      * @return bool
      * @throws \JsonException
      */
@@ -59,8 +59,10 @@ class MessageService
             return false;
         }
 
-        /** @var array<string> $signature */
+        /** @var array<string|string[]> $signature */
         $signature = $message['signature'];
+
+        /** @var string $signatureValue */
         $signatureValue = $signature['signatureValue'];
         unset($message['signature']);
 
@@ -86,9 +88,16 @@ class MessageService
         return "SHA-256=" . base64_encode(hash('sha256', $message, true));
     }
 
-    protected function array2object(array $data)
+    /**
+     * @param array<string,string|string[]> $data
+     */
+    protected function array2object(array $data): mixed
     {
         $json = json_encode($data);
+        if (!$json) {
+            $json = '';
+        }
+
         return json_decode($json, false, 512, JSON_THROW_ON_ERROR);
     }
 }

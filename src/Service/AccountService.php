@@ -252,8 +252,6 @@ class AccountService
 
     public function findAccountByURI(string $uri, bool $fetchRemote = true, ?Account $source = null): ?Account
     {
-        print "Loading: " . $uri . "\n";
-
         $account = $this->doctrine->getRepository(Account::class)->findOneBy(['uri' => $uri]);
         if (!$account && $fetchRemote && $source) {
             $account = $this->fetchRemoteAccount($source, $uri);
@@ -264,6 +262,7 @@ class AccountService
 
     /**
      * Retrieves the creator from a specific message
+     * @param array<string,string|string[]> $message
      */
     public function fetchMessageCreator(Account $source, array $message): ?Account
     {
@@ -273,8 +272,8 @@ class AccountService
 
         // Fetch the creator of the message/signature
         $signature = $message['signature'];
-        $pos = strpos($signature['creator'], '#');
-        $creator = $pos ? substr($signature['creator'], 0, $pos) : $signature['creator'];
+        $pos = strpos($signature['creator'] ?? '', '#');
+        $creator = $pos ? substr($signature['creator'] ?? '', 0, $pos) : $signature['creator'] ?? '';
 
         return $this->findAccount($creator, true, $source);
     }

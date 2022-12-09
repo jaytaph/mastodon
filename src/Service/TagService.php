@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Tag;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class TagService
 {
@@ -16,13 +17,20 @@ class TagService
         $this->doctrine = $doctrine;
     }
 
-    public function findOrCreateTag(mixed $tagData): Tag
+    /**
+     * @param array<string,string|string[]> $tagData
+     * @return Tag
+     */
+    public function findOrCreateTag(array $tagData): Tag
     {
         $tag = $this->doctrine->getRepository(Tag::class)->findOneBy(['type' => $tagData['type'], 'name' => $tagData['name']]);
         if (!$tag) {
             $tag = new Tag();
+            /** @phpstan-ignore-next-line */
             $tag->setType($tagData['type']);
+            /** @phpstan-ignore-next-line */
             $tag->setName($tagData['name']);
+            /** @phpstan-ignore-next-line */
             $tag->setHref($tagData['href']);
             $tag->setCount(0);
         }
@@ -36,7 +44,7 @@ class TagService
         return $tag;
     }
 
-    public function fetch(mixed $id): ?Tag
+    public function fetch(Uuid $id): ?Tag
     {
         return $this->doctrine->getRepository(Tag::class)->find($id);
     }

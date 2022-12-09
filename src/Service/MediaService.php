@@ -139,10 +139,16 @@ class MediaService
         ];
     }
 
+    /**
+     * @param mixed[] $data
+     * @return MediaAttachment
+     */
     public function findOrCreateAttachment(array $data): MediaAttachment
     {
         $media = new MediaAttachment();
+        // @phpstan-ignore-next-line
         $media->setBlurhash($data['blurhash']);
+        // @phpstan-ignore-next-line
         $media->setDescription($data['description'] ?? '');
         $media->setFilename($data['filename'] ?? '');
         $media->setFocus($data['focus'] ?? []);

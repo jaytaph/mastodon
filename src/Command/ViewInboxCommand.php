@@ -73,7 +73,7 @@ class ViewInboxCommand extends Command
 
         $i = 0;
         /** @var iterable<string> $inbox */
-        $inbox = file($input->getArgument('box'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $inbox = file(strval($input->getArgument('box')), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);

@@ -61,7 +61,14 @@ class AuthClientService
         return $result;
     }
 
-    public function send(Account $source, Account $recipient, array $message)
+    /**
+     * @param Account $source
+     * @param Account $recipient
+     * @param array<string,string|string[]> $message
+     * @return ResponseInterface|null
+     * @throws \Exception
+     */
+    public function send(Account $source, Account $recipient, array $message): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format(ActivityPub::DATETIME_FORMAT_GMT);
@@ -73,6 +80,9 @@ class AuthClientService
         $recipientHost = parse_url($recipientUrl, PHP_URL_HOST);
 
         $message = json_encode($message);
+        if (!$message) {
+            $message = '';
+        }
         $msgDigest = $this->messageService->createHashDigest($message);
 
         // Sign the headers with the users private key for authenticity

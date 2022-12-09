@@ -8,6 +8,11 @@ use App\Entity\Account;
 
 class Reject implements TypeProcessorInterface
 {
+    /**
+     * @param Account $source
+     * @param mixed[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         // Reject is the message when we don't accept a follow request

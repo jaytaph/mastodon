@@ -57,14 +57,14 @@ class ProcessInboxCommand extends Command
         $progressBar->start();
 
         /** @var iterable<string> $inbox */
-        $inbox = file($input->getArgument('box'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $inbox = file(strval($input->getArgument('box')), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             // Skip complex escaped lines
             if ($line[0] == '"') {
                 continue;
             }
 
-            /** @var array<string,string|array<string>> $message */
+            /** @var array<string,string|string[]> $message */
             $message = json_decode($line, true);
             $i++;
             if (!$message) {

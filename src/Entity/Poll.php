@@ -33,15 +33,19 @@ class Poll
     #[ORM\Column]
     private int $votersCount = 0;
 
+    /** @var array<string,string|string[]> array  */
     #[ORM\Column]
     private array $options = [];
 
+    /** @var array<string,string|string[]> array  */
     #[ORM\Column]
     private array $emojis = [];
 
+    /** @var array<string,string|string[]> array  */
     #[ORM\Column]
     private array $votes = [];
 
+    /** @var array<string,string|string[]> array  */
     #[ORM\Column]
     private array $ownVotes = [];
 
@@ -113,11 +117,18 @@ class Poll
         return $this;
     }
 
+    /**
+     * @return array<string,string|string[]>
+     */
     public function getOptions(): array
     {
         return $this->options;
     }
 
+    /**
+     * @param array<string,string|string[]> $options
+     * @return $this
+     */
     public function setOptions(array $options): self
     {
         $this->options = $options;
@@ -125,11 +136,18 @@ class Poll
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getEmojis(): array
     {
         return $this->emojis;
     }
 
+    /**
+     * @param array<string,string|string[]> $emojis
+     * @return $this
+     */
     public function setEmojis(array $emojis): self
     {
         $this->emojis = $emojis;
@@ -137,11 +155,18 @@ class Poll
         return $this;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getVotes(): array
     {
         return $this->votes;
     }
 
+    /**
+     * @param array<string,string|string[]> $votes
+     * @return $this
+     */
     public function setVotes(array $votes): self
     {
         $this->votes = $votes;
@@ -149,11 +174,18 @@ class Poll
         return $this;
     }
 
+    /**
+     * @return array<string,string|string[]>
+     */
     public function getOwnVotes(): array
     {
         return $this->ownVotes;
     }
 
+    /**
+     * @param array<string,string|string[]> $ownVotes
+     * @return $this
+     */
     public function setOwnVotes(array $ownVotes): self
     {
         $this->ownVotes = $ownVotes;

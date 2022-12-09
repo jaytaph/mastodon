@@ -8,6 +8,11 @@ use App\Entity\Account;
 
 class Like implements TypeProcessorInterface
 {
+    /**
+     * @param Account $source
+     * @param mixed[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         // Like is the message send when we liked a certain post

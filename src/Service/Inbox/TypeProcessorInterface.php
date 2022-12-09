@@ -8,6 +8,11 @@ use App\Entity\Account;
 
 interface TypeProcessorInterface
 {
+    /**
+     * @param Account $source
+     * @param mixed[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool;
     public function canProcess(string $type): bool;
 }

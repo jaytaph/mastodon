@@ -19,13 +19,18 @@ class Create implements TypeProcessorInterface
         $this->statusService = $statusService;
     }
 
+    /**
+     * @param Account $source
+     * @param mixed[] $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
         if (! isset($message['object'])) {
             return false;
         }
 
-        /** @var array<string> $object */
+        /** @var array<string,string|string[]> $object */
         $object = $message['object'];
 
         switch ($object['type']) {
@@ -33,12 +38,9 @@ class Create implements TypeProcessorInterface
                 return $this->processMessage($source, $object);
             case 'Question':
                 return $this->processMessage($source, $object);
-                break;
             default:
-                throw new \Exception('Unknown object type: ' . $object['type']);
+                throw new \Exception('Unknown object type: ' . strval($object['type']));
         }
-
-        return false;
     }
 
     public function canProcess(string $type): bool
@@ -47,8 +49,7 @@ class Create implements TypeProcessorInterface
     }
 
     /**
-     * @param array<string> $message
-     * @param array<string> $object
+     * @param array<string,string|string[]> $object
      * @throws \Exception
      */
     protected function processMessage(Account $source, array $object): bool
@@ -56,6 +57,7 @@ class Create implements TypeProcessorInterface
         // @TODO: We probably need to check for forwarded messages first
 
         // We've already seen this status
+        /** @phpstan-ignore-next-line */
         $status = $this->statusService->findStatusByURI($object['id']);
         if ($status) {
             return false;

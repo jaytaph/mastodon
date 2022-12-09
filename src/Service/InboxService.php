@@ -25,15 +25,7 @@ class InboxService
     }
 
     /**
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getInbox(string $account): void
-    {
-        // ...
-    }
-
-    /**
-     * @param mixed[] $message
+     * @param array<string,string|string[]> $message
      */
     public function processMessage(Account $source, array $message, bool $validateMessage = true): bool
     {
@@ -53,6 +45,7 @@ class InboxService
         }
 
         foreach ($this->processors as $processor) {
+            /* @phpstan-ignore-next-line */
             if ($processor->canProcess(strtolower($message['type']))) {
                 return $processor->process($source, $message);
             }

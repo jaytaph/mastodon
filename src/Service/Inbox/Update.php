@@ -19,9 +19,14 @@ class Update implements TypeProcessorInterface
         $this->pollService = $pollService;
     }
 
+    /**
+     * @param Account $source
+     * @param array<string,string|string[]> $message
+     * @return bool
+     */
     public function process(Account $source, array $message): bool
     {
-
+        /** @var array<string,string|string[]> $object */
         $object = $message['object'];
         if (!$object) {
             return false;
@@ -37,8 +42,7 @@ class Update implements TypeProcessorInterface
                 // @TODO: update note/status
                 return true;
             default:
-                dump($object);
-                dd("Cannot process update");
+                // @TODO: don't ignore other types
         }
 
         return true;
@@ -49,8 +53,13 @@ class Update implements TypeProcessorInterface
         return $type === 'update';
     }
 
+    /**
+     * @param array<string,string|string[]> $object
+     * @return bool
+     */
     protected function updateQuestion(array $object): bool
     {
+        /** @phpstan-ignore-next-line */
         $status = $this->statusService->findStatusByUri($object['id']);
         if (!$status) {
             return false;
