@@ -14,7 +14,7 @@ final class Version20221128141320 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Adding owner to status';
     }
 
     public function up(Schema $schema): void

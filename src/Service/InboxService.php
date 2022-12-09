@@ -45,6 +45,9 @@ class InboxService
         if ($validateMessage && $this->messageService->hasSignature($message)) {
             $creator = $this->accountService->fetchMessageCreator($source, $message);
             if (!$creator || !$this->messageService->validate($creator, $message)) {
+                dump($creator);
+                dump($message);
+                dd("Cannot validate message from {$creator->getAcct()}");
                 return false;
             }
         }

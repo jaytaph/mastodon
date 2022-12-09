@@ -73,7 +73,7 @@ class AuthClientService
         $recipientHost = parse_url($recipientUrl, PHP_URL_HOST);
 
         $message = json_encode($message);
-        $msgDigest = $this->messageService->hashMessage($message);
+        $msgDigest = $this->messageService->createHashDigest($message);
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): post $recipientPath\nhost: $recipientHost\ndate: $date\ndigest: $msgDigest";

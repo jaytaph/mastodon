@@ -14,7 +14,7 @@ final class Version20221206150922 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Initial tag table and allowing media attachments without local filename';
     }
 
     public function up(Schema $schema): void

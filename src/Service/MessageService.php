@@ -45,19 +45,8 @@ class MessageService
         return $ret;
     }
 
-    /**
-     * Generate hash of the message + signature
-     *
-     * @return string
-     */
-    public function generateHash(array $message, array $signature): string
+    protected function hash(string $data): string
     {
-        try {
-            $data = $this->canonicalize($signature).$this->canonicalize($message);
-        } catch (\JsonException $e) {
-            throw new \RuntimeException("Unable to canonicalize message", 0, $e);
-        }
-
         return bin2hex(hash('sha256', $data, true));
     }
 
@@ -98,14 +87,14 @@ class MessageService
         $signature['@context'] = 'https://w3id.org/security/v1';
 
         // Create the hash of both the message and the signature
-        $hash = $this->generateHash($message, $signature);
+        $messageHash = $this->hash($this->canonicalize($signature)) . $this->hash($this->canonicalize($message));
 
-        $ret = openssl_verify($hash, base64_decode($signatureValue), $creator->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
-
+        $ret = openssl_verify($messageHash, base64_decode($signatureValue), $creator->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
+        dd($ret);
         return $ret == 1;
     }
 
-    public function hashMessage(string $message): string
+    public function createHashDigest(string $message): string
     {
         // Hashing the message does not require canonicalization. We just need to make sure we send the message as-is within the HTTP POST body
         return "SHA-256=" . base64_encode(hash('sha256', $message, true));

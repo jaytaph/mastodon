@@ -30,9 +30,9 @@ class Create implements TypeProcessorInterface
 
         switch ($object['type']) {
             case 'Note':
-                return $this->processCreatedNoteMessage($source, $object);
+                return $this->processMessage($source, $object);
             case 'Question':
-//                return $this->processCreatedQuestionMessage($source, $object);
+                return $this->processMessage($source, $object);
                 break;
             default:
                 throw new \Exception('Unknown object type: ' . $object['type']);
@@ -50,7 +50,7 @@ class Create implements TypeProcessorInterface
      * @param array<string> $object
      * @throws \Exception
      */
-    protected function processCreatedNoteMessage(Account $source, array $object): bool
+    protected function processMessage(Account $source, array $object): bool
     {
         // @TODO: We probably need to check for forwarded messages first
 

@@ -8,6 +8,7 @@ use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,6 +31,7 @@ class ViewInboxCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addArgument('box', InputArgument::REQUIRED, 'filename of box')
             ->addOption('type', 't', InputOption::VALUE_REQUIRED, 'Type')
             ->addOption('raw', 'r', InputOption::VALUE_NONE, 'raw output')
             ->addOption('count', 'c', InputOption::VALUE_NONE, 'count values')
@@ -71,7 +73,7 @@ class ViewInboxCommand extends Command
 
         $i = 0;
         /** @var iterable<string> $inbox */
-        $inbox = file("jaytaph-inbox.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $inbox = file($input->getArgument('box'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);

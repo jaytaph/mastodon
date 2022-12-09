@@ -20,19 +20,22 @@ class StatusService
     protected MediaService $mediaService;
     protected TagService $tagService;
     protected EmojiService $emojiService;
+    protected PollService $pollService;
 
     public function __construct(
         EntityManagerInterface $doctrine,
         AccountService $accountService,
         MediaService $mediaService,
         TagService $tagService,
-        EmojiService $emojiService
+        EmojiService $emojiService,
+        PollService $pollService
     ) {
         $this->doctrine = $doctrine;
         $this->accountService = $accountService;
         $this->mediaService = $mediaService;
         $this->tagService = $tagService;
         $this->emojiService = $emojiService;
+        $this->pollService = $pollService;
     }
 
     public function getLocalStatusCount(): int
@@ -322,6 +325,10 @@ class StatusService
                 $status->setInReplyTo($inReplyTo);
                 $status->setInReplyToUri($inReplyTo->getUri());
             }
+        }
+
+        if ($object['type'] == 'Question') {
+            $this->pollService->createPoll($status, $object);
         }
 
         $this->doctrine->persist($status);

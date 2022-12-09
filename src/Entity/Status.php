@@ -128,6 +128,9 @@ class Status
     #[ORM\ManyToOne]
     private Account $owner;
 
+    #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
+    private ?Poll $poll = null;
+
     public function getId(): Uuid
     {
         return $this->id;
@@ -549,5 +552,27 @@ class Status
     public function isPrivate()
     {
         return $this->visibility === self::VISIBILITY_PRIVATE;
+    }
+
+    public function getPoll(): ?Poll
+    {
+        return $this->poll;
+    }
+
+    public function setPoll(?Poll $poll): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($poll === null && $this->poll !== null) {
+            $this->poll->setStatus(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($poll !== null && $poll->getStatus() !== $this) {
+            $poll->setStatus($this);
+        }
+
+        $this->poll = $poll;
+
+        return $this;
     }
 }
