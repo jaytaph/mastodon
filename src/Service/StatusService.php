@@ -8,6 +8,8 @@ use App\ActivityPub;
 use App\Config;
 use App\Entity\Account;
 use App\Entity\Status;
+use App\Entity\Tag;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -52,17 +54,17 @@ class StatusService
     /**
      * This is different than createStatusFromObject. It would be nice if we can somehow reuse the code.
      *
-     * @param mixed[] $data
+     * @param JsonArray $data
      * @throws \Exception
      */
-    public function createStatus(array $data, Account $owner, string $applicationId = ''): Status
+    public function createStatus(JsonArray $data, Account $owner, string $applicationId = ''): Status
     {
         // Create new status and persist, so we have a UUID
         $status = new Status();
         $this->doctrine->persist($status);
 
         // Needs at least a status, mediaIds or Poll
-        if ($data['status'] === null && $data['mediaIds'] === null && $data['poll'] === null) {
+        if ($data->isNullOrNotExists('[status]') && $data->isNullOrNotExists('[mediaIds]') && $data->isNullOrNotExists('[poll]')) {
             throw new \Exception('Status, mediaIds or poll is required');
         }
 
@@ -75,19 +77,19 @@ class StatusService
         $status->setAccount($owner);
         $status->setAccountUri($owner->getUri());
         $status->setActivityStreamsType('Note');
-        $status->setSensitive($data['sensitive'] ?? false);
-        $status->setVisibility($data['visibility'] ?? Status::VISIBILITY_PUBLIC);
+        $status->setSensitive($data->getBool('[sensitive]', false));
+        $status->setVisibility($data->getString('[visibility]', Status::VISIBILITY_PUBLIC));
         $status->setCreatedAt(new \DateTimeImmutable());
         $status->setUpdatedAt(new \DateTimeImmutable());
-        $status->setContentWarning($data['spoiler_text'] ?? '');
+        $status->setContentWarning($data->getString('[spoiler_text]', ''));
         $status->setCreatedWithApplicationId($applicationId);
 
-        if ($data['status'] !== null) {
-            $status->setContent('<p>' . $data['status'] . '</p>');
-            $status->setText($data['status']);
+        if (! $data->isNullOrNotExists('[status]')) {
+            $status->setContent('<p>' . $data->getString('[status]') . '</p>');
+            $status->setText($data->getString('[status]'));
         }
 
-        $status->setAttachmentIds($data['media_ids'] ?? []);
+//        $status->setAttachmentIds($data['media_ids'] ?? []);
         $status->setTagIds([]);
         $status->setMentionIds([]);
         $status->setEmojiIds([]);
@@ -283,52 +285,47 @@ class StatusService
 
     /**
      * @param Uuid[] $tagIds
-     * @return mixed[]
+     * @return Tag[]
      */
     protected function toTagJson(array $tagIds): array
     {
         $ret = [];
 
         foreach ($tagIds as $id) {
-            $tag = $this->tagService->fetch($id);
-            if ($tag) {
-                $ret[] = $tag->toArray();
-            }
+            $ret[] = $this->tagService->fetch($id);
         }
 
-        return $ret;
+        return  array_filter($ret);
     }
 
     /**
      * @param Account $owner
-     * @param array<string,string|string[]> $object
+     * @param JsonArray $object
      * @return Status|null
      * @throws \Exception
      */
-    public function createStatusFromObject(Account $owner, array $object): ?Status
+    public function createStatusFromObject(Account $owner, JsonArray $object): ?Status
     {
         $status = new Status();
 
-        /** @phpstan-ignore-next-line */
-        $author = $this->accountService->findAccountByUri($object['attributedTo']);      // The creator/author of the status
-        if (!$author) {
+        $author = $this->accountService->findAccountByUri($object->getString('[attributedTo]', ''));      // The creator/author of the status
+        if ($author === null) {
             // We cannot find the author who has created this status. That account might have been deleted.
+            return null;
         }
 
         $status->setOwner($owner);      // The receiver of the status
         $status->setAccount($author);
-        $status->setAccountUri($author ? $author->getUri() : '');
+        $status->setAccountUri($author->getUri());
         $status->setActivityStreamsType('');  // @TODO ??
         $status->setBoostable(false);
 //        $status->setBoostOf();
 //        $status->setBoostOfAccount();
 //        $status->setBoostOfAccountId();
-        /** @phpstan-ignore-next-line */
-        $status->setContent($object['content'] ?? $object['name']);     // Add URL? (https://docs.joinmastodon.org/spec/activitypub/#payloads)
-        /** @phpstan-ignore-next-line */
-        $status->setContentWarning($object['summary'] ?? '');
-        /** @phpstan-ignore-next-line */
-        $status->setCreatedAt(new \DateTime($object['published'] ?? 'now'));
+        // Add URL? (https://docs.joinmastodon.org/spec/activitypub/#payloads)
+        $status->setContent($object->getString('[content]', $object->getString('[name]', '')));
+        $status->setContentWarning($object->getString('[summary]', ''));
+        $status->setCreatedAt(new \DateTime($object->getString('[published]', 'now')));
         $status->setCreatedWithApplicationId('');
         $status->setFederated(false);
         $status->setLanguage('');
@@ -336,36 +333,27 @@ class StatusService
         $status->setLocal(false);
         $status->setPinned(false);
         $status->setReplyable(true);
-        $status->setSensitive($object['sensitive'] == "true");
-        /** @phpstan-ignore-next-line */
-        $status->setText($object['content']);
-        /** @phpstan-ignore-next-line */
-        $status->setUpdatedAt(new \DateTime($object['published'] ?? 'now'));
-        /** @phpstan-ignore-next-line */
-        $status->setUri($object['id']);
-        /** @phpstan-ignore-next-line */
-        $status->setUrl($object['url']);
-        /** @phpstan-ignore-next-line */
-        $status->setVisibility($object['visibility'] ?? Status::VISIBILITY_PUBLIC);
-        /** @phpstan-ignore-next-line */
-        $this->processTags($status, $object['tag'] ?? []);
-        /** @phpstan-ignore-next-line */
-        $this->processAttachments($status, $object['attachment'] ?? []);
+        $status->setSensitive($object->getBool('[sensitive]', false));
+        $status->setText($object->getString('[content]', ''));
+        $status->setUpdatedAt(new \DateTime($object->getString('[published]', 'now')));
+        $status->setUri($object->getString('[id]', ''));
+        $status->setUrl($object->getString('[url]', ''));
+        $status->setVisibility($object->getString('[visibility]', Status::VISIBILITY_PUBLIC));
+        $this->processTags($status, $object->getJsonArray('[tag]', JsonArray::empty()));
+        $this->processAttachments($status, $object->getJsonArray('[attachment]', JsonArray::empty()));
 //        $status->setMentionIds([]);
 //        $this->createEmojis($status, $object['emoji'] ?? []);
 
 
-        if (isset($object['inReplyTo'])) {
-            /** @phpstan-ignore-next-line */
-            $inReplyTo = $this->findStatusByUri($object['inReplyTo']);
-            if ($inReplyTo) {
+        if ($object->exists('[inReplyTo]')) {
+            $inReplyTo = $this->findStatusByUri($object->getString('[inReplyTo]', ''));
+            if ($inReplyTo !== null) {
                 $status->setInReplyTo($inReplyTo);
-                /** @phpstan-ignore-next-line */
-                $status->setInReplyToUri($inReplyTo->getUri());
+                $status->setInReplyToUri($inReplyTo->getUri() ?? '');
             }
         }
 
-        if ($object['type'] == 'Question') {
+        if ($object->getString('[type]', '') == 'Question') {
             $this->pollService->createPoll($status, $object);
         }
 
@@ -375,89 +363,73 @@ class StatusService
         return $status;
     }
 
-    /**
-     * @param Status $status
-     * @param array<string,string|string[]> $attachments
-     * @return void
-     */
-    protected function processAttachments(Status $status, array $attachments): void
+    protected function processAttachments(Status $status, JsonArray $attachments): void
     {
-        if (isset($attachments['type'])) {
-                $attachments = [ $attachments ];
+        if ($attachments->exists('[type]')) {
+            $attachments = new JsonArray([$attachments]);
         }
 
         // Create media attachments from the given attachments
-        foreach ($attachments as $attachment) {
-            /** @var array<string,string|string[]> $attachment */
+        foreach ($attachments->toArray() as $attachment) {
+            $attachment = new JsonArray((array)$attachment);
             $media = $this->mediaService->findOrCreateAttachment($attachment);
 
             $status->addAttachment($media);
         }
     }
 
-    /**
-     * @param Status $status
-     * @param mixed[] $tags
-     * @return void
-     */
-    protected function processTags(Status $status, array $tags): void
+    protected function processTags(Status $status, JsonArray $tags): void
     {
-        if (isset($tags['type'])) {
-            $tags = [ $tags ];
+        if ($tags->exists('[type]')) {
+            $tags = new JsonArray([$tags->toArray()]);
         }
 
         // Create (or update counts for) tags within the message
-        foreach ($tags as $entry) {
-            /** @var array<string,string|string[]> $entry */
-            if ($entry['type'] == 'Hashtag') {
+        foreach ($tags->toArray() as $entry) {
+            $entry = new JsonArray((array)$entry);
+
+            if ($entry->getString('[type]', '') == 'Hashtag') {
                 $tag = $this->tagService->findOrCreateTag($entry);
                 $status->addTag($tag);
             }
-            if ($entry['type'] == 'Mention') {
-                /** @phpstan-ignore-next-line */
-                $account = $this->accountService->findAccountByUri($entry['href']);
+            if ($entry->getString('[type]', '') == 'Mention') {
+                $account = $this->accountService->findAccountByUri($entry->getString('[href]', ''));
                 if ($account) {
                     $status->addMention($account);
                 }
             }
-            if ($entry['type'] == 'Emoji') {
+            if ($entry->getString('[type]', '') == 'Emoji') {
                 $emoji = $this->emojiService->findOrCreateEmoji($entry);
                 $status->addEmoji($emoji);
             }
         }
     }
 
-    /**
-     * @param array<string,string|string[]> $options
-     * @return mixed[]
-     */
-    protected function toPollOptionJson(array $options): array
+    protected function toPollOptionJson(JsonArray $options): JsonArray
     {
-        /** @phpstan-ignore-next-line */
-        if (isset($options['oneOf']) && count($options['oneOf'])) {
-            $options = $options['oneOf'];
+        $oneOf = $options->getJsonArray('[oneOf]', JsonArray::empty());
+        if (! $oneOf->isEmpty()) {
+            $options = $oneOf;
         } else {
-            $options = $options['anyOf'];
+            $options = $options->getJsonArray('[anyOf]', JsonArray::empty());
         }
 
         $ret = [];
-        /** @var string[] $options */
-        foreach ($options as $option) {
-            /** @var array<string|string[]> $option */
+        foreach ($options->toArray() as $option) {
+            $option = new JsonArray((array)$option);
             $ret[] = [
-                'title' => $option['name'],
-                'votes_count' => $option['replies']['totalItems'] ?? 0,
+                'title' => $option->getString('[name]'),
+                'votes_count' => $option->getInt('[replies][totalItems]', 0),
             ];
         }
 
-        return $ret;
+        return new JsonArray($ret);
     }
 
     /**
      * @param Uuid[] $emojiIds
-     * @return mixed[]
      */
-    protected function toEmojiJson(array $emojiIds): array
+    protected function toEmojiJson(array $emojiIds): JsonArray
     {
         $ret = [];
 
@@ -476,6 +448,6 @@ class StatusService
             ];
         }
 
-        return $ret;
+        return new JsonArray($ret);
     }
 }

@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
+use App\JsonArray;
 
 class MessageService
 {
     /**
      * Converts JSON-LD to a canonical form
-     *
-     * @param array<string,string|string[]> $data
-     * @return string
-     * @throws \JsonException
      */
-    public function canonicalize(array $data): string
+    public function canonicalize(JsonArray $data): string
     {
         try {
             $ret = jsonld_normalize(
@@ -37,47 +34,39 @@ class MessageService
         return hash('sha256', $data);
     }
 
-    /**
-     * @param array<string,string|string[]> $message
-     */
-    public function hasSignature(array $message): bool
+    public function hasSignature(JsonArray $message): bool
     {
-        return isset($message['signature']);
+        return $message->exists('[signature]');
     }
 
     /**
      * Validates a message that has been created by 'creator'
-     *
-     * @param Account $creator*
-     * @param array<string,string|string[]> $message
-     * @return bool
-     * @throws \JsonException
      */
-    public function validate(Account $creator, array $message): bool
+    public function validate(Account $creator, JsonArray $message): bool
     {
-        if (! isset($message['signature'])) {
+        $signature = $message->getJsonArrayOrNull('[signature]');
+        if ($signature === null) {
             return false;
         }
 
-        /** @var array<string|string[]> $signature */
-        $signature = $message['signature'];
-
-        /** @var string $signatureValue */
-        $signatureValue = $signature['signatureValue'];
-        unset($message['signature']);
-
-        if ($signature['type'] != 'RsaSignature2017') {
+        if ($signature->getString('[type]', '') !== 'RsaSignature2017') {
             return false;
         }
+
+        $messageArr = $message->toArray();
+        unset($messageArr['signature']);
 
         // Unset the things that are not signed
-        unset($signature['type']);
-        unset($signature['id']);
-        unset($signature['signatureValue']);
-        $signature['@context'] = 'https://w3id.org/identity/v1';
+        $sigArr = $signature->toArray();
+        unset($sigArr['type']);
+        unset($sigArr['id']);
+        unset($sigArr['signatureValue']);
+        $sigArr['@context'] = 'https://w3id.org/identity/v1';
 
         // Create the hash of both the message and the signature
-        $messageHash = $this->hash($this->canonicalize($signature)) . $this->hash($this->canonicalize($message));
+        $messageHash = $this->hash($this->canonicalize(new JsonArray($sigArr))) . $this->hash($this->canonicalize(new JsonArray($messageArr)));
+
+        $signatureValue = $signature->getString('[signatureValue]', '');
         $ret = openssl_verify($messageHash, base64_decode($signatureValue), $creator->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
         return $ret == 1;
     }
@@ -88,12 +77,9 @@ class MessageService
         return "SHA-256=" . base64_encode(hash('sha256', $message, true));
     }
 
-    /**
-     * @param array<string,string|string[]> $data
-     */
-    protected function array2object(array $data): mixed
+    protected function array2object(JsonArray $data): mixed
     {
-        $json = json_encode($data);
+        $json = json_encode($data->toArray());
         if (!$json) {
             $json = '';
         }

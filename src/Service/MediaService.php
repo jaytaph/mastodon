@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Config;
 use App\Entity\MediaAttachment;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use kornrunner\Blurhash\Blurhash;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -140,24 +141,22 @@ class MediaService
     }
 
     /**
-     * @param mixed[] $data
+     * @param JsonArray $data
      * @return MediaAttachment
      */
-    public function findOrCreateAttachment(array $data): MediaAttachment
+    public function findOrCreateAttachment(JsonArray $data): MediaAttachment
     {
         $media = new MediaAttachment();
-        // @phpstan-ignore-next-line
-        $media->setBlurhash($data['blurhash']);
-        // @phpstan-ignore-next-line
-        $media->setDescription($data['description'] ?? '');
-        $media->setFilename($data['filename'] ?? '');
-        $media->setFocus($data['focus'] ?? []);
-        $media->setMeta($data['meta'] ?? []);
-        $media->setPreviewUrl($data['preview_url'] ?? $data['url']);
-        $media->setRemoteUrl($data['remote_url'] ?? $data['url']);
-        $media->setTextUrl($data['text_url'] ?? $data['url']);
-        $media->setType($data['type']);
-        $media->setUrl($data['url']);
+        $media->setBlurhash($data->getString('[blurhash]', ''));
+        $media->setDescription($data->getString('[description]', ''));
+        $media->setFilename($data->getString('[filename]', ''));
+        $media->setFocus($data->getJsonArray('[focus]')->toArray());
+        $media->setMeta($data->getJsonArray('[meta]')->toArray());
+        $media->setPreviewUrl($data->getString('[preview_url]', $data->getString('[url]', '')));
+        $media->setRemoteUrl($data->getString('[remote_url]', $data->getString('[url]', '')));
+        $media->setTextUrl($data->getString('[text_url]', $data->getString('[url]', '')));
+        $media->setType($data->getString('[type]', ''));
+        $media->setUrl($data->getString('[url]', ''));
 
         $this->doctrine->persist($media);
         $this->doctrine->flush();

@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Service\Inbox;
 
 use App\Entity\Account;
+use App\JsonArray;
 
 class Undo implements TypeProcessorInterface
 {
-    /**
-     * @param Account $source
-     * @param mixed[] $message
-     * @return bool
-     */
-    public function process(Account $source, array $message): bool
+    public function process(Account $source, JsonArray $message): bool
     {
         return true;
     }

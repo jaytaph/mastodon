@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Poll;
 use App\Entity\Status;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 
 class PollService
@@ -19,10 +20,10 @@ class PollService
 
     /**
      * @param Status $status
-     * @param array<string,string|string[]> $pollData
+     * @param JsonArray $pollData
      * @return Poll
      */
-    public function createPoll(Status $status, array $pollData): Poll
+    public function createPoll(Status $status, JsonArray $pollData): Poll
     {
         $poll = new Poll();
         $poll->setStatus($status);
@@ -37,46 +38,30 @@ class PollService
         return $this->doctrine->getRepository(Poll::class)->findOneBy(['status' => $status->getId()]);
     }
 
-    /**
-     * @param Poll $poll
-     * @param array<string,string|string[]> $data
-     * @return void
-     * @throws \Exception
-     */
-    public function updatePoll(Poll $poll, array $data): void
+    public function updatePoll(Poll $poll, JsonArray $data): void
     {
         $this->populate($poll, $data);
     }
 
-    /**
-     * @param Poll $poll
-     * @param array<string,string|string[]> $data
-     * @return void
-     * @throws \Exception
-     */
-    protected function populate(Poll $poll, array $data)
+    protected function populate(Poll $poll, JsonArray $data): void
     {
-        $poll->setExpired(isset($data['closed']));
-        if ($data['endTime']) {
-            /** @phpstan-ignore-next-line */
-            $poll->setExpiresAt(new \DateTimeImmutable($data['endTime']));
-        } else {
-            $poll->setExpiresAt(new \DateTimeImmutable("9999-12-31 23:59:59"));
-        }
+        $poll->setExpired($data->exists('[closed]'));
 
-        /** @phpstan-ignore-next-line */
-        $poll->setEmojis($data['emojis'] ?? []);
-        $poll->setMultiple(isset($data['anyOf']));
-        $poll->setOwnVotes([]);
-        $poll->setVotes([]);
-        /** @phpstan-ignore-next-line */
-        $poll->setVotersCount($data['votersCount'] ?? 0);
+        $poll->setExpiresAt(
+            new \DateTimeImmutable($data->getString('[endTime]', '9999-12-31 23:59:59'))
+        );
+
+        $poll->setEmojis($data->getJsonArray('[emojis]', JsonArray::empty()));
+        $poll->setMultiple($data->exists('[anyOf]'));
+        $poll->setOwnVotes(JsonArray::empty());
+        $poll->setVotes(JsonArray::empty());
+        $poll->setVotersCount($data->getInt('[votersCount]', 0));
         $poll->setVotesCount(0);
 
-        $poll->setOptions([
-            'oneOf' => $data['oneOf'] ?? [],
-            'anyOf' => $data['anyOf'] ?? [],
-        ]);
+        $poll->setOptions(new JsonArray([
+            'oneOf' => $data->getJsonArray('[oneOf]', JsonArray::empty()),
+            'anyOf' => $data->getJsonArray('[anyOf]', JsonArray::empty())
+        ]));
 
         $this->doctrine->persist($poll);
         $this->doctrine->flush();

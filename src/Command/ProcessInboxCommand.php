@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Config;
+use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -64,10 +65,9 @@ class ProcessInboxCommand extends Command
                 continue;
             }
 
-            /** @var array<string,string|string[]> $message */
-            $message = json_decode($line, true);
+            $message = JsonArray::fromJson($line);
             $i++;
-            if (!$message) {
+            if ($message->isEmpty()) {
                 print "Error reading line $i\n";
                 continue;
             }

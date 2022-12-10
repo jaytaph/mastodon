@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\ActivityPub;
 use App\Entity\Account;
+use App\JsonArray;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 
@@ -64,11 +65,11 @@ class AuthClientService
     /**
      * @param Account $source
      * @param Account $recipient
-     * @param array<string,string|string[]> $message
+     * @param JsonArray $message
      * @return ResponseInterface|null
      * @throws \Exception
      */
-    public function send(Account $source, Account $recipient, array $message): ?ResponseInterface
+    public function send(Account $source, Account $recipient, JsonArray $message): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format(ActivityPub::DATETIME_FORMAT_GMT);

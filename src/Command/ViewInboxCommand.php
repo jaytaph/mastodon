@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\JsonArray;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -78,24 +79,23 @@ class ViewInboxCommand extends Command
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);
             }
-            /** @var array<string,string|array<string>> $message */
-            $message = json_decode($line, true);
+            $message = JsonArray::fromJson($line);
             $i++;
-            if (!$message) {
+            if ($message->isEmpty()) {
                 print "Error reading line $i\n";
                 continue;
             }
 
-            if (! $this->matchesFilter($filter, strval($message['type']))) {
+            $type = $message->getString('[type]', '');
+            if (! $this->matchesFilter($filter, $type)) {
                 continue;
             }
 
             if ($mode == "count") {
-                $idx = is_string($message['type']) ? $message['type'] : "";
-                if (!isset($counts[$idx])) {
-                    $counts[$idx] = 0;
+                if (!isset($counts[$type])) {
+                    $counts[$type] = 0;
                 }
-                $counts[$idx]++;
+                $counts[$type]++;
             }
 
             if ($mode == "raw") {
@@ -103,14 +103,16 @@ class ViewInboxCommand extends Command
             }
 
             if ($mode == "table") {
+                $obj = $message->isJsonArray('[object]') ?
+                    json_encode($message->getJsonArray('[object]'), JSON_PRETTY_PRINT) :
+                    $message->getString('[object]', '')
+                ;
+
                 $table->addRow([
-                    $message['id'],
-                    $message['type'],
-                    $message['actor'],
-                    is_array($message['object']) ? json_encode(
-                        $message['object'],
-                        JSON_PRETTY_PRINT
-                    ) : $message['object'],
+                    $message->getString('[id]', ''),
+                    $message->getString('[type]', ''),
+                    $message->getString('[actor]', ''),
+                    $obj,
                 ]);
             }
         }

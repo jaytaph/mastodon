@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
+use App\JsonArray;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +21,7 @@ class StatusController extends BaseApiController
         $account = $this->getOauthUser();
         $app = $this->accountService->getLoggedInApplication();
 
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
-            $data = [];
-        }
+        $data = JsonArray::fromJson($request->getContent());
         $status = $this->statusService->createStatus($data, $account, $app);
 
         return new JsonResponse($this->statusService->toJson($status));

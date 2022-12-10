@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\JsonArray;
 use App\Repository\PollRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
@@ -33,21 +35,17 @@ class Poll
     #[ORM\Column]
     private int $votersCount = 0;
 
-    /** @var array<string,string|string[]> array  */
-    #[ORM\Column]
-    private array $options = [];
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $options;
 
-    /** @var array<string,string|string[]> array  */
-    #[ORM\Column]
-    private array $emojis = [];
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $emojis;
 
-    /** @var array<string,string|string[]> array  */
-    #[ORM\Column]
-    private array $votes = [];
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $votes;
 
-    /** @var array<string,string|string[]> array  */
-    #[ORM\Column]
-    private array $ownVotes = [];
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $ownVotes;
 
     #[ORM\OneToOne(inversedBy: 'poll', cascade: ['persist', 'remove'])]
     private ?Status $status = null;
@@ -117,76 +115,48 @@ class Poll
         return $this;
     }
 
-    /**
-     * @return array<string,string|string[]>
-     */
-    public function getOptions(): array
+    public function getOptions(): JsonArray
     {
         return $this->options;
     }
 
-    /**
-     * @param array<string,string|string[]> $options
-     * @return $this
-     */
-    public function setOptions(array $options): self
+    public function setOptions(JsonArray $options): self
     {
         $this->options = $options;
 
         return $this;
     }
 
-    /**
-     * @return mixed[]
-     */
-    public function getEmojis(): array
+    public function getEmojis(): JsonArray
     {
         return $this->emojis;
     }
 
-    /**
-     * @param array<string,string|string[]> $emojis
-     * @return $this
-     */
-    public function setEmojis(array $emojis): self
+    public function setEmojis(JsonArray $emojis): self
     {
         $this->emojis = $emojis;
 
         return $this;
     }
 
-    /**
-     * @return mixed[]
-     */
-    public function getVotes(): array
+    public function getVotes(): JsonArray
     {
         return $this->votes;
     }
 
-    /**
-     * @param array<string,string|string[]> $votes
-     * @return $this
-     */
-    public function setVotes(array $votes): self
+    public function setVotes(JsonArray $votes): self
     {
         $this->votes = $votes;
 
         return $this;
     }
 
-    /**
-     * @return array<string,string|string[]>
-     */
-    public function getOwnVotes(): array
+    public function getOwnVotes(): JsonArray
     {
         return $this->ownVotes;
     }
 
-    /**
-     * @param array<string,string|string[]> $ownVotes
-     * @return $this
-     */
-    public function setOwnVotes(array $ownVotes): self
+    public function setOwnVotes(JsonArray $ownVotes): self
     {
         $this->ownVotes = $ownVotes;
 

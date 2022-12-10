@@ -7,6 +7,7 @@ namespace App\Service;
 use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
@@ -201,34 +202,33 @@ class AccountService
             return null;
         }
 
-        /** @var array<mixed> $data */
-        $data = json_decode($response->getBody()->getContents(), true);
-        if (!$data || !isset($data['id'])) {
+        $data = JsonArray::fromJson($response->getBody()->getContents());
+        if ($data->isEmpty() || !$data->exists('[id]')) {
             return null;
         }
 
-        $acct = $data['preferredUsername'] . "@" . parse_url(strval($data['id']), PHP_URL_HOST);
+        $acct = $data->getString('[preferredUsername]', '') . "@" . parse_url($data->getString('[id]', ''), PHP_URL_HOST);
         $account = $this->findAccount($acct);
         if (! $account) {
             $account = new Account();
         }
 
-        $account->setUsername($data['preferredUsername']);
+        $account->setUsername($data->getString('[preferredUsername]', ''));
         $account->setAcct($acct);
-        $account->setAvatar($data['icon']['url'] ?? '');
-        $account->setHeader($data['image']['url'] ?? '');
-        $account->setDisplayName($data['name'] ?? $data['preferredUsername']);
-        $account->setLocked($data['manuallyApprovesFollowers']);
-        $account->setBot($data['type'] == 'Service');
-        $account->setUri(strval($data['id']));
+        $account->setAvatar($data->getString('[icon][url]', ''));
+        $account->setHeader($data->getString('[icon][url]', ''));
+        $account->setDisplayName($data->getString('[name]', $data->getString('[preferredUsername]', '')));
+        $account->setLocked($data->getBool('[manuallyApprovesFollowers]', false));
+        $account->setBot($data->getString('[type]', '') == 'Service');
+        $account->setUri($data->getString('[id]', ''));
         $account->setCreatedAt(new \DateTimeImmutable());
-        $account->setFields($data['attachments'] ?? []);
-        $account->setSource([]);
-        $account->setEmojis([]);
-        $account->setNote($data['summary']);
-        $account->setPublicKeyPem($data['publicKey']['publicKeyPem']);
+        $account->setFields($data->getJsonArray('[attachments]', JsonArray::empty()));
+        $account->setSource(JsonArray::empty());
+        $account->setEmojis(JsonArray::empty());
+        $account->setNote($data->getString('[summary]', ''));
+        $account->setPublicKeyPem($data->getString('[publicKey][publicKeyPem]', ''));
 
-        $account->setCreatedAt(new \DateTimeImmutable($data['published'] ?? "now", new \DateTimeZone('GMT')));
+        $account->setCreatedAt(new \DateTimeImmutable($data->getString('[published]', 'now'), new \DateTimeZone('GMT')));
         $account->setLastStatusAt(new \DateTimeImmutable("now", new \DateTimeZone('GMT')));
 
         $this->doctrine->persist($account);
@@ -260,20 +260,17 @@ class AccountService
         return $account;
     }
 
-    /**
-     * Retrieves the creator from a specific message
-     * @param array<string,string|string[]> $message
-     */
-    public function fetchMessageCreator(Account $source, array $message): ?Account
+    public function fetchMessageCreator(Account $source, JsonArray $message): ?Account
     {
-        if (!$message['signature']) {
+        $signature = $message->getJsonArrayOrNull('[signature]');
+        if ($signature === null) {
             return null;
         }
 
         // Fetch the creator of the message/signature
-        $signature = $message['signature'];
-        $pos = strpos($signature['creator'] ?? '', '#');
-        $creator = $pos ? substr($signature['creator'] ?? '', 0, $pos) : $signature['creator'] ?? '';
+        $creator = $signature->getString('[creator]', '');
+        $pos = strpos($creator, '#');
+        $creator = $pos ? substr($creator, 0, $pos) : $creator;
 
         return $this->findAccount($creator, true, $source);
     }

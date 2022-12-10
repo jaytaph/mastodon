@@ -6,6 +6,7 @@ namespace App\Service\Inbox;
 
 use App\Entity\Account;
 use App\Entity\Follower;
+use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\MessageService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,14 +24,9 @@ class Accept implements TypeProcessorInterface
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @param Account $source
-     * @param string[] $message
-     * @return bool
-     */
-    public function process(Account $source, array $message): bool
+    public function process(Account $source, JsonArray $message): bool
     {
-        $actor = $this->accountService->findAccount($message['actor'], true, $source);
+        $actor = $this->accountService->findAccount($message->getString('[actor]', ''), true, $source);
         if (! $actor) {
             return false;
         }

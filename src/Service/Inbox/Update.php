@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Inbox;
 
 use App\Entity\Account;
+use App\JsonArray;
 use App\Service\PollService;
 use App\Service\StatusService;
 
@@ -21,18 +22,17 @@ class Update implements TypeProcessorInterface
 
     /**
      * @param Account $source
-     * @param array<string,string|string[]> $message
+     * @param JsonArray $message
      * @return bool
      */
-    public function process(Account $source, array $message): bool
+    public function process(Account $source, JsonArray $message): bool
     {
-        /** @var array<string,string|string[]> $object */
-        $object = $message['object'];
-        if (!$object) {
+        $object = $message->getJsonArrayOrNull('[object]');
+        if ($object === null) {
             return false;
         }
 
-        switch ($object['type']) {
+        switch ($object->getString('[type]', '')) {
             case 'Question':
                 return $this->updateQuestion($object);
             case 'Person':
@@ -54,13 +54,12 @@ class Update implements TypeProcessorInterface
     }
 
     /**
-     * @param array<string,string|string[]> $object
+     * @param JsonArray $object
      * @return bool
      */
-    protected function updateQuestion(array $object): bool
+    protected function updateQuestion(JsonArray $object): bool
     {
-        /** @phpstan-ignore-next-line */
-        $status = $this->statusService->findStatusByUri($object['id']);
+        $status = $this->statusService->findStatusByUri($object->getString('[id]', ''));
         if (!$status) {
             return false;
         }

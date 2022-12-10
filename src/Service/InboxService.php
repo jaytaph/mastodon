@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
+use App\JsonArray;
 use App\Service\Inbox\TypeProcessorInterface;
 
 class InboxService
@@ -24,12 +25,9 @@ class InboxService
         $this->accountService = $accountService;
     }
 
-    /**
-     * @param array<string,string|string[]> $message
-     */
-    public function processMessage(Account $source, array $message, bool $validateMessage = true): bool
+    public function processMessage(Account $source, JsonArray $message, bool $validateMessage = true): bool
     {
-        if (!isset($message['type'])) {
+        if (!$message->exists('[type]')) {
             return false;
         }
 
@@ -45,8 +43,7 @@ class InboxService
         }
 
         foreach ($this->processors as $processor) {
-            /* @phpstan-ignore-next-line */
-            if ($processor->canProcess(strtolower($message['type']))) {
+            if ($processor->canProcess(strtolower($message->getString('[type]', '')))) {
                 return $processor->process($source, $message);
             }
         }
