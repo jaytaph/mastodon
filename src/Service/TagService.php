@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Tag;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class TagService
 {
@@ -16,14 +18,22 @@ class TagService
         $this->doctrine = $doctrine;
     }
 
-    public function findOrCreateTag(mixed $tagData): Tag
+    /**
+     * @param JsonArray $tagData
+     * @return Tag
+     */
+    public function findOrCreateTag(JsonArray $tagData): Tag
     {
-        $tag = $this->doctrine->getRepository(Tag::class)->findOneBy(['type' => $tagData['type'], 'name' => $tagData['name']]);
+        $tag = $this->doctrine->getRepository(Tag::class)->findOneBy([
+            'type' => $tagData->getString('[type]', ''),
+            'name' => $tagData->getString('[name]', ''),
+        ]);
+
         if (!$tag) {
             $tag = new Tag();
-            $tag->setType($tagData['type']);
-            $tag->setName($tagData['name']);
-            $tag->setHref($tagData['href']);
+            $tag->setType($tagData->getString('[type]', ''));
+            $tag->setName($tagData->getString('[name]', ''));
+            $tag->setHref($tagData->getString('[href]', ''));
             $tag->setCount(0);
         }
 
@@ -36,7 +46,7 @@ class TagService
         return $tag;
     }
 
-    public function fetch(mixed $id): ?Tag
+    public function fetch(Uuid $id): ?Tag
     {
         return $this->doctrine->getRepository(Tag::class)->find($id);
     }

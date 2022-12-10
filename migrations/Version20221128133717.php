@@ -14,7 +14,7 @@ final class Version20221128133717 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Changed column from URL to URI';
     }
 
     public function up(Schema $schema): void

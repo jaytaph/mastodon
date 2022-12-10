@@ -14,7 +14,7 @@ final class Version20221128142203 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'A status has a specific owner referenced in the account table';
     }
 
     public function up(Schema $schema): void

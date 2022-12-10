@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Config;
+use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -28,6 +30,13 @@ class ProcessInboxCommand extends Command
 
         $this->inboxService = $inboxService;
         $this->accountService = $accountService;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addArgument('box', InputArgument::REQUIRED, 'filename of box')
+        ;
     }
 
     /**
@@ -49,17 +58,16 @@ class ProcessInboxCommand extends Command
         $progressBar->start();
 
         /** @var iterable<string> $inbox */
-        $inbox = file("jaytaph-inbox.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $inbox = file(strval($input->getArgument('box')), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             // Skip complex escaped lines
             if ($line[0] == '"') {
                 continue;
             }
 
-            /** @var array<string,string|array<string>> $message */
-            $message = json_decode($line, true);
+            $message = JsonArray::fromJson($line);
             $i++;
-            if (!$message) {
+            if ($message->isEmpty()) {
                 print "Error reading line $i\n";
                 continue;
             }

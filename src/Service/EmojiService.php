@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Emoji;
-use App\Entity\Tag;
+use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class EmojiService
 {
@@ -17,16 +18,16 @@ class EmojiService
         $this->doctrine = $doctrine;
     }
 
-    public function findOrCreateEmoji(array $data): Emoji
+    public function findOrCreateEmoji(JsonArray $data): Emoji
     {
-        $emoji = $this->doctrine->getRepository(Emoji::class)->findOneBy(['name' => $data['name']]);
+        $emoji = $this->doctrine->getRepository(Emoji::class)->findOneBy(['name' => $data->getString('[name]', '')]);
         if (!$emoji) {
             $emoji = new Emoji();
-            $emoji->setType($data['type']);
-            $emoji->setName($data['name']);
-            $emoji->setIconType($data['icon']['type']);
-            $emoji->setIconMediaType($data['icon']['mediaType']);
-            $emoji->setIconUrl($data['icon']['url']);
+            $emoji->setType($data->getString('[type]', ''));
+            $emoji->setName($data->getString('[name]', ''));
+            $emoji->setIconType($data->getString('[icon][type]', ''));
+            $emoji->setIconMediaType($data->getString('[icon][mediaType]', ''));
+            $emoji->setIconUrl($data->getString('[icon][url]', ''));
             $emoji->setUpdatedAt(new \DateTimeImmutable());
 
             $this->doctrine->persist($emoji);
@@ -34,5 +35,10 @@ class EmojiService
         }
 
         return $emoji;
+    }
+
+    public function findEmojiById(Uuid $id): ?Emoji
+    {
+        return $this->doctrine->getRepository(Emoji::class)->find($id);
     }
 }

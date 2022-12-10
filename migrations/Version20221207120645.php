@@ -14,7 +14,7 @@ final class Version20221207120645 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Initial Emoji table';
     }
 
     public function up(Schema $schema): void

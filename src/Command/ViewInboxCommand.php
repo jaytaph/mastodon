@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\JsonArray;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,6 +32,7 @@ class ViewInboxCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addArgument('box', InputArgument::REQUIRED, 'filename of box')
             ->addOption('type', 't', InputOption::VALUE_REQUIRED, 'Type')
             ->addOption('raw', 'r', InputOption::VALUE_NONE, 'raw output')
             ->addOption('count', 'c', InputOption::VALUE_NONE, 'count values')
@@ -71,29 +74,28 @@ class ViewInboxCommand extends Command
 
         $i = 0;
         /** @var iterable<string> $inbox */
-        $inbox = file("jaytaph-inbox.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $inbox = file(strval($input->getArgument('box')), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);
             }
-            /** @var array<string,string|array<string>> $message */
-            $message = json_decode($line, true);
+            $message = JsonArray::fromJson($line);
             $i++;
-            if (!$message) {
+            if ($message->isEmpty()) {
                 print "Error reading line $i\n";
                 continue;
             }
 
-            if (! $this->matchesFilter($filter, strval($message['type']))) {
+            $type = $message->getString('[type]', '');
+            if (! $this->matchesFilter($filter, $type)) {
                 continue;
             }
 
             if ($mode == "count") {
-                $idx = is_string($message['type']) ? $message['type'] : "";
-                if (!isset($counts[$idx])) {
-                    $counts[$idx] = 0;
+                if (!isset($counts[$type])) {
+                    $counts[$type] = 0;
                 }
-                $counts[$idx]++;
+                $counts[$type]++;
             }
 
             if ($mode == "raw") {
@@ -101,14 +103,16 @@ class ViewInboxCommand extends Command
             }
 
             if ($mode == "table") {
+                $obj = $message->isJsonArray('[object]') ?
+                    json_encode($message->getJsonArray('[object]'), JSON_PRETTY_PRINT) :
+                    $message->getString('[object]', '')
+                ;
+
                 $table->addRow([
-                    $message['id'],
-                    $message['type'],
-                    $message['actor'],
-                    is_array($message['object']) ? json_encode(
-                        $message['object'],
-                        JSON_PRETTY_PRINT
-                    ) : $message['object'],
+                    $message->getString('[id]', ''),
+                    $message->getString('[type]', ''),
+                    $message->getString('[actor]', ''),
+                    $obj,
                 ]);
             }
         }

@@ -14,7 +14,7 @@ final class Version20221206152136 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Dropping some NOT NULLS in the status table';
     }
 
     public function up(Schema $schema): void

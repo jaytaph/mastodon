@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\JsonArray;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
@@ -48,11 +49,10 @@ class OauthTestCommand extends Command
                 "website" => "https://dhpt.nl",
             ]),
         ]);
-        $response = json_decode($response->getBody()->getContents(), true);
+        $response = JsonArray::fromJson($response->getBody()->getContents());
 
-        /** @var array<string> $response */
-        $clientId = $response["client_id"];
-        $clientSecret = $response["client_secret"];
+        $clientId = $response->getStringOrNull("[client_id]");
+        $clientSecret = $response->getStringOrNull("[client_secret]");
 
         $params = [
             "client_id" => $clientId,
@@ -92,10 +92,9 @@ class OauthTestCommand extends Command
             ]),
         ]);
 
-        $response = json_decode($response->getBody()->getContents(), true);
+        $response = JsonArray::fromJson($response->getBody()->getContents());
 
-        /** @var array<string> $response */
-        $token = $response['access_token'];
+        $token = $response->getStringOrNull('[access_token]');
         $response = $client->get('https://' . $url . '/api/v1/accounts/verify_credentials', [
             'headers' => [
                 'Accept' => 'application/json',
@@ -104,7 +103,7 @@ class OauthTestCommand extends Command
             ],
         ]);
         $response = json_decode($response->getBody()->getContents(), true);
-        $io->success($response);
+        $io->success(strval($response));
 
         return Command::SUCCESS;
     }

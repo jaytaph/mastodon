@@ -51,26 +51,26 @@ class Status
     #[ORM\Column(type: 'text')]
     private string $content;
 
-    /** @var array<string, mixed> array  */
+    /** @var Uuid[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $attachmentIds = [];
 
-    /** @var array<string, mixed> array  */
+    /** @var Uuid[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $tagIds = [];
 
-    /** @var array<string, mixed> array  */
+    /** @var Uuid[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $mentionIds = [];
 
-    /** @var array<string, mixed> array  */
+    /** @var Uuid[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $emojiIds = [];
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $local;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: false)]
     private string $inReplyToUri;
 
     #[ORM\ManyToOne]
@@ -126,7 +126,11 @@ class Status
     private bool $likable;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
     private Account $owner;
+
+    #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
+    private ?Poll $poll = null;
 
     public function getId(): Uuid
     {
@@ -194,7 +198,7 @@ class Status
     }
 
     /**
-     * @return mixed[]
+     * @return Uuid[]
      */
     public function getAttachmentIds(): array
     {
@@ -202,7 +206,7 @@ class Status
     }
 
     /**
-     * @param array|mixed[] $attachmentIds
+     * @param Uuid[] $attachmentIds
      * @return $this
      */
     public function setAttachmentIds(array $attachmentIds): self
@@ -213,7 +217,7 @@ class Status
     }
 
     /**
-     * @return mixed[]
+     * @return Uuid[]
      */
     public function getTagIds(): array
     {
@@ -221,7 +225,7 @@ class Status
     }
 
     /**
-     * @param array|mixed[] $tagIds
+     * @param Uuid[] $tagIds
      * @return $this
      */
     public function setTagIds(array $tagIds): self
@@ -232,7 +236,7 @@ class Status
     }
 
     /**
-     * @return mixed[]
+     * @return Uuid[]
      */
     public function getMentionIds(): array
     {
@@ -240,7 +244,7 @@ class Status
     }
 
     /**
-     * @param array|mixed[] $mentionIds
+     * @param Uuid[] $mentionIds
      * @return $this
      */
     public function setMentionIds(array $mentionIds): self
@@ -251,7 +255,7 @@ class Status
     }
 
     /**
-     * @return mixed[]
+     * @return Uuid[]
      */
     public function getEmojiIds(): array
     {
@@ -259,7 +263,7 @@ class Status
     }
 
     /**
-     * @param array|mixed[] $emojiIds
+     * @param Uuid[] $emojiIds
      * @return $this
      */
     public function setEmojiIds(array $emojiIds): self
@@ -546,8 +550,30 @@ class Status
         $this->attachmentIds[] = $media->getId();
     }
 
-    public function isPrivate()
+    public function isPrivate(): bool
     {
         return $this->visibility === self::VISIBILITY_PRIVATE;
+    }
+
+    public function getPoll(): ?Poll
+    {
+        return $this->poll;
+    }
+
+    public function setPoll(?Poll $poll): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($poll === null && $this->poll !== null) {
+            $this->poll->setStatus(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($poll !== null && $poll->getStatus() !== $this) {
+            $poll->setStatus($this);
+        }
+
+        $this->poll = $poll;
+
+        return $this;
     }
 }

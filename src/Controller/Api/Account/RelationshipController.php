@@ -8,7 +8,6 @@ use App\Controller\BaseApiController;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -16,7 +15,7 @@ class RelationshipController extends BaseApiController
 {
     #[Route('/api/v1/accounts/relationships', name: 'api_account_relationship', priority: 10)]
     #[IsGranted('ROLE_OAUTH2_FOLLOW')]
-    public function relationships(Request $request): Response
+    public function relationships(): Response
     {
         $user = $this->getUser();
         if (is_null($user)) {

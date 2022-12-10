@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
+use App\JsonArray;
 use App\Repository\TagRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
@@ -81,12 +84,12 @@ class Tag
         return $this;
     }
 
-    public function toArray(): array
+    public function toJsonArray(): JsonArray
     {
-        return [
+        return new JsonArray([
             'type' => $this->getType(),
             'name' => $this->getName(),
             'href' => $this->getHref(),
-        ];
+        ]);
     }
 }

@@ -29,7 +29,7 @@ test_phpmd:
 test_unit: ## Run unit tests
 	source test-utils.sh ;\
 	section "PHPUNIT" ;\
-	vendor/bin/phpunit --testsuite "Leita.io Unit Test Suite"
+	vendor/bin/phpunit --testsuite "Mastodon Unit Test Suite"
 
 help: ## Display available commands
 	echo "Available make commands:"

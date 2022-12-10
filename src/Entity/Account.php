@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\JsonArray;
 use App\Repository\AccountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -61,17 +62,14 @@ class Account
     #[ORM\Column(length: 255)]
     private string $headerStatic = '';
 
-    /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
-    private array $source;
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $source;
 
-    /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
-    private array $emojis;
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $emojis;
 
-    /** @var array<string, mixed> array  */
-    #[ORM\Column(type: Types::JSON)]
-    private array $fields;
+    #[ORM\Column(type: 'json_array')]
+    private JsonArray $fields;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $publicKeyPem = null;
@@ -228,54 +226,36 @@ class Account
         return $this;
     }
 
-    /**
-     * @return array|mixed[]
-     */
-    public function getSource(): array
+    public function getSource(): JsonArray
     {
         return $this->source;
     }
 
-    /**
-     * @param array|mixed[] $source
-     */
-    public function setSource(array $source): self
+    public function setSource(JsonArray $source): self
     {
         $this->source = $source;
 
         return $this;
     }
 
-    /**
-     * @return array|mixed[]
-     */
-    public function getEmojis(): array
+    public function getEmojis(): JsonArray
     {
         return $this->emojis;
     }
 
-    /**
-     * @param array|mixed[] $emojis
-     */
-    public function setEmojis(array $emojis): self
+    public function setEmojis(JsonArray $emojis): self
     {
         $this->emojis = $emojis;
 
         return $this;
     }
 
-    /**
-     * @return array|mixed[]
-     */
-    public function getFields(): array
+    public function getFields(): JsonArray
     {
         return $this->fields;
     }
 
-    /**
-     * @param array|mixed[] $fields
-     */
-    public function setFields(array $fields): self
+    public function setFields(JsonArray $fields): self
     {
         $this->fields = $fields;
 

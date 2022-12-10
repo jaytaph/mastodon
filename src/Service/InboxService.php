@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
+use App\JsonArray;
 use App\Service\Inbox\TypeProcessorInterface;
 
 class InboxService
@@ -24,33 +25,25 @@ class InboxService
         $this->accountService = $accountService;
     }
 
-    /**
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getInbox(string $account): void
+    public function processMessage(Account $source, JsonArray $message, bool $validateMessage = true): bool
     {
-        // ...
-    }
-
-    /**
-     * @param mixed[] $message
-     */
-    public function processMessage(Account $source, array $message, bool $validateMessage = true): bool
-    {
-        if (!isset($message['type'])) {
+        if (!$message->exists('[type]')) {
             return false;
         }
 
         // Validate message if it has a signature
         if ($validateMessage && $this->messageService->hasSignature($message)) {
             $creator = $this->accountService->fetchMessageCreator($source, $message);
-            if (!$creator || !$this->messageService->validate($creator, $message)) {
+            if (!$creator) {
+                return false;
+            }
+            if (!$this->messageService->validate($creator, $message)) {
                 return false;
             }
         }
 
         foreach ($this->processors as $processor) {
-            if ($processor->canProcess(strtolower($message['type']))) {
+            if ($processor->canProcess(strtolower($message->getString('[type]', '')))) {
                 return $processor->process($source, $message);
             }
         }

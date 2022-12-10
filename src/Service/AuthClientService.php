@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\ActivityPub;
 use App\Entity\Account;
+use App\JsonArray;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 
@@ -61,7 +62,14 @@ class AuthClientService
         return $result;
     }
 
-    public function send(Account $source, Account $recipient, array $message)
+    /**
+     * @param Account $source
+     * @param Account $recipient
+     * @param JsonArray $message
+     * @return ResponseInterface|null
+     * @throws \Exception
+     */
+    public function send(Account $source, Account $recipient, JsonArray $message): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
         $date = $dt->format(ActivityPub::DATETIME_FORMAT_GMT);
@@ -73,7 +81,10 @@ class AuthClientService
         $recipientHost = parse_url($recipientUrl, PHP_URL_HOST);
 
         $message = json_encode($message);
-        $msgDigest = $this->messageService->hashMessage($message);
+        if (!$message) {
+            $message = '';
+        }
+        $msgDigest = $this->messageService->createHashDigest($message);
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): post $recipientPath\nhost: $recipientHost\ndate: $date\ndigest: $msgDigest";

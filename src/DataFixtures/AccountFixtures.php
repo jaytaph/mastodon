@@ -6,6 +6,7 @@ namespace App\DataFixtures;
 
 use App\Config;
 use App\Entity\Account;
+use App\JsonArray;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -22,9 +23,9 @@ class AccountFixtures extends Fixture
         $account->setDisplayName(Config::ADMIN_USER);
         $account->setCreatedAt(new \DateTimeImmutable());
         $account->setLastStatusAt(new \DateTimeImmutable());
-        $account->setSource([]);
-        $account->setEmojis([]);
-        $account->setFields([]);
+        $account->setSource(JsonArray::empty());
+        $account->setEmojis(JsonArray::empty());
+        $account->setFields(JsonArray::empty());
 
         $config = [
             'private_key_type' => OPENSSL_KEYTYPE_RSA,

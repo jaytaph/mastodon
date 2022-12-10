@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
+use App\JsonArray;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +21,7 @@ class StatusController extends BaseApiController
         $account = $this->getOauthUser();
         $app = $this->accountService->getLoggedInApplication();
 
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
-            $data = [];
-        }
+        $data = JsonArray::fromJson($request->getContent());
         $status = $this->statusService->createStatus($data, $account, $app);
 
         return new JsonResponse($this->statusService->toJson($status));
@@ -31,7 +29,7 @@ class StatusController extends BaseApiController
 
     #[Route('/api/v1/statuses/{uuid}/context', name: 'api_account_status_context')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function context(Request $request, string $uuid): Response
+    public function context(string $uuid): Response
     {
         // $account = $this->getOauthUser();
 
@@ -44,11 +42,21 @@ class StatusController extends BaseApiController
             throw $this->createAccessDeniedException();
         }
 
-        $ret = [
-            'ancestors' => [],
-            'descendants' => [],
-        ];
+        $ancestors = [];
+        if ($status->getInReplyTo()) {
+            $ancestors[] = $this->statusService->toJson($status->getInReplyTo());
+        }
 
-        return new JsonResponse($ret);
+
+        $descendants = [];
+        foreach ($this->statusService->getParents($status) as $parentStatus) {
+            $descendants[] = $this->statusService->toJson($parentStatus);
+        }
+
+
+        return new JsonResponse([
+            'ancestors' => $ancestors,
+            'descendants' => $descendants,
+        ]);
     }
 }

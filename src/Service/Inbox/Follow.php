@@ -6,6 +6,7 @@ namespace App\Service\Inbox;
 
 use App\Entity\Account;
 use App\Entity\Follower;
+use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\AuthClientService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,10 +25,10 @@ class Follow implements TypeProcessorInterface
         $this->authClientService = $authClientService;
     }
 
-    public function process(Account $source, array $message): bool
+    public function process(Account $source, JsonArray $message): bool
     {
         // Store in the followers table
-        $actor = $this->accountService->findAccount($message['actor'], true, $source);
+        $actor = $this->accountService->findAccount($message->getString('[actor]', ''), true, $source);
         if (! $actor) {
             return false;
         }
@@ -43,16 +44,16 @@ class Follow implements TypeProcessorInterface
         $follower->setAccepted(true);
 
         // Send back accept response
-        $data = [
+        $data = new JsonArray([
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => 'https://dhpt.nl/users/'. $source->getAcct().'/' . Uuid::v4(),
+            'id' => 'https://dhpt.nl/users/' . $source->getAcct() . '/' . Uuid::v4(),
             'type' => 'Accept',
-            'actor' => $message['object'],
+            'actor' => $message->getJsonArray('[object]', JsonArray::empty()),
             'object' => $message,
-        ];
+        ]);
 
         $result = $this->authClientService->send($source, $actor, $data);
-        if ($result->getStatusCode() >= 200 && $result->getStatusCode() < 300) {
+        if ($result && $result->getStatusCode() >= 200 && $result->getStatusCode() < 300) {
             $this->doctrine->persist($follower);
             $this->doctrine->flush();
         }
@@ -60,7 +61,8 @@ class Follow implements TypeProcessorInterface
         return true;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'follow';
     }
 }

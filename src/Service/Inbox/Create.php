@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Inbox;
 
 use App\Entity\Account;
+use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\StatusService;
 
@@ -19,43 +20,39 @@ class Create implements TypeProcessorInterface
         $this->statusService = $statusService;
     }
 
-    public function process(Account $source, array $message): bool
+    public function process(Account $source, JsonArray $message): bool
     {
-        if (! isset($message['object'])) {
+        $object = $message->getJsonArrayOrNull('[object]');
+        if ($object === null) {
             return false;
         }
 
-        /** @var array<string> $object */
-        $object = $message['object'];
-
-        switch ($object['type']) {
+        $type = $object->getString('[type]', '');
+        switch ($type) {
             case 'Note':
-                return $this->processCreatedNoteMessage($source, $object);
+                return $this->processMessage($source, $object);
             case 'Question':
-//                return $this->processCreatedQuestionMessage($source, $object);
-                break;
+                return $this->processMessage($source, $object);
             default:
-                throw new \Exception('Unknown object type: ' . $object['type']);
+                throw new \Exception('Unknown object type: ' . $type);
         }
-
-        return false;
     }
 
-    public function canProcess(string $type): bool {
+    public function canProcess(string $type): bool
+    {
         return $type === 'create';
     }
 
     /**
-     * @param array<string> $message
-     * @param array<string> $object
+     * @param JsonArray $object
      * @throws \Exception
      */
-    protected function processCreatedNoteMessage(Account $source, array $object): bool
+    protected function processMessage(Account $source, JsonArray $object): bool
     {
         // @TODO: We probably need to check for forwarded messages first
 
         // We've already seen this status
-        $status = $this->statusService->findStatusByURI($object['id']);
+        $status = $this->statusService->findStatusByURI($object->getString('[id]', ''));
         if ($status) {
             return false;
         }
@@ -64,5 +61,4 @@ class Create implements TypeProcessorInterface
 
         return $status !== null;
     }
-
 }
