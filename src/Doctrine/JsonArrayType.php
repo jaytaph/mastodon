@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine;
 
 use App\JsonArray;
@@ -10,7 +12,6 @@ use Doctrine\Deprecations\Deprecation;
 use JsonException;
 
 use function is_resource;
-use function json_decode;
 use function json_encode;
 use function stream_get_contents;
 
@@ -36,10 +37,14 @@ class JsonArrayType extends Type
             return null;
         }
 
+        if (! $value instanceof JsonArray) {
+            throw ConversionException::conversionFailedInvalidType($value, 'json_array', ['null', JsonArray::class]);
+        }
+
         try {
             return json_encode($value->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
         } catch (JsonException $e) {
-            throw ConversionException::conversionFailedSerialization($value, 'json', $e->getMessage(), $e);
+            throw ConversionException::conversionFailedSerialization($value, 'json_array', $e->getMessage(), $e);
         }
     }
 
@@ -57,7 +62,7 @@ class JsonArrayType extends Type
         }
 
         try {
-            return JsonArray::fromJson($value);
+            return JsonArray::fromJson(strval($value));
         } catch (JsonException $e) {
             throw ConversionException::conversionFailed($value, $this->getName(), $e);
         }

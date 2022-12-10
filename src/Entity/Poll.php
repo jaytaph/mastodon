@@ -6,7 +6,6 @@ namespace App\Entity;
 
 use App\JsonArray;
 use App\Repository\PollRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
