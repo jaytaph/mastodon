@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\JsonArray;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
@@ -14,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 #[AsCommand(
     name: 'app:test:oauth',
@@ -49,7 +49,7 @@ class OauthTestCommand extends Command
                 "website" => "https://dhpt.nl",
             ]),
         ]);
-        $response = JsonArray::fromJson($response->getBody()->getContents());
+        $response = TypeArray::fromJson($response->getBody()->getContents());
 
         $clientId = $response->getStringOrNull("[client_id]");
         $clientSecret = $response->getStringOrNull("[client_secret]");
@@ -92,7 +92,7 @@ class OauthTestCommand extends Command
             ]),
         ]);
 
-        $response = JsonArray::fromJson($response->getBody()->getContents());
+        $response = TypeArray::fromJson($response->getBody()->getContents());
 
         $token = $response->getStringOrNull('[access_token]');
         $response = $client->get('https://' . $url . '/api/v1/accounts/verify_credentials', [

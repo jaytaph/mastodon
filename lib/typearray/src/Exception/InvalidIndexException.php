@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Exception;
+namespace Jaytaph\TypeArray\Exception;
 
 class InvalidIndexException extends \Exception
 {

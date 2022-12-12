@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace Jaytaph\TypeArray;
 
-use App\Exception\IncorrectDataTypeException;
-use App\Exception\InvalidIndexException;
+use Jaytaph\TypeArray\Exception\IncorrectDataTypeException;
+use Jaytaph\TypeArray\Exception\InvalidIndexException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
-class JsonArray implements \JsonSerializable
+class TypeArray implements \JsonSerializable
 {
     protected PropertyAccessorInterface $propertyAccessor;
 
@@ -34,7 +34,7 @@ class JsonArray implements \JsonSerializable
         $this->data = $data;
     }
 
-    // Creates a new JsonArray from a JSON string
+    // Creates a new TypeArray from a JSON string
     public static function fromJson(string $json): self
     {
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
@@ -46,7 +46,8 @@ class JsonArray implements \JsonSerializable
     }
 
     /**
-     * Returns the array in the JsonArray
+     * Returns the array in the TypeArray
+     *
      * @return mixed[]
      */
     public function toArray(): array
@@ -54,7 +55,8 @@ class JsonArray implements \JsonSerializable
         return $this->data;
     }
 
-    // Returns the string at the given path, or $default if not found. If the path doesn't point to a string, it will throw an exception.
+    // Returns the string at the given path, or $default if not found. If the path doesn't point to
+    // a string, it will throw an exception.
     public function getString(string $path, ?string $default = null): string
     {
         $value = $this->getValue($path, $default);
@@ -65,7 +67,8 @@ class JsonArray implements \JsonSerializable
         return $value;
     }
 
-    // Returns the string at the given path, or null when the path is not found. If the value on path is not a string, it will throw an exception.
+    // Returns the string at the given path, or null when the path is not found. If the value on path is not a
+    // string, it will throw an exception.
     public function getStringOrNull(string $path): ?string
     {
         if (!$this->propertyAccessor->isReadable($this->data, $path)) {
@@ -117,19 +120,19 @@ class JsonArray implements \JsonSerializable
         return $value;
     }
 
-    // Returns a JsonArray from the given path
-    public function getJsonArray(string $path, ?JsonArray $default = null): JsonArray
+    // Returns a TypeArray from the given path
+    public function getTypeArray(string $path, ?TypeArray $default = null): TypeArray
     {
         $value = $this->getValue($path, $default);
-        if (!is_array($value) && ! $value instanceof JsonArray) {
+        if (!is_array($value) && ! $value instanceof TypeArray) {
             throw new IncorrectDataTypeException('array', gettype($value));
         }
 
-        return ($value instanceof JsonArray) ? $value : new JsonArray($value);
+        return ($value instanceof TypeArray) ? $value : new TypeArray($value);
     }
 
-    // Returns a JsonArray from the given path, or null when not found
-    public function getJsonArrayOrNull(string $path): ?JsonArray
+    // Returns a TypeArray from the given path, or null when not found
+    public function getTypeArrayOrNull(string $path): ?TypeArray
     {
         if (!$this->propertyAccessor->isReadable($this->data, $path)) {
             return null;
@@ -140,21 +143,21 @@ class JsonArray implements \JsonSerializable
             throw new IncorrectDataTypeException('array', gettype($value));
         }
 
-        return new JsonArray($value ?? []);
+        return new TypeArray($value ?? []);
     }
 
-    // Returns true when the given path is an array or JsonArray
-    public function isJsonArray(string $path): bool
+    // Returns true when the given path is an array or TypeArray
+    public function isTypeArray(string $path): bool
     {
         $value = $this->propertyAccessor->getValue($this->data, $path);
 
-        return is_array($value) || $value instanceof JsonArray;
+        return is_array($value) || $value instanceof TypeArray;
     }
 
-    // Returns an empty JsonArray
+    // Returns an empty TypeArray
     public static function empty(): self
     {
-        return new JsonArray([]);
+        return new TypeArray([]);
     }
 
     // Returns true when the object is empty

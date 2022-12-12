@@ -6,8 +6,8 @@ namespace App\Service;
 
 use App\Entity\Poll;
 use App\Entity\Status;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
+use Jaytaph\TypeArray\TypeArray;
 
 class PollService
 {
@@ -20,10 +20,10 @@ class PollService
 
     /**
      * @param Status $status
-     * @param JsonArray $pollData
+     * @param TypeArray $pollData
      * @return Poll
      */
-    public function createPoll(Status $status, JsonArray $pollData): Poll
+    public function createPoll(Status $status, TypeArray $pollData): Poll
     {
         $poll = new Poll();
         $poll->setStatus($status);
@@ -38,12 +38,12 @@ class PollService
         return $this->doctrine->getRepository(Poll::class)->findOneBy(['status' => $status->getId()]);
     }
 
-    public function updatePoll(Poll $poll, JsonArray $data): void
+    public function updatePoll(Poll $poll, TypeArray $data): void
     {
         $this->populate($poll, $data);
     }
 
-    protected function populate(Poll $poll, JsonArray $data): void
+    protected function populate(Poll $poll, TypeArray $data): void
     {
         $poll->setExpired($data->exists('[closed]'));
 
@@ -51,16 +51,16 @@ class PollService
             new \DateTimeImmutable($data->getString('[endTime]', '9999-12-31 23:59:59'))
         );
 
-        $poll->setEmojis($data->getJsonArray('[emojis]', JsonArray::empty()));
+        $poll->setEmojis($data->getTypeArray('[emojis]', TypeArray::empty()));
         $poll->setMultiple($data->exists('[anyOf]'));
-        $poll->setOwnVotes(JsonArray::empty());
-        $poll->setVotes(JsonArray::empty());
+        $poll->setOwnVotes(TypeArray::empty());
+        $poll->setVotes(TypeArray::empty());
         $poll->setVotersCount($data->getInt('[votersCount]', 0));
         $poll->setVotesCount(0);
 
-        $poll->setOptions(new JsonArray([
-            'oneOf' => $data->getJsonArray('[oneOf]', JsonArray::empty()),
-            'anyOf' => $data->getJsonArray('[anyOf]', JsonArray::empty())
+        $poll->setOptions(new TypeArray([
+            'oneOf' => $data->getTypeArray('[oneOf]', TypeArray::empty()),
+            'anyOf' => $data->getTypeArray('[anyOf]', TypeArray::empty())
         ]));
 
         $this->doctrine->persist($poll);

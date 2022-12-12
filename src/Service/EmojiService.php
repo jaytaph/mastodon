@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Emoji;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 class EmojiService
 {
@@ -18,7 +18,7 @@ class EmojiService
         $this->doctrine = $doctrine;
     }
 
-    public function findOrCreateEmoji(JsonArray $data): Emoji
+    public function findOrCreateEmoji(TypeArray $data): Emoji
     {
         $emoji = $this->doctrine->getRepository(Emoji::class)->findOneBy(['name' => $data->getString('[name]', '')]);
         if (!$emoji) {

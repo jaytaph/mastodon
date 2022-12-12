@@ -9,9 +9,9 @@ use App\Config;
 use App\Entity\Account;
 use App\Entity\Status;
 use App\Entity\Tag;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
@@ -54,10 +54,10 @@ class StatusService
     /**
      * This is different than createStatusFromObject. It would be nice if we can somehow reuse the code.
      *
-     * @param JsonArray $data
+     * @param TypeArray $data
      * @throws \Exception
      */
-    public function createStatus(JsonArray $data, Account $owner, string $applicationId = ''): Status
+    public function createStatus(TypeArray $data, Account $owner, string $applicationId = ''): Status
     {
         // Create new status and persist, so we have a UUID
         $status = new Status();
@@ -300,11 +300,11 @@ class StatusService
 
     /**
      * @param Account $owner
-     * @param JsonArray $object
+     * @param TypeArray $object
      * @return Status|null
      * @throws \Exception
      */
-    public function createStatusFromObject(Account $owner, JsonArray $object): ?Status
+    public function createStatusFromObject(Account $owner, TypeArray $object): ?Status
     {
         $status = new Status();
 
@@ -339,8 +339,8 @@ class StatusService
         $status->setUri($object->getString('[id]', ''));
         $status->setUrl($object->getString('[url]', ''));
         $status->setVisibility($object->getString('[visibility]', Status::VISIBILITY_PUBLIC));
-        $this->processTags($status, $object->getJsonArray('[tag]', JsonArray::empty()));
-        $this->processAttachments($status, $object->getJsonArray('[attachment]', JsonArray::empty()));
+        $this->processTags($status, $object->getTypeArray('[tag]', TypeArray::empty()));
+        $this->processAttachments($status, $object->getTypeArray('[attachment]', TypeArray::empty()));
 //        $status->setMentionIds([]);
 //        $this->createEmojis($status, $object['emoji'] ?? []);
 
@@ -363,30 +363,30 @@ class StatusService
         return $status;
     }
 
-    protected function processAttachments(Status $status, JsonArray $attachments): void
+    protected function processAttachments(Status $status, TypeArray $attachments): void
     {
         if ($attachments->exists('[type]')) {
-            $attachments = new JsonArray([$attachments]);
+            $attachments = new TypeArray([$attachments]);
         }
 
         // Create media attachments from the given attachments
         foreach ($attachments->toArray() as $attachment) {
-            $attachment = new JsonArray((array)$attachment);
+            $attachment = new TypeArray((array)$attachment);
             $media = $this->mediaService->findOrCreateAttachment($attachment);
 
             $status->addAttachment($media);
         }
     }
 
-    protected function processTags(Status $status, JsonArray $tags): void
+    protected function processTags(Status $status, TypeArray $tags): void
     {
         if ($tags->exists('[type]')) {
-            $tags = new JsonArray([$tags->toArray()]);
+            $tags = new TypeArray([$tags->toArray()]);
         }
 
         // Create (or update counts for) tags within the message
         foreach ($tags->toArray() as $entry) {
-            $entry = new JsonArray((array)$entry);
+            $entry = new TypeArray((array)$entry);
 
             if ($entry->getString('[type]', '') == 'Hashtag') {
                 $tag = $this->tagService->findOrCreateTag($entry);
@@ -405,31 +405,31 @@ class StatusService
         }
     }
 
-    protected function toPollOptionJson(JsonArray $options): JsonArray
+    protected function toPollOptionJson(TypeArray $options): TypeArray
     {
-        $oneOf = $options->getJsonArray('[oneOf]', JsonArray::empty());
+        $oneOf = $options->getTypeArray('[oneOf]', TypeArray::empty());
         if (! $oneOf->isEmpty()) {
             $options = $oneOf;
         } else {
-            $options = $options->getJsonArray('[anyOf]', JsonArray::empty());
+            $options = $options->getTypeArray('[anyOf]', TypeArray::empty());
         }
 
         $ret = [];
         foreach ($options->toArray() as $option) {
-            $option = new JsonArray((array)$option);
+            $option = new TypeArray((array)$option);
             $ret[] = [
                 'title' => $option->getString('[name]'),
                 'votes_count' => $option->getInt('[replies][totalItems]', 0),
             ];
         }
 
-        return new JsonArray($ret);
+        return new TypeArray($ret);
     }
 
     /**
      * @param Uuid[] $emojiIds
      */
-    protected function toEmojiJson(array $emojiIds): JsonArray
+    protected function toEmojiJson(array $emojiIds): TypeArray
     {
         $ret = [];
 
@@ -448,6 +448,6 @@ class StatusService
             ];
         }
 
-        return new JsonArray($ret);
+        return new TypeArray($ret);
     }
 }

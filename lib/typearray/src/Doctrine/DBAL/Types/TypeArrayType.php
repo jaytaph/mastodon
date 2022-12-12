@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Doctrine;
+namespace Jaytaph\TypeArray\Doctrine\DBAL\Types;
 
-use App\JsonArray;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\Deprecations\Deprecation;
 use JsonException;
+use Jaytaph\TypeArray\TypeArray;
 
 use function is_resource;
 use function json_encode;
@@ -18,8 +18,10 @@ use function stream_get_contents;
 use const JSON_PRESERVE_ZERO_FRACTION;
 use const JSON_THROW_ON_ERROR;
 
-class JsonArrayType extends Type
+class TypeArrayType extends Type
 {
+    public const TYPE = 'type_array';
+
     /**
      * {@inheritdoc}
      */
@@ -37,14 +39,14 @@ class JsonArrayType extends Type
             return null;
         }
 
-        if (! $value instanceof JsonArray) {
-            throw ConversionException::conversionFailedInvalidType($value, 'json_array', ['null', JsonArray::class]);
+        if (! $value instanceof TypeArray) {
+            throw ConversionException::conversionFailedInvalidType($value, self::TYPE, ['null', TypeArray::class]);
         }
 
         try {
             return json_encode($value->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
         } catch (JsonException $e) {
-            throw ConversionException::conversionFailedSerialization($value, 'json_array', $e->getMessage(), $e);
+            throw ConversionException::conversionFailedSerialization($value, self::TYPE, $e->getMessage(), $e);
         }
     }
 
@@ -62,7 +64,7 @@ class JsonArrayType extends Type
         }
 
         try {
-            return JsonArray::fromJson(strval($value));
+            return TypeArray::fromJson(strval($value));
         } catch (JsonException $e) {
             throw ConversionException::conversionFailed($value, $this->getName(), $e);
         }
@@ -73,7 +75,7 @@ class JsonArrayType extends Type
      */
     public function getName()
     {
-        return 'json_array';
+        return self::TYPE;
     }
 
     /**

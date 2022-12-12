@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Config;
-use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\InboxService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Jaytaph\TypeArray\TypeArray;
 
 class UserController extends AbstractController
 {
@@ -39,7 +39,7 @@ class UserController extends AbstractController
         // @TODO: Path injection
         file_put_contents("../var/uploads/$acct-inbox.txt", $request->getContent() . "\n", FILE_APPEND);
 
-        $message = JsonArray::fromJson($request->getContent());
+        $message = TypeArray::fromJson($request->getContent());
         if (! $message->isEmpty()) {
             $this->inboxService->processMessage($account, $message);
         }

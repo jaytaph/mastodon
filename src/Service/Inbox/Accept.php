@@ -6,10 +6,10 @@ namespace App\Service\Inbox;
 
 use App\Entity\Account;
 use App\Entity\Follower;
-use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\MessageService;
 use Doctrine\ORM\EntityManagerInterface;
+use Jaytaph\TypeArray\TypeArray;
 
 class Accept implements TypeProcessorInterface
 {
@@ -24,7 +24,7 @@ class Accept implements TypeProcessorInterface
         $this->doctrine = $doctrine;
     }
 
-    public function process(Account $source, JsonArray $message): bool
+    public function process(Account $source, TypeArray $message): bool
     {
         $actor = $this->accountService->findAccount($message->getString('[actor]', ''), true, $source);
         if (! $actor) {

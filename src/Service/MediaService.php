@@ -6,11 +6,11 @@ namespace App\Service;
 
 use App\Config;
 use App\Entity\MediaAttachment;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use kornrunner\Blurhash\Blurhash;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 class MediaService
 {
@@ -141,17 +141,17 @@ class MediaService
     }
 
     /**
-     * @param JsonArray $data
+     * @param TypeArray $data
      * @return MediaAttachment
      */
-    public function findOrCreateAttachment(JsonArray $data): MediaAttachment
+    public function findOrCreateAttachment(TypeArray $data): MediaAttachment
     {
         $media = new MediaAttachment();
         $media->setBlurhash($data->getString('[blurhash]', ''));
         $media->setDescription($data->getString('[description]', ''));
         $media->setFilename($data->getString('[filename]', ''));
-        $media->setFocus($data->getJsonArray('[focus]')->toArray());
-        $media->setMeta($data->getJsonArray('[meta]')->toArray());
+        $media->setFocus($data->getTypeArray('[focus]')->toArray());
+        $media->setMeta($data->getTypeArray('[meta]')->toArray());
         $media->setPreviewUrl($data->getString('[preview_url]', $data->getString('[url]', '')));
         $media->setRemoteUrl($data->getString('[remote_url]', $data->getString('[url]', '')));
         $media->setTextUrl($data->getString('[text_url]', $data->getString('[url]', '')));

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service\Inbox;
 
 use App\Entity\Account;
-use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\StatusService;
+use Jaytaph\TypeArray\TypeArray;
 
 class Create implements TypeProcessorInterface
 {
@@ -20,9 +20,9 @@ class Create implements TypeProcessorInterface
         $this->statusService = $statusService;
     }
 
-    public function process(Account $source, JsonArray $message): bool
+    public function process(Account $source, TypeArray $message): bool
     {
-        $object = $message->getJsonArrayOrNull('[object]');
+        $object = $message->getTypeArrayOrNull('[object]');
         if ($object === null) {
             return false;
         }
@@ -44,10 +44,10 @@ class Create implements TypeProcessorInterface
     }
 
     /**
-     * @param JsonArray $object
+     * @param TypeArray $object
      * @throws \Exception
      */
-    protected function processMessage(Account $source, JsonArray $object): bool
+    protected function processMessage(Account $source, TypeArray $object): bool
     {
         // @TODO: We probably need to check for forwarded messages first
 

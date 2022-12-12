@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service\Inbox;
 
 use App\Entity\Account;
-use App\JsonArray;
 use App\Service\PollService;
 use App\Service\StatusService;
+use Jaytaph\TypeArray\TypeArray;
 
 class Update implements TypeProcessorInterface
 {
@@ -22,12 +22,12 @@ class Update implements TypeProcessorInterface
 
     /**
      * @param Account $source
-     * @param JsonArray $message
+     * @param TypeArray $message
      * @return bool
      */
-    public function process(Account $source, JsonArray $message): bool
+    public function process(Account $source, TypeArray $message): bool
     {
-        $object = $message->getJsonArrayOrNull('[object]');
+        $object = $message->getTypeArrayOrNull('[object]');
         if ($object === null) {
             return false;
         }
@@ -54,10 +54,10 @@ class Update implements TypeProcessorInterface
     }
 
     /**
-     * @param JsonArray $object
+     * @param TypeArray $object
      * @return bool
      */
-    protected function updateQuestion(JsonArray $object): bool
+    protected function updateQuestion(TypeArray $object): bool
     {
         $status = $this->statusService->findStatusByUri($object->getString('[id]', ''));
         if (!$status) {
