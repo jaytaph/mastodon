@@ -1,5 +1,0 @@
-clover.xml
-html/
-vendor/*
-composer.lock
-.phpunit.result.cache
