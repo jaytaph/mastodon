@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\JsonArray;
 use App\Repository\AccountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 /**
  * phpmd: @SuppressWarnings(PHPMD.TooManyFields)
@@ -62,14 +62,14 @@ class Account
     #[ORM\Column(length: 255)]
     private string $headerStatic = '';
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $source;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $source;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $emojis;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $emojis;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $fields;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $fields;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $publicKeyPem = null;
@@ -226,36 +226,36 @@ class Account
         return $this;
     }
 
-    public function getSource(): JsonArray
+    public function getSource(): TypeArray
     {
         return $this->source;
     }
 
-    public function setSource(JsonArray $source): self
+    public function setSource(TypeArray $source): self
     {
         $this->source = $source;
 
         return $this;
     }
 
-    public function getEmojis(): JsonArray
+    public function getEmojis(): TypeArray
     {
         return $this->emojis;
     }
 
-    public function setEmojis(JsonArray $emojis): self
+    public function setEmojis(TypeArray $emojis): self
     {
         $this->emojis = $emojis;
 
         return $this;
     }
 
-    public function getFields(): JsonArray
+    public function getFields(): TypeArray
     {
         return $this->fields;
     }
 
-    public function setFields(JsonArray $fields): self
+    public function setFields(TypeArray $fields): self
     {
         $this->fields = $fields;
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\JsonArray;
 use App\Repository\TagRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
@@ -84,9 +84,9 @@ class Tag
         return $this;
     }
 
-    public function toJsonArray(): JsonArray
+    public function toTypeArray(): TypeArray
     {
-        return new JsonArray([
+        return new TypeArray([
             'type' => $this->getType(),
             'name' => $this->getName(),
             'href' => $this->getHref(),

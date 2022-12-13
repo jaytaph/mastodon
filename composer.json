@@ -16,6 +16,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.13",
         "guzzlehttp/guzzle": "^7.5",
+        "jaytaph/typearray": "^0.0.1",
         "kornrunner/blurhash": "^1.2",
         "league/oauth2-server-bundle": "dev-master",
         "ml/json-ld": "^1.2",

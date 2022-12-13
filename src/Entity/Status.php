@@ -202,6 +202,8 @@ class Status
      */
     public function getAttachmentIds(): array
     {
+        $this->attachmentIds = $this->convertUuids($this->attachmentIds);
+
         return $this->attachmentIds;
     }
 
@@ -211,7 +213,7 @@ class Status
      */
     public function setAttachmentIds(array $attachmentIds): self
     {
-        $this->attachmentIds = $attachmentIds;
+        $this->attachmentIds = $this->convertUuids($attachmentIds);
 
         return $this;
     }
@@ -221,6 +223,8 @@ class Status
      */
     public function getTagIds(): array
     {
+        $this->tagIds = $this->convertUuids($this->tagIds);
+
         return $this->tagIds;
     }
 
@@ -230,7 +234,7 @@ class Status
      */
     public function setTagIds(array $tagIds): self
     {
-        $this->tagIds = $tagIds;
+        $this->tagIds = $this->convertUuids($tagIds);
 
         return $this;
     }
@@ -240,6 +244,8 @@ class Status
      */
     public function getMentionIds(): array
     {
+        $this->mentionIds = $this->convertUuids($this->mentionIds);
+
         return $this->mentionIds;
     }
 
@@ -249,7 +255,7 @@ class Status
      */
     public function setMentionIds(array $mentionIds): self
     {
-        $this->mentionIds = $mentionIds;
+        $this->mentionIds = $this->convertUuids($mentionIds);
 
         return $this;
     }
@@ -259,6 +265,8 @@ class Status
      */
     public function getEmojiIds(): array
     {
+        $this->emojiIds = $this->convertUuids($this->emojiIds);
+
         return $this->emojiIds;
     }
 
@@ -268,7 +276,7 @@ class Status
      */
     public function setEmojiIds(array $emojiIds): self
     {
-        $this->emojiIds = $emojiIds;
+        $this->emojiIds = $this->convertUuids($emojiIds);
 
         return $this;
     }
@@ -575,5 +583,21 @@ class Status
         $this->poll = $poll;
 
         return $this;
+    }
+
+    /**
+     * @param mixed[] $ids
+     * @return Uuid[]
+     */
+    protected function convertUuids(array $ids): array
+    {
+        foreach ($ids as $k => $id) {
+            if ($id instanceof Uuid) {
+                continue;
+            }
+            $ids[$k] = Uuid::fromString($id);
+        }
+
+        return $ids;
     }
 }

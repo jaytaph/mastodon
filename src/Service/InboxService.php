@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
-use App\JsonArray;
 use App\Service\Inbox\TypeProcessorInterface;
+use Jaytaph\TypeArray\TypeArray;
 
 class InboxService
 {
@@ -25,7 +25,7 @@ class InboxService
         $this->accountService = $accountService;
     }
 
-    public function processMessage(Account $source, JsonArray $message, bool $validateMessage = true): bool
+    public function processMessage(Account $source, TypeArray $message, bool $validateMessage = true): bool
     {
         if (!$message->exists('[type]')) {
             return false;

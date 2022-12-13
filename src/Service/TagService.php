@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Tag;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 class TagService
 {
@@ -19,10 +19,10 @@ class TagService
     }
 
     /**
-     * @param JsonArray $tagData
+     * @param TypeArray $tagData
      * @return Tag
      */
-    public function findOrCreateTag(JsonArray $tagData): Tag
+    public function findOrCreateTag(TypeArray $tagData): Tag
     {
         $tag = $this->doctrine->getRepository(Tag::class)->findOneBy([
             'type' => $tagData->getString('[type]', ''),

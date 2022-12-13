@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
-use App\JsonArray;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Jaytaph\TypeArray\TypeArray;
+use Symfony\Component\Uid\Uuid;
 
 class StatusController extends BaseApiController
 {
@@ -21,7 +22,7 @@ class StatusController extends BaseApiController
         $account = $this->getOauthUser();
         $app = $this->accountService->getLoggedInApplication();
 
-        $data = JsonArray::fromJson($request->getContent());
+        $data = TypeArray::fromJson($request->getContent());
         $status = $this->statusService->createStatus($data, $account, $app);
 
         return new JsonResponse($this->statusService->toJson($status));
@@ -32,8 +33,7 @@ class StatusController extends BaseApiController
     public function context(string $uuid): Response
     {
         // $account = $this->getOauthUser();
-
-        $status = $this->statusService->findStatusById($uuid);
+        $status = $this->statusService->findStatusById(Uuid::fromString($uuid));
         if (!$status) {
             throw $this->createNotFoundException();
         }

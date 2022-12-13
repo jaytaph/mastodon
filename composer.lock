@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "186af1e9e79e97d2bfce7e3386b896bb",
+    "content-hash": "406a8390bead80a64052b87052bad593",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -1972,6 +1972,55 @@
                 }
             ],
             "time": "2022-10-26T14:07:24+00:00"
+        },
+        {
+            "name": "jaytaph/typearray",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jaytaph/typearray.git",
+                "reference": "c721a16dceba97c155d571feef28d046c5a87c56"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jaytaph/typearray/zipball/c721a16dceba97c155d571feef28d046c5a87c56",
+                "reference": "c721a16dceba97c155d571feef28d046c5a87c56",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.2",
+                "symfony/property-access": "^6.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.0",
+                "phpunit/phpunit": "^9.5",
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "suggest": {
+                "doctrine/dbal": "For using type_array directly with Doctrine"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Jaytaph\\TypeArray\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Joshua Thijssen",
+                    "email": "jthijssen@noxlogic.nl"
+                }
+            ],
+            "description": "Typed Array",
+            "support": {
+                "issues": "https://github.com/jaytaph/typearray/issues",
+                "source": "https://github.com/jaytaph/typearray/tree/v0.0.1"
+            },
+            "time": "2022-12-11T10:36:32+00:00"
         },
         {
             "name": "kornrunner/blurhash",
@@ -13672,5 +13721,5 @@
     "platform-overrides": {
         "php": "8.0.2"
     },
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.3.0"
 }

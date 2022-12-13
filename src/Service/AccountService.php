@@ -7,12 +7,12 @@ namespace App\Service;
 use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
-use App\JsonArray;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 class AccountService
 {
@@ -98,7 +98,7 @@ class AccountService
     /**
      * @throws EntityNotFoundException
      */
-    public function getAccountById(string|Uuid $uuid): Account
+    public function getAccountById(Uuid $uuid): Account
     {
         $account = $this->findAccountById($uuid);
         if (!$account) {
@@ -108,10 +108,8 @@ class AccountService
         return $account;
     }
 
-    public function findAccountById(string|Uuid $uuid): ?Account
+    public function findAccountById(Uuid $uuid): ?Account
     {
-        $uuid = ($uuid instanceof Uuid) ? $uuid : Uuid::fromString($uuid);
-
         return $this->doctrine->getRepository(Account::class)->find($uuid);
     }
 
@@ -202,7 +200,7 @@ class AccountService
             return null;
         }
 
-        $data = JsonArray::fromJson($response->getBody()->getContents());
+        $data = TypeArray::fromJson($response->getBody()->getContents());
         if ($data->isEmpty() || !$data->exists('[id]')) {
             return null;
         }
@@ -222,9 +220,9 @@ class AccountService
         $account->setBot($data->getString('[type]', '') == 'Service');
         $account->setUri($data->getString('[id]', ''));
         $account->setCreatedAt(new \DateTimeImmutable());
-        $account->setFields($data->getJsonArray('[attachments]', JsonArray::empty()));
-        $account->setSource(JsonArray::empty());
-        $account->setEmojis(JsonArray::empty());
+        $account->setFields($data->getTypeArray('[attachments]', TypeArray::empty()));
+        $account->setSource(TypeArray::empty());
+        $account->setEmojis(TypeArray::empty());
         $account->setNote($data->getString('[summary]', ''));
         $account->setPublicKeyPem($data->getString('[publicKey][publicKeyPem]', ''));
 
@@ -260,9 +258,9 @@ class AccountService
         return $account;
     }
 
-    public function fetchMessageCreator(Account $source, JsonArray $message): ?Account
+    public function fetchMessageCreator(Account $source, TypeArray $message): ?Account
     {
-        $signature = $message->getJsonArrayOrNull('[signature]');
+        $signature = $message->getTypeArrayOrNull('[signature]');
         if ($signature === null) {
             return null;
         }

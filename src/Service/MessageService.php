@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Account;
-use App\JsonArray;
+use Jaytaph\TypeArray\TypeArray;
 
 class MessageService
 {
     /**
      * Converts JSON-LD to a canonical form
      */
-    public function canonicalize(JsonArray $data): string
+    public function canonicalize(TypeArray $data): string
     {
         try {
             $ret = jsonld_normalize(
@@ -34,7 +34,7 @@ class MessageService
         return hash('sha256', $data);
     }
 
-    public function hasSignature(JsonArray $message): bool
+    public function hasSignature(TypeArray $message): bool
     {
         return $message->exists('[signature]');
     }
@@ -42,9 +42,9 @@ class MessageService
     /**
      * Validates a message that has been created by 'creator'
      */
-    public function validate(Account $creator, JsonArray $message): bool
+    public function validate(Account $creator, TypeArray $message): bool
     {
-        $signature = $message->getJsonArrayOrNull('[signature]');
+        $signature = $message->getTypeArrayOrNull('[signature]');
         if ($signature === null) {
             return false;
         }
@@ -64,7 +64,7 @@ class MessageService
         $sigArr['@context'] = 'https://w3id.org/identity/v1';
 
         // Create the hash of both the message and the signature
-        $messageHash = $this->hash($this->canonicalize(new JsonArray($sigArr))) . $this->hash($this->canonicalize(new JsonArray($messageArr)));
+        $messageHash = $this->hash($this->canonicalize(new TypeArray($sigArr))) . $this->hash($this->canonicalize(new TypeArray($messageArr)));
 
         $signatureValue = $signature->getString('[signatureValue]', '');
         $ret = openssl_verify($messageHash, base64_decode($signatureValue), $creator->getPublicKeyPem() ?? '', OPENSSL_ALGO_SHA256);
@@ -77,7 +77,7 @@ class MessageService
         return "SHA-256=" . base64_encode(hash('sha256', $message, true));
     }
 
-    protected function array2object(JsonArray $data): mixed
+    protected function array2object(TypeArray $data): mixed
     {
         $json = json_encode($data->toArray());
         if (!$json) {

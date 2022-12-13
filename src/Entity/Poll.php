@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\JsonArray;
 use App\Repository\PollRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use Jaytaph\TypeArray\TypeArray;
 
 #[ORM\Entity(repositoryClass: PollRepository::class)]
 class Poll
@@ -34,17 +34,17 @@ class Poll
     #[ORM\Column]
     private int $votersCount = 0;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $options;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $options;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $emojis;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $emojis;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $votes;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $votes;
 
-    #[ORM\Column(type: 'json_array')]
-    private JsonArray $ownVotes;
+    #[ORM\Column(type: 'type_array')]
+    private TypeArray $ownVotes;
 
     #[ORM\OneToOne(inversedBy: 'poll', cascade: ['persist', 'remove'])]
     private ?Status $status = null;
@@ -114,48 +114,48 @@ class Poll
         return $this;
     }
 
-    public function getOptions(): JsonArray
+    public function getOptions(): TypeArray
     {
         return $this->options;
     }
 
-    public function setOptions(JsonArray $options): self
+    public function setOptions(TypeArray $options): self
     {
         $this->options = $options;
 
         return $this;
     }
 
-    public function getEmojis(): JsonArray
+    public function getEmojis(): TypeArray
     {
         return $this->emojis;
     }
 
-    public function setEmojis(JsonArray $emojis): self
+    public function setEmojis(TypeArray $emojis): self
     {
         $this->emojis = $emojis;
 
         return $this;
     }
 
-    public function getVotes(): JsonArray
+    public function getVotes(): TypeArray
     {
         return $this->votes;
     }
 
-    public function setVotes(JsonArray $votes): self
+    public function setVotes(TypeArray $votes): self
     {
         $this->votes = $votes;
 
         return $this;
     }
 
-    public function getOwnVotes(): JsonArray
+    public function getOwnVotes(): TypeArray
     {
         return $this->ownVotes;
     }
 
-    public function setOwnVotes(JsonArray $ownVotes): self
+    public function setOwnVotes(TypeArray $ownVotes): self
     {
         $this->ownVotes = $ownVotes;
 

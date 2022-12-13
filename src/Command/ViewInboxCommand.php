@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\JsonArray;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,6 +12,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Jaytaph\TypeArray\TypeArray;
 
 #[AsCommand(
     name: 'app:inbox:view',
@@ -79,7 +79,7 @@ class ViewInboxCommand extends Command
             if ($line[0] == '"') {
                 $line = substr(stripslashes($line), 1, -1);
             }
-            $message = JsonArray::fromJson($line);
+            $message = TypeArray::fromJson($line);
             $i++;
             if ($message->isEmpty()) {
                 print "Error reading line $i\n";
@@ -103,8 +103,8 @@ class ViewInboxCommand extends Command
             }
 
             if ($mode == "table") {
-                $obj = $message->isJsonArray('[object]') ?
-                    json_encode($message->getJsonArray('[object]'), JSON_PRETTY_PRINT) :
+                $obj = $message->isTypeArray('[object]') ?
+                    json_encode($message->getTypeArray('[object]'), JSON_PRETTY_PRINT) :
                     $message->getString('[object]', '')
                 ;
 

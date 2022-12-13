@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Config;
-use App\JsonArray;
 use App\Service\AccountService;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -14,6 +13,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Jaytaph\TypeArray\TypeArray;
 
 #[AsCommand(
     name: 'app:inbox:process',
@@ -65,7 +65,7 @@ class ProcessInboxCommand extends Command
                 continue;
             }
 
-            $message = JsonArray::fromJson($line);
+            $message = TypeArray::fromJson($line);
             $i++;
             if ($message->isEmpty()) {
                 print "Error reading line $i\n";
