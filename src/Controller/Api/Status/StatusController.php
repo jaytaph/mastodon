@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Jaytaph\TypeArray\TypeArray;
+use Symfony\Component\Uid\Uuid;
 
 class StatusController extends BaseApiController
 {
@@ -32,8 +33,7 @@ class StatusController extends BaseApiController
     public function context(string $uuid): Response
     {
         // $account = $this->getOauthUser();
-
-        $status = $this->statusService->findStatusById($uuid);
+        $status = $this->statusService->findStatusById(Uuid::fromString($uuid));
         if (!$status) {
             throw $this->createNotFoundException();
         }

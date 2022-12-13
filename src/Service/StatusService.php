@@ -265,12 +265,8 @@ class StatusService
         return $ret;
     }
 
-    public function findStatusById(string|Uuid $uuid): ?Status
+    public function findStatusById(Uuid $uuid): ?Status
     {
-        if (is_string($uuid)) {
-            $uuid = Uuid::fromString($uuid);
-        }
-
         return $this->doctrine->getRepository(Status::class)->find($uuid);
     }
 

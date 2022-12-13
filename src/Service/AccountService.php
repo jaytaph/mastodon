@@ -98,7 +98,7 @@ class AccountService
     /**
      * @throws EntityNotFoundException
      */
-    public function getAccountById(string|Uuid $uuid): Account
+    public function getAccountById(Uuid $uuid): Account
     {
         $account = $this->findAccountById($uuid);
         if (!$account) {
@@ -108,10 +108,8 @@ class AccountService
         return $account;
     }
 
-    public function findAccountById(string|Uuid $uuid): ?Account
+    public function findAccountById(Uuid $uuid): ?Account
     {
-        $uuid = ($uuid instanceof Uuid) ? $uuid : Uuid::fromString($uuid);
-
         return $this->doctrine->getRepository(Account::class)->find($uuid);
     }
 
