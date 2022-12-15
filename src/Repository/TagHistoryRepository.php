@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\TagHistory;
@@ -31,7 +33,7 @@ class TagHistoryRepository extends ServiceEntityRepository
         }
     }
 
-    public function getTrendStats(\DateTime $since): array
+    public function getTrendStats(\DateTime $since): mixed
     {
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('uses', 'uses');

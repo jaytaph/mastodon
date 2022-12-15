@@ -15,13 +15,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TrendController extends BaseApiController
 {
-
     #[Route('/api/v1/trends', name: 'api_trends')]
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function trendHistory(EntityManagerInterface $doctrine): Response
     {
         $since = (new \DateTime("now"))->sub(new \DateInterval('P1W'));
 
+        /** @var string[][] $stats */
         $stats = $doctrine->getRepository(TagHistory::class)->getTrendStats($since);
 
         $ret = [];
@@ -31,7 +31,7 @@ class TrendController extends BaseApiController
             if (! isset($ret[$tag])) {
                 $ret[$tag] = [
                     'name' => $tag,
-                    'url' => Config::SITE_URL.'/tags/'.$tag,
+                    'url' => Config::SITE_URL . '/tags/' . $tag,
                     'following' => false,
                     'history' => [],
                 ];
@@ -67,5 +67,4 @@ class TrendController extends BaseApiController
     {
         return new JsonResponse([]);
     }
-
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\TagHistoryRepository;
@@ -21,7 +23,7 @@ class TagHistory
     private \DateTimeInterface $date;
 
     #[ORM\Column(length: 255)]
-    private ?string $account = null;
+    private string $account;
 
     public function getId(): ?int
     {
@@ -52,7 +54,7 @@ class TagHistory
         return $this;
     }
 
-    public function getAccount(): ?string
+    public function getAccount(): string
     {
         return $this->account;
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -39,7 +38,7 @@ class OauthAccessTokenCommand extends Command
 
         $client = new Client();
 
-        $response = $this->createApp($client, $input->getArgument('url'));
+        $response = $this->createApp($client, strval($input->getArgument('url')));
 
         $clientId = $response->getStringOrNull("[client_id]");
         $clientSecret = $response->getStringOrNull("[client_secret]");
@@ -58,7 +57,7 @@ class OauthAccessTokenCommand extends Command
 
         $code = $io->ask("Please enter the code you received from the authorization page");
 
-        $response = $this->getAccessToken($client, $input->getArgument('url'), $clientId, $clientSecret, $code);
+        $response = $this->getAccessToken($client, strval($input->getArgument('url')), $clientId, $clientSecret, strval($code));
         dump([
             "access_token" => $response->getStringOrNull("[access_token]"),
             "token_type" => $response->getStringOrNull("[token_type]"),
@@ -116,7 +115,7 @@ class OauthAccessTokenCommand extends Command
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $token,
-            ],
+                ],
         ]);
 
         return TypeArray::fromJson($response->getBody()->getContents());

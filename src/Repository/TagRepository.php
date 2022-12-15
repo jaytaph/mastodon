@@ -41,7 +41,8 @@ class TagRepository extends ServiceEntityRepository
         }
     }
 
-    public function increaseCount(Tag $tag) {
+    public function increaseCount(Tag $tag): void
+    {
         $em = $this->getEntityManager();
         $em->createQuery('UPDATE App\Entity\Tag t SET t.count = t.count + 1 WHERE t.id = :id')
             ->setParameter('id', $tag->getId())
