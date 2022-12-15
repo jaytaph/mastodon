@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Tag;
+use App\Entity\TagHistory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 use Jaytaph\TypeArray\TypeArray;
@@ -22,7 +23,7 @@ class TagService
      * @param TypeArray $tagData
      * @return Tag
      */
-    public function findOrCreateTag(TypeArray $tagData): Tag
+    public function findOrCreateTag(TypeArray $tagData, \DateTime $dt, string $acct): Tag
     {
         $tag = $this->doctrine->getRepository(Tag::class)->findOneBy([
             'type' => $tagData->getString('[type]', ''),
@@ -36,12 +37,17 @@ class TagService
             $tag->setHref($tagData->getString('[href]', ''));
             $tag->setCount(0);
         }
-
-        // This is not the best way to track the count, but it's the easiest
-        $tag->setCount($tag->getCount() + 1);
-
         $this->doctrine->persist($tag);
+
+        $history = new TagHistory();
+        $history->setAccount($acct);
+        $history->setName($tag->getName());
+        $history->setDate($dt);
+        $this->doctrine->persist($history);
+
         $this->doctrine->flush();
+
+        $this->doctrine->getRepository(Tag::class)->increaseCount($tag);
 
         return $tag;
     }

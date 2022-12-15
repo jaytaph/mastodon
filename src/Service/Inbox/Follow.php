@@ -48,7 +48,7 @@ class Follow implements TypeProcessorInterface
             '@context' => 'https://www.w3.org/ns/activitystreams',
             'id' => 'https://dhpt.nl/users/' . $source->getAcct() . '/' . Uuid::v4(),
             'type' => 'Accept',
-            'actor' => $message->getTypeArray('[object]', TypeArray::empty()),
+            'actor' => $message->getString('[object]'),
             'object' => $message,
         ]);
 
