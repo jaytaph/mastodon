@@ -11,7 +11,7 @@ services:
 #    volumes:
 #      - db-data:/var/lib/postgresql/data:rw
     ports:
-      - '5432':'5432'
+      - 5432:5432
 ###< doctrine/doctrine-bundle ###
 
 #volumes:

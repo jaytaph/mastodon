@@ -12,6 +12,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Jaytaph\TypeArray\TypeArray;
 
@@ -36,6 +37,7 @@ class ProcessInboxCommand extends Command
     {
         $this
             ->addArgument('box', InputArgument::REQUIRED, 'filename of box')
+            ->addOption('skip', 's', InputOption::VALUE_REQUIRED, 'how many rules to skip', 0)
         ;
     }
 
@@ -60,13 +62,17 @@ class ProcessInboxCommand extends Command
         /** @var iterable<string> $inbox */
         $inbox = file(strval($input->getArgument('box')), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($inbox as $line) {
+            $i++;
+            if ($i <= $input->getOption('skip')) {
+                continue;
+            }
+
             // Skip complex escaped lines
             if ($line[0] == '"') {
                 continue;
             }
 
             $message = TypeArray::fromJson($line);
-            $i++;
             if ($message->isEmpty()) {
                 print "Error reading line $i\n";
                 continue;

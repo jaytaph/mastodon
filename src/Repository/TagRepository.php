@@ -41,28 +41,26 @@ class TagRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Tag[] Returns an array of Tag objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('t.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function increaseCount(Tag $tag): void
+    {
+        $em = $this->getEntityManager();
+        $em->createQuery('UPDATE App\Entity\Tag t SET t.count = t.count + 1 WHERE t.id = :id')
+            ->setParameter('id', $tag->getId())
+            ->execute();
+    }
 
-//    public function findOneBySomeField($value): ?Tag
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * @return Tag[]
+     */
+    public function search(string $query, int $offset, int $limit): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->where('LOWER(t.name) LIKE :q')
+            ->setParameter('q', '%' . strtolower($query) . '%')
+            ->orderBy('t.name', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
+    }
 }

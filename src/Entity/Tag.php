@@ -8,7 +8,6 @@ use App\Repository\TagRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
-use Jaytaph\TypeArray\TypeArray;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
@@ -82,14 +81,5 @@ class Tag
         $this->count = $count;
 
         return $this;
-    }
-
-    public function toTypeArray(): TypeArray
-    {
-        return new TypeArray([
-            'type' => $this->getType(),
-            'name' => $this->getName(),
-            'href' => $this->getHref(),
-        ]);
     }
 }

@@ -254,9 +254,9 @@ class StatusService
     {
         $ret = [];
 
-        /** @var string $id */
+        /** @var Uuid $id */
         foreach ($attachmentIds as $id) {
-            $media = $this->mediaService->findMediaAttachmentById(Uuid::fromString($id));
+            $media = $this->mediaService->findMediaAttachmentById($id);
             if ($media) {
                 $ret[] = $this->mediaService->toJson($media);
             }
@@ -310,6 +310,8 @@ class StatusService
             return null;
         }
 
+        $createdAt = new \DateTime($object->getString('[published]', 'now'));
+
         $status->setOwner($owner);      // The receiver of the status
         $status->setAccount($author);
         $status->setAccountUri($author->getUri());
@@ -321,7 +323,7 @@ class StatusService
         // Add URL? (https://docs.joinmastodon.org/spec/activitypub/#payloads)
         $status->setContent($object->getString('[content]', $object->getString('[name]', '')));
         $status->setContentWarning($object->getString('[summary]', ''));
-        $status->setCreatedAt(new \DateTime($object->getString('[published]', 'now')));
+        $status->setCreatedAt($createdAt);
         $status->setCreatedWithApplicationId('');
         $status->setFederated(false);
         $status->setLanguage('');
@@ -335,7 +337,7 @@ class StatusService
         $status->setUri($object->getString('[id]', ''));
         $status->setUrl($object->getString('[url]', ''));
         $status->setVisibility($object->getString('[visibility]', Status::VISIBILITY_PUBLIC));
-        $this->processTags($status, $object->getTypeArray('[tag]', TypeArray::empty()));
+        $this->processTags($status, $object->getTypeArray('[tag]', TypeArray::empty()), $createdAt, $author->getAcct());
         $this->processAttachments($status, $object->getTypeArray('[attachment]', TypeArray::empty()));
 //        $status->setMentionIds([]);
 //        $this->createEmojis($status, $object['emoji'] ?? []);
@@ -374,7 +376,7 @@ class StatusService
         }
     }
 
-    protected function processTags(Status $status, TypeArray $tags): void
+    protected function processTags(Status $status, TypeArray $tags, \DateTime $dt, string $acct): void
     {
         if ($tags->exists('[type]')) {
             $tags = new TypeArray([$tags->toArray()]);
@@ -385,7 +387,7 @@ class StatusService
             $entry = new TypeArray((array)$entry);
 
             if ($entry->getString('[type]', '') == 'Hashtag') {
-                $tag = $this->tagService->findOrCreateTag($entry);
+                $tag = $this->tagService->findOrCreateTag($entry, $dt, $acct);
                 $status->addTag($tag);
             }
             if ($entry->getString('[type]', '') == 'Mention') {

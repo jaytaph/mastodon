@@ -7,6 +7,7 @@ namespace App\Service;
 use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
+use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
@@ -144,7 +145,7 @@ class AccountService
             'discoverable' => true,
             'created_at' => $account->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
             'last_status_at' => $account->getLastStatusAt()->format(ActivityPub::DATETIME_FORMAT),
-            'statuses_count' => 123,
+            'statuses_count' => $this->statusesCount($account),
             'followers_count' => $this->followersCount($account),
             'following_count' => $this->followingCount($account),
             'fields' => $account->getFields(),
@@ -160,6 +161,11 @@ class AccountService
     public function followingCount(Account $account): int
     {
         return $this->doctrine->getRepository(Follower::class)->count(['user' => $account]);
+    }
+
+    public function statusesCount(Account $account): int
+    {
+        return $this->doctrine->getRepository(Status::class)->count(['account' => $account]);
     }
 
     /**

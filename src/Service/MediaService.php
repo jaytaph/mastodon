@@ -150,8 +150,8 @@ class MediaService
         $media->setBlurhash($data->getString('[blurhash]', ''));
         $media->setDescription($data->getString('[description]', ''));
         $media->setFilename($data->getString('[filename]', ''));
-        $media->setFocus($data->getTypeArray('[focus]')->toArray());
-        $media->setMeta($data->getTypeArray('[meta]')->toArray());
+        $media->setFocus($data->getTypeArray('[focus]', TypeArray::empty())->toArray());
+        $media->setMeta($data->getTypeArray('[meta]', TypeArray::empty())->toArray());
         $media->setPreviewUrl($data->getString('[preview_url]', $data->getString('[url]', '')));
         $media->setRemoteUrl($data->getString('[remote_url]', $data->getString('[url]', '')));
         $media->setTextUrl($data->getString('[text_url]', $data->getString('[url]', '')));

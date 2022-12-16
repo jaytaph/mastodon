@@ -41,28 +41,20 @@ class AccountRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Account[] Returns an array of Account objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return Account[]
+     */
+    public function search(string $query, int $offset, int $limit): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->where('a.username LIKE :q')
+            ->orWhere('a.displayName LIKE :q')
+//            ->orWhere('a.bio LIKE :q')
+            ->setParameter('q', '%' . $query . '%')
+            ->orderBy('a.id', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
 
-//    public function findOneBySomeField($value): ?Account
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $qb->getQuery()->getResult();
+    }
 }

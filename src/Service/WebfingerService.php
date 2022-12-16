@@ -33,6 +33,7 @@ class WebfingerService
 
         $client = new Client();
         $response = $client->get($domain . "/.well-known/webfinger?resource=acct:" . $user . "@" . $domain, [
+            'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',
             ],

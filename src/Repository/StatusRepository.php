@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Account;
 use App\Entity\Status;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends ServiceEntityRepository<Status>
@@ -41,28 +43,40 @@ class StatusRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Status[] Returns an array of Status objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('s.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return Status[]
+     */
+    public function search(string $query, int $offset, int $limit, ?string $minId, ?string $maxId, ?Account $account): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->where('s.content LIKE :q')
+            ->setParameter('q', '%' . $query . '%')
+            ->orderBy('s.id', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
 
-//    public function findOneBySomeField($value): ?Status
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if ($minId) {
+            $minId = Uuid::fromBase58($minId);
+            $status = $this->find($minId);
+            if ($status) {
+                $qb->andWhere('s.createdAt > :minCreatedAt')
+                    ->setParameter('minCreatedAt', $status->getCreatedAt());
+            }
+        }
+        if ($maxId) {
+            $maxId = Uuid::fromBase58($maxId);
+            $status = $this->find($maxId);
+            if ($status) {
+                $qb->andWhere('s.createdAt < :maxCreatedAt')
+                    ->setParameter('maxCreatedAt', $status->getCreatedAt());
+            }
+        }
+
+        if ($account) {
+            $qb->andWhere('s.account = :account')
+                ->setParameter('account', $account->getId());
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
