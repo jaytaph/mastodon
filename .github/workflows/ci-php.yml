@@ -20,7 +20,7 @@ jobs:
         uses: shivammathur/setup-php@master
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: zip
+          extensions: pcov, zip
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
     strategy:
@@ -52,7 +52,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.0', '8.1' ]
 
   php-linting-psr12:
     needs:
@@ -74,7 +74,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.0', '8.1' ]
 
   php-linting-phpmd:
     needs:
@@ -96,7 +96,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.0', '8.1' ]
 
   php-linting-stan:
     needs:
@@ -132,7 +132,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.0', '8.1' ]
 
   php-security-check:
     needs:
@@ -154,4 +154,4 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.0', '8.1' ]
