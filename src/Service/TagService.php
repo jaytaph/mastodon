@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Config;
 use App\Entity\Tag;
 use App\Entity\TagHistory;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,5 +56,56 @@ class TagService
     public function fetch(Uuid $id): ?Tag
     {
         return $this->doctrine->getRepository(Tag::class)->find($id);
+    }
+
+    public function getTrend(Tag $tag, \DateTime $since): TypeArray
+    {
+        /** @var string[][] $stats */
+        $stats = $this->doctrine->getRepository(TagHistory::class)->getTrendStatsForTag($tag, $since);
+
+        // If we cannot find any stats (because the tag is too old and not current anymore), we return empty stats
+        if (!is_array($stats) || count($stats) === 0) {
+            return TypeArray::empty();
+        }
+
+        // Return the first element of the array, which is the stats of the given tag
+        return $this->convertStatsToTrend($stats)->getTypeArray('[0]');
+    }
+
+    public function getTrends(\DateTime $since): TypeArray
+    {
+        /** @var string[][] $stats */
+        $stats = $this->doctrine->getRepository(TagHistory::class)->getTrendStats($since);
+
+        return $this->convertStatsToTrend($stats);
+    }
+
+    /**
+     * @param string[][] $stats
+     */
+    protected function convertStatsToTrend(array $stats): TypeArray
+    {
+        $ret = [];
+
+        foreach ($stats as $stat) {
+            $tag = substr($stat['name'], 1);
+
+            if (! isset($ret[$tag])) {
+                $ret[$tag] = [
+                    'name' => $tag,
+                    'url' => Config::SITE_URL . '/tags/' . $tag,
+                    'following' => false,
+                    'history' => [],
+                ];
+            }
+
+            $ret[$tag]['history'][] = [
+                'date' => $stat['date'],
+                'accounts' => $stat['accounts'],
+                'uses' => $stat['uses']
+            ];
+        }
+
+        return new TypeArray(array_values($ret));
     }
 }

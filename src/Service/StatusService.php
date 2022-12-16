@@ -254,9 +254,9 @@ class StatusService
     {
         $ret = [];
 
-        /** @var string $id */
+        /** @var Uuid $id */
         foreach ($attachmentIds as $id) {
-            $media = $this->mediaService->findMediaAttachmentById(Uuid::fromString($id));
+            $media = $this->mediaService->findMediaAttachmentById($id);
             if ($media) {
                 $ret[] = $this->mediaService->toJson($media);
             }
