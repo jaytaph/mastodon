@@ -8,26 +8,24 @@ use App\Controller\BaseApiController;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Uuid;
 
 class RelationshipController extends BaseApiController
 {
     #[Route('/api/v1/accounts/relationships', name: 'api_account_relationship', priority: 10)]
     #[IsGranted('ROLE_OAUTH2_FOLLOW')]
-    public function relationships(): Response
+    public function relationships(Request $request): Response
     {
-        $user = $this->getUser();
-        if (is_null($user)) {
-            throw $this->createNotFoundException();
-        }
-
-        $account = $this->accountService->findAccount($user->getUserIdentifier());
-        if (!$account) {
-            throw $this->createNotFoundException();
+        $ids = $request->get('id');
+        if (! is_array($ids)) {
+            $ids = [$ids];
         }
 
         $ret = [];
+        $account = $this->getOauthUser();
 
         // People who are following the user
         $followsMe = $this->accountService->getFollowers($account);
@@ -37,35 +35,25 @@ class RelationshipController extends BaseApiController
         $meFollows = $this->accountService->getFollowing($account);
         $meFollows = new ArrayCollection($meFollows);
 
-        // People who the user follows
-        foreach ($meFollows as $follower) {
-            $ret[$follower->getId()->toBase58()] = [
-                'id' => $follower->getId()->toBase58(),
-                'following' => true,
-                'showing_reblogs' => true,
-                'notifying' => true,
-                'languages' => [ 'en' ],
-                'followed_by' => $followsMe->contains($follower),
-                'blocking' => false,
-                'blocked_by' => false,
-                'muting' => false,
-                'muting_notifications' => false,
-                'requested' => false,
-                'domain_blocking' => false,
-                'endorsed' => false,
-                'note' => '',
-            ];
-        }
+        foreach ($ids as $id) {
+            if (is_string($id)) {
+                $id = Uuid::fromString($id);
+            }
 
-        // People who are followed by the user
-        foreach ($followsMe as $follower) {
-            $ret[$follower->getId()->toBase58()] = [
-                'id' => $follower->getId()->toBase58(),
-                'following' => $meFollows->contains($follower),
+            /** @var Uuid $id */
+            $checkAccount = $this->accountService->findAccountById($id);
+            if (!$checkAccount) {
+                continue;
+            }
+
+            $ret[$checkAccount->getId()->toBase58()] = [
+                'id' => $checkAccount->getId()->toBase58(),
+                'acct' => $checkAccount->getAcct(),
+                'following' => $meFollows->contains($checkAccount),
                 'showing_reblogs' => true,
                 'notifying' => true,
                 'languages' => [ 'en' ],
-                'followed_by' => true,
+                'followed_by' => $followsMe->contains($checkAccount),
                 'blocking' => false,
                 'blocked_by' => false,
                 'muting' => false,

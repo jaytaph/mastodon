@@ -1,7 +1,6 @@
 <?php
 namespace Deployer;
 
-
 require 'contrib/rsync.php';
 require 'recipe/symfony.php';
 
@@ -29,12 +28,10 @@ host('dhpt.nl')
     ->set('labels', ['stage' => 'prod'])
     ->set('remote_user', 'dhpt')
     ->set('deploy_path', '/home/dhpt/domains/dhpt.nl/{{application}}')
-;
 
 before('deploy:symlink', 'db:migrate');
 
 after('deploy:failed', 'deploy:unlock');
-
 
 task('db:migrate', function () {
     run('cd {{release_path}} && php bin/console d:m:m');

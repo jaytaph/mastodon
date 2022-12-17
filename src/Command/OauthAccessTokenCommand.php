@@ -10,6 +10,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
@@ -25,6 +26,7 @@ class OauthAccessTokenCommand extends Command
     {
         $this
             ->addArgument('url', InputArgument::REQUIRED, 'The URL of the Mastodon instance')
+            ->addOption('verify', null, InputOption::VALUE_NONE, 'verify the account by making an authenticated API call')
         ;
     }
 
@@ -65,8 +67,10 @@ class OauthAccessTokenCommand extends Command
             "created_at" => $response->getIntOrNull("[created_at]"),
         ]);
 
-//        $response = $this->verifyAccessToken($client, $input->getArgument('url'), $response->getStringOrNull("[access_token]"));
-//        dump($response->toArray());
+        if ($input->getOption('verify')) {
+            $response = $this->verifyAccessToken($client, strval($input->getArgument('url')), $response->getStringOrNull("[access_token]"));
+            dump($response->toArray());
+        }
 
         return Command::SUCCESS;
     }

@@ -20,7 +20,6 @@
         "kornrunner/blurhash": "^1.2",
         "league/oauth2-server-bundle": "dev-master",
         "ml/json-ld": "^1.2",
-        "pcov/clobber": "^2.0",
         "sensio/framework-extra-bundle": "^6.1",
         "symfony-bundles/json-request-bundle": "^4.1",
         "symfony/asset": "6.0.*",
@@ -115,6 +114,8 @@
         }
     },
     "require-dev": {
+        "ext-pcov": "*",
+        "pcov/clobber": "^2.0",
         "deployer/deployer": "^7.0",
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "johnkary/phpunit-speedtrap": "^4.0",

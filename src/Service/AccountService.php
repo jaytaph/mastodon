@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
+use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Entity\Status;
@@ -277,5 +278,26 @@ class AccountService
         $creator = $pos ? substr($creator, 0, $pos) : $creator;
 
         return $this->findAccount($creator, true, $source);
+    }
+
+    public function follow(Account $source, Account $targetToFollow): void
+    {
+        $follower = new Follower();
+        $follower->setUser($source);
+        $follower->setFollow($targetToFollow);
+        $follower->setAccepted(false);
+
+        $data = [
+            '@context' => 'https://www.w3.org/ns/activitystreams',
+            'id' => Config::SITE_URL . '/follow/' . $source->getAcct() . '/' . $targetToFollow->getId()->toBase58(),
+            'type' => 'Follow',
+            'actor' => $source->getUri(),
+            'object' => $targetToFollow->getUri(),
+        ];
+
+        $this->authClientService->send($source, $targetToFollow, new TypeArray($data));
+
+        $this->doctrine->persist($follower);
+        $this->doctrine->flush();
     }
 }
