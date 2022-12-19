@@ -28,6 +28,7 @@ host('dhpt.nl')
     ->set('labels', ['stage' => 'prod'])
     ->set('remote_user', 'dhpt')
     ->set('deploy_path', '/home/dhpt/domains/dhpt.nl/{{application}}')
+;
 
 before('deploy:symlink', 'db:migrate');
 

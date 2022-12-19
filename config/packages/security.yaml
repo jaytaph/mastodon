@@ -5,11 +5,10 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     providers:
-        users_in_memory:
-            memory:
-                users:
-                    jaytaph: { password: '$2y$13$T9iC44oygjqlLI4jEOXdJ.OD2S186Ewlny3I6vq0eXYg3srYmUsY2', roles: ['ROLE_USER'] }
-                    cybolic: { password: '$2y$13$qv9a8KD1EIQ5MKwBHWmDh.epG.FZV0R9SzCCynuEyt7akSKsCdMni', roles: ['ROLE_USER'] }
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
 
     firewalls:
         dev:
@@ -20,7 +19,7 @@ security:
             security: true
             context: api
             stateless: true
-            provider: users_in_memory
+            provider: app_user_provider
             custom_authenticators:
                 - App\Security\OAuth\DevelopmentAuthenticator
             oauth2: true
@@ -29,21 +28,28 @@ security:
             security: true
             context: api
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            logout:
+                path: web_logout
+                target: /
             form_login:
-                check_path: app_login
-                login_path: app_login
+                check_path: web_login
+                login_path: web_login
 
     access_control:
-        - { path: ^/oauth/authorize, roles: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/oauth/authorize, roles: PUBLIC_ACCESS }
         - { path: ^/oauth/token, roles: PUBLIC_ACCESS }
 
         - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/custom_emojis, roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/accounts/verify_credentials, roles: ROLE_OAUTH2_READ }
+#        - { path: ^/api/v1/accounts/verify_credentials, roles: ROLE_OAUTH2_READ }
         - { path: ^/api, roles: ROLE_USER }
 
+        - { path: ^/web/login, roles: PUBLIC_ACCESS }
+#        - { path: ^/web/register, roles: PUBLIC_ACCESS }
+#        - { path: ^/web/forgot, roles: PUBLIC_ACCESS }
+        - { path: ^/web, roles: ROLE_USER }
 
 when@test:
     security:

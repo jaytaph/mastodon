@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class DefaultController extends AbstractController
+class HomeController extends AbstractController
 {
-    #[Route('/', name: 'app_index')]
+    #[Route('/web', name: 'web_home')]
     public function index(): Response
     {
-        return $this->redirectToRoute('web_home');
+        return $this->render('home.html.twig', []);
     }
 }
