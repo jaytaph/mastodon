@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
 use App\Service\AccountService;
+use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,17 +14,16 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class LoginController extends AbstractController
 {
     protected AccountService $accountService;
+    protected ClientManagerInterface $clientManager;
 
-    /**
-     * @param AccountService $accountService
-     */
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $accountService, ClientManagerInterface $clientManager)
     {
         $this->accountService = $accountService;
+        $this->clientManager = $clientManager;
     }
 
-    #[Route('/login', name: 'app_login')]
-    public function index(AuthenticationUtils $authenticationUtils): Response
+    #[Route('/web/login', name: 'web_login')]
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -32,13 +32,19 @@ class LoginController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('login.html.twig', [
-             'last_username' => $lastUsername,
-             'error'         => $error,
+            'last_username' => $lastUsername,
+            'error'         => $error,
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout')]
+    #[Route('/web/logout', name: 'web_logout')]
     public function logout(): Response
+    {
+        return new Response("DonkeyHeads Mastodon Server - Things will break here");
+    }
+
+    #[Route('/web/register', name: 'web_register')]
+    public function register(): Response
     {
         return new Response("DonkeyHeads Mastodon Server - Things will break here");
     }

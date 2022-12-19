@@ -49,8 +49,7 @@ class AccountService
             return '';
         }
 
-        $clientId = strval($token->getAttribute('oauth_client_id'));
-
+        $clientId = $token->hasAttribute('oauth_client_id') ? strval($token->getAttribute('oauth_client_id')) : '';
         $client = $this->clientRepository->getClientEntity($clientId);
         return $client?->getName() ?? '';
     }
