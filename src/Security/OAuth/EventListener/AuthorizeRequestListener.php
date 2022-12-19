@@ -51,7 +51,7 @@ class AuthorizeRequestListener implements EventSubscriberInterface
         $errors = [];
 
         $request = $this->requestStack->getCurrentRequest();
-        if ($request->getMethod() == 'POST') {
+        if ($request && $request->getMethod() == 'POST') {
             $errors = $this->processSubmit($request, $event);
             if (count($errors) == 0) {
                 return;
@@ -60,7 +60,7 @@ class AuthorizeRequestListener implements EventSubscriberInterface
 
         $response = $this->twig->render('oauth/authorize.html.twig', [
             'client' => $event->getClient(),
-            'last_username' => $request->request->get('_username') ?? '',
+            'last_username' => $request?->request->get('_username') ?? '',
             'user' => $this->tokenStorage->getToken()?->getUser(),
             'error' => $errors,
         ]);
@@ -68,10 +68,15 @@ class AuthorizeRequestListener implements EventSubscriberInterface
         $event->setResponse(new Response($response));
     }
 
-    protected function processSubmit(Request $request, AuthorizationRequestResolveEvent $event)
+    /**
+     * @param Request $request
+     * @param AuthorizationRequestResolveEvent $event
+     * @return array<string, string[]|string>
+     */
+    protected function processSubmit(Request $request, AuthorizationRequestResolveEvent $event): array
     {
         // If we are logged in, we can simply check the accept/deny buttons
-        if ($this->tokenStorage->getToken()->getUser()) {
+        if ($this->tokenStorage->getToken()?->getUser()) {
             if ($request->request->get('accept')) {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_APPROVED);
             } else {
@@ -85,10 +90,10 @@ class AuthorizeRequestListener implements EventSubscriberInterface
         try {
             $errors = [];
             $userIdentifier = $request->request->get('_username') ?? '';
-            $user = $this->userProvider->loadUserByIdentifier($userIdentifier);
+            $user = $this->userProvider->loadUserByIdentifier(strval($userIdentifier));
 
             /** @var PasswordAuthenticatedUserInterface $user */
-            if ($this->hasher->isPasswordValid($user, $request->request->get('_password'))) {
+            if ($this->hasher->isPasswordValid($user, strval($request->request->get('_password')))) {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_APPROVED);
                 return [];
             }

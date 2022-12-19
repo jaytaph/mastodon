@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
-use App\Service\AuthClientService;
-use App\Service\MessageService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
