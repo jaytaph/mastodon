@@ -35,21 +35,12 @@
 
 
                                         <button type="submit" class="btn btn-theme">Login</button>
-                                        <a href="#l" class="forgot-link float-right text-primary">Forgot password?</a>
+                                        <a href="{{ path('app_forgot_password_request') }}" class="forgot-link float-right text-primary">Forgot password?</a>
                                     </form>
                                 </div>
                             </div>
 
-                            <div class="col-lg-6 d-none d-lg-inline-block">
-                                <div class="account-block rounded-right">
-                                    <div class="overlay rounded-right"></div>
-                                    <div class="account-testimonial">
-                                        <h4 class="text-white mb-4">Decentralize the tweet!</h4>
-                                        <p class="lead text-white">"Frankly my dear, I don't give a toot"</p>
-                                        <p>- Donkey X. Head</p>
-                                    </div>
-                                </div>
-                            </div>
+                            {% include "overlay.html.twig" %}
                         </div>
 
                     </div>

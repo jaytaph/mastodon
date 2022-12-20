@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Password Reset Email Sent{% endblock %}
+
+{% block body %}
+
+    <div id="main-wrapper" class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-10">
+                    <div class="card border-0">
+                        <div class="card-body p-0">
+                            <div class="row no-gutters">
+                                <div class="col-lg-6">
+                                    <div class="p-5">
+                                        <div class="mb-5">
+                                            <h3 class="h4 font-weight-bold text-theme">Donkeyheads Mastodon Service</h3>
+                                        </div>
+
+                                        <h6 class="h5 mb-0">Reset your password</h6>
+                                        <p class="text-muted mt-2 mb-5">
+                                            If an account matching your email exists, then an email was just sent that contains a link that you can use to reset your password.
+                                            This link will expire in {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+                                        </p>
+
+                                        <p>If you don't receive an email please check your spam folder or <a href="{{ path('app_forgot_password_request') }}">try again</a>.</p>
+
+                                    </div>
+                                </div>
+
+                                {% include "overlay.html.twig" %}
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

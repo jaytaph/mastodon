@@ -17,7 +17,6 @@ class AccountFixtures extends Fixture
      */
     public function load(ObjectManager $manager): void
     {
-
         $account = new Account();
         $account->setAcct(Config::ADMIN_USER . '@' . Config::SITE_DOMAIN);
         $account->setDisplayName(Config::ADMIN_USER);

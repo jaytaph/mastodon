@@ -13,7 +13,4 @@ class Config
 
     // The site URL
     public const SITE_URL = 'https://' . self::SITE_DOMAIN;
-
-    // When doing API requests, this is the logged in user (@TODO: needs security)
-    public const LOGGEDIN_USER_URL = self::SITE_URL . '/users/' . self::ADMIN_USER;
 }
