@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\Entity\Config;
@@ -9,6 +11,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class InstanceConfigType extends AbstractType
 {
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder

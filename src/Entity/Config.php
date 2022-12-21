@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @SuppressWarnings(PHPMD.LongVariable)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ */
 #[ORM\Entity(repositoryClass: ConfigRepository::class)]
 #[ORM\Table(name: 'config')]
 class Config
@@ -164,7 +168,7 @@ class Config
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getLanguages(): array
     {
@@ -172,7 +176,7 @@ class Config
     }
 
     /**
-     * @param array $languages
+     * @param string[] $languages
      */
     public function setLanguages(array $languages): void
     {
@@ -358,5 +362,10 @@ class Config
     public function getId(): ?Uuid
     {
         return $this->id;
+    }
+
+    public function getSiteUrl(): string
+    {
+        return "https://" . $this->instanceDomain;
     }
 }

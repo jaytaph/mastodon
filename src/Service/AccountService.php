@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
-use App\Config;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Entity\Status;
@@ -23,18 +22,20 @@ class AccountService
     protected TokenStorageInterface $tokenStorage;
     protected ClientRepository $clientRepository;
     protected ?Account $loggedinUser = null;
+    protected ConfigService $configService;
 
     public function __construct(
         EntityManagerInterface $doctrine,
         TokenStorageInterface $tokenStorage,
         AuthClientService $authClientService,
-        ClientRepository $clientRepository
+        ClientRepository $clientRepository,
+        ConfigService $configService
     ) {
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
         $this->authClientService = $authClientService;
         $this->clientRepository = $clientRepository;
-
+        $this->configService = $configService;
 
         $userName = $this->tokenStorage->getToken()?->getUserIdentifier();
         if ($userName) {
@@ -288,7 +289,7 @@ class AccountService
 
         $data = [
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => Config::SITE_URL . '/follow/' . $source->getAcct() . '/' . $targetToFollow->getId()->toBase58(),
+            'id' => $this->configService->getConfig()->getSiteUrl() . '/follow/' . $source->getAcct() . '/' . $targetToFollow->getId()->toBase58(),
             'type' => 'Follow',
             'actor' => $source->getUri(),
             'object' => $targetToFollow->getUri(),

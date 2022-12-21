@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Config;
 use App\Service\AccountService;
 use App\Service\InboxService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,6 +35,7 @@ class ProcessInboxCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addArgument('account', InputArgument::REQUIRED, 'Account to fetch as')
             ->addArgument('box', InputArgument::REQUIRED, 'filename of box')
             ->addOption('skip', 's', InputOption::VALUE_REQUIRED, 'how many rules to skip', 0)
         ;
@@ -48,7 +48,7 @@ class ProcessInboxCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->accountService->setLoggedInAccount(Config::ADMIN_USER);
+        $this->accountService->setLoggedInAccount(strval($input->getArgument('account')));
         $source = $this->accountService->getLoggedInAccount();
         if (!$source) {
             return Command::FAILURE;

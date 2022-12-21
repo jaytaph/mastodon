@@ -8,7 +8,7 @@ use App\Entity\Config;
 use App\Repository\ConfigRepository;
 use Doctrine\ORM\EntityNotFoundException;
 
-class InstanceConfigService
+class ConfigService
 {
     protected ConfigRepository $repository;
 
@@ -39,7 +39,7 @@ class InstanceConfigService
         return false;
     }
 
-    public function createDefaultConfig()
+    public function createDefaultConfig(): void
     {
         $config = new Config();
 
@@ -66,7 +66,7 @@ class InstanceConfigService
         $this->saveConfig($config);
     }
 
-    public function saveConfig(Config $config)
+    public function saveConfig(Config $config): void
     {
         $this->repository->save($config, true);
     }

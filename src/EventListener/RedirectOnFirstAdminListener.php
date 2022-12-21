@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
-use App\Entity\Config;
 use App\Entity\User;
-use App\Repository\UserRepository;
-use App\Service\InstanceConfigService;
+use App\Service\ConfigService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,9 +21,9 @@ class RedirectOnFirstAdminListener implements EventSubscriberInterface
 {
     protected RouterInterface $router;
     protected EntityManagerInterface $doctrine;
-    protected InstanceConfigService $configService;
+    protected ConfigService $configService;
 
-    public function __construct(EntityManagerInterface $doctrine, InstanceConfigService $configService, RouterInterface $router)
+    public function __construct(EntityManagerInterface $doctrine, ConfigService $configService, RouterInterface $router)
     {
         $this->router = $router;
         $this->doctrine = $doctrine;
@@ -39,7 +37,7 @@ class RedirectOnFirstAdminListener implements EventSubscriberInterface
         ];
     }
 
-    public function onKernelRequest(RequestEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;

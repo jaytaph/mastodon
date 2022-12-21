@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\ActivityPub;
-use App\Config;
 use App\Entity\Account;
 use App\Entity\Status;
 use App\Entity\Tag;
@@ -24,6 +23,7 @@ class StatusService
     protected TagService $tagService;
     protected EmojiService $emojiService;
     protected PollService $pollService;
+    protected ConfigService $configService;
 
     public function __construct(
         EntityManagerInterface $doctrine,
@@ -31,7 +31,8 @@ class StatusService
         MediaService $mediaService,
         TagService $tagService,
         EmojiService $emojiService,
-        PollService $pollService
+        PollService $pollService,
+        ConfigService $configService
     ) {
         $this->doctrine = $doctrine;
         $this->accountService = $accountService;
@@ -39,6 +40,7 @@ class StatusService
         $this->tagService = $tagService;
         $this->emojiService = $emojiService;
         $this->pollService = $pollService;
+        $this->configService = $configService;
     }
 
     public function getLocalStatusCount(): int
@@ -70,8 +72,8 @@ class StatusService
 
         // @TODO: check for character limits
 
-        $status->setUri(Config::SITE_URL . '/users/' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
-        $status->setUrl(Config::SITE_URL . '/@' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
+        $status->setUri($this->configService->getConfig()->getSiteUrl() . '/users/' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
+        $status->setUrl($this->configService->getConfig()->getSiteUrl() . '/@' . $owner->getAcct() . '/status/' . $status->getId()->toBase58());
         $status->setLocal(true);
         $status->setOwner($owner);
         $status->setAccount($owner);

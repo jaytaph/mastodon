@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
-use App\Repository\UserRepository;
-use App\Service\InstanceConfigService;
+use App\Service\ConfigService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -19,9 +18,9 @@ use Symfony\Component\Routing\RouterInterface;
 class RedirectOnNoConfigAdminListener implements EventSubscriberInterface
 {
     protected RouterInterface $router;
-    protected InstanceConfigService $configService;
+    protected ConfigService $configService;
 
-    public function __construct(InstanceConfigService $configService, RouterInterface $router)
+    public function __construct(ConfigService $configService, RouterInterface $router)
     {
         $this->configService = $configService;
         $this->router = $router;
@@ -34,7 +33,7 @@ class RedirectOnNoConfigAdminListener implements EventSubscriberInterface
         ];
     }
 
-    public function onKernelRequest(RequestEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;

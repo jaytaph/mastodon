@@ -1,23 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use App\Entity\Config;
 use App\Entity\User;
 use App\Form\InstanceConfigType;
 use App\Form\RegistrationFormType;
-use App\Repository\UserRepository;
-use App\Security\EmailVerifier;
-use App\Service\InstanceConfigService;
+use App\Service\ConfigService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
 class AdminController extends AbstractController
 {
@@ -38,7 +35,7 @@ class AdminController extends AbstractController
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
-                    $form->get('plainPassword')->getData()
+                    strval($form->get('plainPassword')->getData())
                 )
             );
 
@@ -57,13 +54,15 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/config', name: 'admin_config')]
-    public function config(Request $request, InstanceConfigService $configService): Response
+    public function config(Request $request, ConfigService $configService): Response
     {
         $form = $this->createForm(InstanceConfigType::class, $configService->getConfig());
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $configService->saveConfig($form->getData());
+            /** @var Config $config */
+            $config = $form->getData();
+            $configService->saveConfig($config);
             $this->addFlash('success', 'Config saved');
         }
 

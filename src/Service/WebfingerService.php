@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Config;
 use App\Entity\Account;
 use GuzzleHttp\Client;
 
@@ -12,17 +11,19 @@ class WebfingerService
 {
     protected AccountService $accountService;
     protected AuthClientService $authClientService;
+    protected ConfigService $configService;
 
-    public function __construct(AccountService $accountService, AuthClientService $authClientService)
+    public function __construct(AccountService $accountService, AuthClientService $authClientService, ConfigService $configService)
     {
         $this->accountService = $accountService;
         $this->authClientService = $authClientService;
+        $this->configService = $configService;
     }
 
     public function fetch(Account $source, string $name): ?Account
     {
         if (!strpos($name, '@')) {
-            $name = $name . '@' . Config::SITE_DOMAIN;
+            $name = $name . '@' . $this->configService->getConfig()->getSiteUrl();
         }
         $pos = strpos($name, '@');
         if ($pos === false) {
