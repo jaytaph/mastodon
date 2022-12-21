@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Config;
 use App\Service\AccountService;
 use App\Service\AuthClientService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -38,6 +37,7 @@ class AuthFetchCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addArgument('account', InputArgument::REQUIRED, 'Account to fetch as')
             ->addArgument('url', InputArgument::REQUIRED, 'URL to fetch')
         ;
     }
@@ -48,7 +48,7 @@ class AuthFetchCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $account = $this->accountService->getAccount(Config::ADMIN_USER);
+        $account = $this->accountService->getAccount(strval($input->getArgument('account')));
         $url = strval($input->getArgument('url'));
 
         $response = $this->authClientService->fetch($account, $url);

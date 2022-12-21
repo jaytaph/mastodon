@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Config;
 use App\Service\AccountService;
+use App\Service\ConfigService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,13 +16,15 @@ use Symfony\Component\Routing\Annotation\Route;
 class WebfingerController extends AbstractController
 {
     protected AccountService $accountService;
+    protected ConfigService $configService;
 
     /**
      * @param AccountService $accountService
      */
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $accountService, ConfigService $configService)
     {
         $this->accountService = $accountService;
+        $this->configService = $configService;
     }
 
     #[Route('/.well-known/webfinger', name: 'app_webfinger')]
@@ -38,7 +40,7 @@ class WebfingerController extends AbstractController
             throw new BadRequestHttpException('Invalid resource');
         }
         [$username, $domain] = explode('@', $resource);
-        if ($domain != Config::SITE_DOMAIN) {
+        if ($domain != $this->configService->getConfig()->getInstanceDomain()) {
             throw new BadRequestHttpException('Invalid resource');
         }
 
@@ -48,25 +50,25 @@ class WebfingerController extends AbstractController
         }
 
         $data = [
-            'subject' => 'acct:' . $account->getUsername() . '@' . Config::SITE_DOMAIN,
+            'subject' => 'acct:' . $account->getUsername() . '@' . $this->configService->getConfig()->getInstanceDomain(),
             "aliases" => [
-                Config::SITE_URL . '/@' . $account->getUsername(),
-                Config::SITE_URL . "/users/" . $account->getUsername(),
+                $this->configService->getConfig()->getSiteUrl() . '/@' . $account->getUsername(),
+                $this->configService->getConfig()->getSiteUrl() . "/users/" . $account->getUsername(),
             ],
             'links' => [
                 [
                     "rel" => "https://webfinger.net/rel/profile-page",
                     "type" => "text/html",
-                    "href" => Config::SITE_URL . '/@' . $account->getUsername()
+                    "href" => $this->configService->getConfig()->getSiteUrl() . '/@' . $account->getUsername()
                 ],
                 [
                     'rel' => 'self',
                     'type' => 'application/activity+json',
-                    'href' => Config::SITE_URL . '/users/' . $account->getUsername(),
+                    'href' => $this->configService->getConfig()->getSiteUrl() . '/users/' . $account->getUsername(),
                 ],
                 [
                     "rel" => "https://ostatus.org/schema/1.0/subscribe",
-                    "template" => Config::SITE_URL . '/@' . $account->getUsername() . "/follow?uri={uri}"
+                    "template" => $this->configService->getConfig()->getSiteUrl() . '/@' . $account->getUsername() . "/follow?uri={uri}"
                 ]
             ],
         ];

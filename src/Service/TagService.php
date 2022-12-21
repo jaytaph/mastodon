@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Config;
 use App\Entity\Tag;
 use App\Entity\TagHistory;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,10 +13,12 @@ use Jaytaph\TypeArray\TypeArray;
 class TagService
 {
     protected EntityManagerInterface $doctrine;
+    protected ConfigService $configService;
 
-    public function __construct(EntityManagerInterface $doctrine)
+    public function __construct(EntityManagerInterface $doctrine, ConfigService $configService)
     {
         $this->doctrine = $doctrine;
+        $this->configService = $configService;
     }
 
     /**
@@ -93,7 +94,7 @@ class TagService
             if (! isset($ret[$tag])) {
                 $ret[$tag] = [
                     'name' => $tag,
-                    'url' => Config::SITE_URL . '/tags/' . $tag,
+                    'url' => $this->configService->getConfig()->getSiteUrl() . '/tags/' . $tag,
                     'following' => false,
                     'history' => [],
                 ];

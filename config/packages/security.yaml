@@ -51,6 +51,9 @@ security:
 #        - { path: ^/web/forgot, roles: PUBLIC_ACCESS }
         - { path: ^/web, roles: ROLE_USER }
 
+        - { path: ^/admin/first-time$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
 when@test:
     security:
         password_hashers:

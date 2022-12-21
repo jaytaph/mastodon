@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <div id="main-wrapper" class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                <div class="card border-0">
+                    <div class="card-body p-0">
+                        <div class="row no-gutters">
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="mb-5">
+                                        <h3 class="h4 font-weight-bold text-theme">Donkeyheads Mastodon Service</h3>
+                                    </div>
+
+                                    <h6 class="h5 mb-0">Register your account</h6>
+                                    <p class="mt-2 mb-5">We have sent a verification email to your email address. Please click on the link to verify your account.</p>
+
+                                </div>
+                            </div>
+
+                            {% include "overlay.html.twig" %}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

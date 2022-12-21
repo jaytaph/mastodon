@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Config;
 use App\Entity\MediaAttachment;
 use Doctrine\ORM\EntityManagerInterface;
 use kornrunner\Blurhash\Blurhash;
@@ -15,14 +14,16 @@ use Jaytaph\TypeArray\TypeArray;
 class MediaService
 {
     protected EntityManagerInterface $doctrine;
+    protected ConfigService $configService;
     protected string $imagePath;
 
     protected const DEFAULT_BLURHASH = '00Pj0^';
 
-    public function __construct(EntityManagerInterface $doctrine, string $imagePath)
+    public function __construct(EntityManagerInterface $doctrine, string $imagePath, ConfigService $configService)
     {
         $this->doctrine = $doctrine;
         $this->imagePath = $imagePath;
+        $this->configService = $configService;
     }
 
     public function findMediaAttachmentById(Uuid $uuid): ?MediaAttachment
@@ -49,10 +50,10 @@ class MediaService
         $mediaAttachment->setFilename($filename);
         $mediaAttachment->setType('image');
         $mediaAttachment->setDescription('Uploaded via API');
-        $mediaAttachment->setUrl(Config::SITE_URL . '/media/images/' . $filename);
-        $mediaAttachment->setPreviewUrl(Config::SITE_URL . '/media/images/' . $filename);
-        $mediaAttachment->setTextUrl(Config::SITE_URL . '/media/images/' . $filename);
-        $mediaAttachment->setRemoteUrl(Config::SITE_URL . '/media/images/' . $filename);
+        $mediaAttachment->setUrl($this->configService->getConfig()->getSiteUrl() . '/media/images/' . $filename);
+        $mediaAttachment->setPreviewUrl($this->configService->getConfig()->getSiteUrl() . '/media/images/' . $filename);
+        $mediaAttachment->setTextUrl($this->configService->getConfig()->getSiteUrl() . '/media/images/' . $filename);
+        $mediaAttachment->setRemoteUrl($this->configService->getConfig()->getSiteUrl() . '/media/images/' . $filename);
 
         // @TODO: Lets do a blurhash that actually isn't very slow
         $mediaAttachment->setBlurHash($this->generateBlurhash($this->imagePath . '/' . $filename));

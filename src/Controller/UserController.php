@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Config;
 use App\Service\AccountService;
 use App\Service\InboxService;
+use App\Service\ConfigService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,14 +48,14 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{acct}', name: 'app_users_show')]
-    public function user(string $acct): Response
+    public function user(string $acct, ConfigService $configService): Response
     {
         $account = $this->findAccount($acct, localOnly: true);
         if (!$account) {
             throw $this->createNotFoundException();
         }
 
-        $accountUrl = Config::SITE_URL . '/users/' . $account->getUsername();
+        $accountUrl = $configService->getConfig()->getSiteUrl() . '/users/' . $account->getUsername();
 
         $data = [
             '@context' => 'https://www.w3.org/ns/activitystreams',

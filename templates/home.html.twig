@@ -16,6 +16,12 @@
                 <img class="img img-responsive col-2" src="{{ asset('dh.jpg') }}" alt="Donkeyhead" />
                 </p>
 
+
+                {% if is_granted('ROLE_ADMIN') %}
+                    <p>But you are an admin, so you can see the admin page:</p>
+                    <p><a class="btn btn-primary" href="{{ path('admin_config') }}">Instance configuration page</a></p>
+                {% endif %}
+
                 <a class="btn btn-primary" href="{{ path('web_logout') }}">Logout</a>
             </div>
         </div>
