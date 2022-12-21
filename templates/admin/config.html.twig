@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+
+    <div id="main-wrapper" class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+
+                {{ form_start(form) }}
+
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h5 class="card-title mb-5">Main configuration</h5>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact1">Domain</label>
+                                <div class="col-sm-10">
+                                    <div class="input-group">
+                                        <span class="input-group-text">https://</span>
+                                        {{ form_widget(form.instanceDomain) }}
+{#                                        <input class="form-control" id="inputContact1" type="text" placeholder="example.com" value="">#}
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the domain on which you are running this software. It will be used to generate the links to your instance.
+                                    It's not possible to change it later.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact5">Instance name</label>
+                                <div class="col-sm-10">
+                                    {{ form_widget(form.instanceTitle) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the name of your server. It will be displayed in the footer of your instance.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact5">Instance short description</label>
+                                <div class="col-sm-10">
+                                    {{ form_widget(form.instanceShortDescription) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the short description of your server. It will be displayed in the footer of your instance.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact5">Instance description</label>
+                                <div class="col-sm-10">
+                                    {{ form_widget(form.instanceDescription) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the long description of your server.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact2">Admin email</label>
+                                <div class="col-sm-10">
+                                    {{ form_widget(form.instanceEmail) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Where can people reach you on email if they have questions or problems?
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact2">Thumbnail</label>
+                                <div class="col-sm-10">
+                                    {{ form_widget(form.thumbnailUrl) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the thumbnail of your server. It will be displayed in the footer of your instance.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="col-sm-2 control-label" for="inputContact2">Admin account</label>
+                                <div class="col-sm-10">
+                                    <div class="input-group">
+                                        <span class="input-group-text">@</span>
+                                        {{ form_widget(form.adminAccount) }}
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    This is the account that will be used to administrate your instance. If you don't have one yet, you can create it later.
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h5 class="card-title mb-5">User configuration</h5>
+
+                            <div class="-group mb-3">
+                                <div class="col-sm-10">
+                                    <div class="form-check form-switch">
+                                        {{ form_widget(form.registrationAllowed) }}
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Allow users to register on your instance.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <div class="form-check form-switch">
+                                        {{ form_widget(form.approvalRequired) }}
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Require approval from an administrator before a new user can log in.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <div class="form-check form-switch">
+                                        {{ form_widget(form.inviteEnabled) }}
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Allow users to invite other users to join the instance.
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h5 class="card-title mb-5">Limits</h5>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Max status length</label>
+                                    {{ form_widget(form.statusLength) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Maximum length of a status.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Media attachments</label>
+                                    {{ form_widget(form.mediaAttachments) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Maximum number of media attachments per status.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Characters per URL</label>
+                                    {{ form_widget(form.charactersPerUrl) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Number of characters that counts for an URL, even it's larger.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Account tags</label>
+                                    {{ form_widget(form.accountTags) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Amount of tags that can be used in a single post.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Max options per poll</label>
+                                    {{ form_widget(form.optionsPerPoll) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Number of options per poll
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Characters per option</label>
+                                    {{ form_widget(form.characersPerOption) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Number of characters per option in a poll
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Minimum poll expiration</label>
+                                    {{ form_widget(form.minimumPollExpiration) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Minimum number of seconds until a poll expires
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="col-sm-10">
+                                    <label for="account_tags" class="form-label">Maximum poll expiration</label>
+                                    {{ form_widget(form.maximumPollExpiration) }}
+                                </div>
+                                <small class="form-text text-muted">
+                                    Maximum number of seconds until a poll expires
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <input type="submit" class="btn btn-primary" value="Save configuration">
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
