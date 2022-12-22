@@ -8,6 +8,7 @@ use App\Entity\Account;
 use App\Entity\Follower;
 use App\Service\AccountService;
 use App\Service\AuthClientService;
+use App\Service\ConfigService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 use Jaytaph\TypeArray\TypeArray;
@@ -17,12 +18,18 @@ class Follow implements TypeProcessorInterface
     protected AccountService $accountService;
     protected EntityManagerInterface $doctrine;
     protected AuthClientService $authClientService;
+    protected ConfigService $configService;
 
-    public function __construct(AccountService $accountService, EntityManagerInterface $doctrine, AuthClientService $authClientService)
-    {
+    public function __construct(
+        AccountService $accountService,
+        EntityManagerInterface $doctrine,
+        AuthClientService $authClientService,
+        ConfigService $configService
+    ) {
         $this->accountService = $accountService;
         $this->doctrine = $doctrine;
         $this->authClientService = $authClientService;
+        $this->configService = $configService;
     }
 
     public function process(Account $source, TypeArray $message): bool
@@ -46,7 +53,7 @@ class Follow implements TypeProcessorInterface
         // Send back accept response
         $data = new TypeArray([
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => 'https://dhpt.nl/users/' . $source->getAcct() . '/' . Uuid::v4(),
+            'id' => $this->configService->getConfig()->getSiteUrl() . '/users/' . $source->getAcct() . '/' . Uuid::v4(),
             'type' => 'Accept',
             'actor' => $message->getString('[object]'),
             'object' => $message,

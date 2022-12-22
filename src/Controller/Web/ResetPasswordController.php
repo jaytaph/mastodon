@@ -7,6 +7,7 @@ namespace App\Controller\Web;
 use App\Entity\User;
 use App\Form\ChangePasswordFormType;
 use App\Form\ResetPasswordRequestFormType;
+use App\Service\ConfigService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -142,7 +143,8 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(
         string $emailFormData,
         MailerInterface $mailer,
-        TranslatorInterface $translator
+        TranslatorInterface $translator,
+        ConfigService $configService
     ): RedirectResponse {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,
@@ -152,6 +154,8 @@ class ResetPasswordController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_check_email');
         }
+
+        $config = $configService->getConfig();
 
         try {
             $resetToken = $this->resetPasswordHelper->generateResetToken($user);
@@ -170,7 +174,7 @@ class ResetPasswordController extends AbstractController
         }
 
         $email = (new TemplatedEmail())
-            ->from(new Address('info@dhpt.nl', 'Donkeyhead Mailer'))
+            ->from(new Address($config->getInstanceEmail(), $config->getInstanceTitle() ))
             ->to($user->getEmail())
             ->subject('Your password reset request')
             ->htmlTemplate('reset_password/email.html.twig')
