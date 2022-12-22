@@ -35,7 +35,7 @@ trait AccountTrait
         return $this->accountService->findAccountById($uuid);
     }
 
-    protected function getOauthUser(): Account
+    protected function getOauthAccount(): Account
     {
         $account = $this->accountService->getLoggedInAccount();
         if ($account) {

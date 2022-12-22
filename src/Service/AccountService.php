@@ -123,6 +123,11 @@ class AccountService
         return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]) != null;
     }
 
+    /**
+     * @param Account $account
+     * @return mixed[]
+     * @throws EntityNotFoundException
+     */
     public function toProfileJson(Account $account): array
     {
         $accountUrl = $this->configService->getConfig()->getSiteUrl() . '/users/' . $account->getUsername();

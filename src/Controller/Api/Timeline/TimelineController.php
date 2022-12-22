@@ -17,7 +17,7 @@ class TimelineController extends BaseApiController
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function timelineHome(Request $request): Response
     {
-        $account = $this->getOauthUser();
+        $account = $this->getOauthAccount();
 
         $maxId = $request->query->getAlnum('max_id');
         $minId = $request->query->getAlnum('min_id');

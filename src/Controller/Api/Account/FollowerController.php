@@ -28,7 +28,7 @@ class FollowerController extends BaseApiController
 //        $notify = $request->request->getBoolean('notify', false);
 //        $language = $request->request->get('language', []);
 
-        $this->accountService->follow($this->getOauthUser(), $account);
+        $this->accountService->follow($this->getOauthAccount(), $account);
 
         // Reload account
         $account = $this->accountService->getAccountById(Uuid::fromString($uuid));

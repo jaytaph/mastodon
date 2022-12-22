@@ -14,6 +14,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Twig\Environment;
 
@@ -98,6 +99,7 @@ class AuthorizeRequestListener implements EventSubscriberInterface
             /** @var PasswordAuthenticatedUserInterface $user */
             if ($this->hasher->isPasswordValid($user, strval($request->request->get('_password')))) {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_APPROVED);
+                /** @var UserInterface $user */
                 $event->setUser($user);
 
                 return [];

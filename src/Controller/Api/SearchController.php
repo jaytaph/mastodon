@@ -38,7 +38,7 @@ class SearchController extends BaseApiController
         $offset = $request->query->getInt('offset');
 
         $ret = $searchService->search(
-            source: $this->getOauthUser(),
+            source: $this->getOauthAccount(),
             query: $query,
             type: $type,
             resolve: $resolve,

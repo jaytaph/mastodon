@@ -30,7 +30,8 @@ class ResetPasswordController extends AbstractController
 
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private ConfigService $configService
     ) {
     }
 
@@ -47,7 +48,7 @@ class ResetPasswordController extends AbstractController
             return $this->processSendingPasswordResetEmail(
                 strval($form->get('email')->getData()),
                 $mailer,
-                $translator
+                $translator,
             );
         }
 
@@ -143,8 +144,7 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(
         string $emailFormData,
         MailerInterface $mailer,
-        TranslatorInterface $translator,
-        ConfigService $configService
+        TranslatorInterface $translator
     ): RedirectResponse {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,
@@ -155,7 +155,7 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_check_email');
         }
 
-        $config = $configService->getConfig();
+        $config = $this->configService->getConfig();
 
         try {
             $resetToken = $this->resetPasswordHelper->generateResetToken($user);
@@ -174,7 +174,7 @@ class ResetPasswordController extends AbstractController
         }
 
         $email = (new TemplatedEmail())
-            ->from(new Address($config->getInstanceEmail(), $config->getInstanceTitle() ))
+            ->from(new Address($config->getInstanceEmail(), $config->getInstanceTitle()))
             ->to($user->getEmail())
             ->subject('Your password reset request')
             ->htmlTemplate('reset_password/email.html.twig')

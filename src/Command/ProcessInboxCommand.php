@@ -48,7 +48,9 @@ class ProcessInboxCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->accountService->setLoggedInAccount(strval($input->getArgument('account')));
+        $account = $this->accountService->getAccount(strval($input->getArgument('account')));
+        $this->accountService->setLoggedInAccount($account);
+
         $source = $this->accountService->getLoggedInAccount();
         if (!$source) {
             return Command::FAILURE;

@@ -16,6 +16,6 @@ class VerifyController extends BaseApiController
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function verifyCredentials(): Response
     {
-        return new JsonResponse($this->accountService->toJson($this->getOauthUser()));
+        return new JsonResponse($this->accountService->toJson($this->getOauthAccount()));
     }
 }

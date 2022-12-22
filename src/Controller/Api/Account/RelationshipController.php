@@ -25,7 +25,7 @@ class RelationshipController extends BaseApiController
         }
 
         $ret = [];
-        $account = $this->getOauthUser();
+        $account = $this->getOauthAccount();
 
         // People who are following the user
         $followsMe = $this->accountService->getFollowers($account);

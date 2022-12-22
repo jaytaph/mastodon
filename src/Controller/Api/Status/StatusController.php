@@ -19,7 +19,7 @@ class StatusController extends BaseApiController
     #[IsGranted('ROLE_OAUTH2_WRITE')]
     public function createStatus(Request $request): Response
     {
-        $account = $this->getOauthUser();
+        $account = $this->getOauthAccount();
         $app = $this->accountService->getLoggedInApplication();
 
         $data = TypeArray::fromJson($request->getContent());
@@ -32,7 +32,6 @@ class StatusController extends BaseApiController
     #[IsGranted('ROLE_OAUTH2_READ')]
     public function context(string $uuid): Response
     {
-        // $account = $this->getOauthUser();
         $status = $this->statusService->findStatusById(Uuid::fromString($uuid));
         if (!$status) {
             throw $this->createNotFoundException();
