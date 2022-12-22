@@ -30,11 +30,11 @@ security:
             lazy: true
             provider: app_user_provider
             logout:
-                path: web_logout
+                path: app_logout
                 target: /
             form_login:
-                check_path: web_login
-                login_path: web_login
+                check_path: app_login
+                login_path: app_login
 
     access_control:
         - { path: ^/oauth/authorize, roles: PUBLIC_ACCESS }
@@ -43,13 +43,9 @@ security:
         - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/custom_emojis, roles: PUBLIC_ACCESS }
-#        - { path: ^/api/v1/accounts/verify_credentials, roles: ROLE_OAUTH2_READ }
         - { path: ^/api, roles: ROLE_USER }
 
-        - { path: ^/web/login, roles: PUBLIC_ACCESS }
-#        - { path: ^/web/register, roles: PUBLIC_ACCESS }
-#        - { path: ^/web/forgot, roles: PUBLIC_ACCESS }
-        - { path: ^/web, roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
         - { path: ^/admin/first-time$, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }

@@ -120,6 +120,29 @@ class AccountService
         return $this->doctrine->getRepository(Account::class)->findOneBy(['acct' => $acct]) != null;
     }
 
+    public function toProfileJson(Account $account): array
+    {
+        $accountUrl = $this->configService->getConfig()->getSiteUrl() . '/users/' . $account->getUsername();
+
+        return [
+            '@context' => 'https://www.w3.org/ns/activitystreams',
+            'id' => $accountUrl,
+            'type' => 'Person',
+            'preferredUsername' => $account->getDisplayName(),
+            'name' => $account->getUsername(),
+            'summary' => $account->getNote(),
+            'inbox' => $accountUrl . '/inbox',
+            'outbox' => $accountUrl . '/outbox',
+            'publicKey' => [
+                'id' => $accountUrl . '#main-key',
+                'owner' => $accountUrl,
+                'publicKeyPem' => $account->getPublicKeyPem(),
+            ],
+            'followers' => $accountUrl . '/followers',
+            'following' => $accountUrl . '/following',
+        ];
+    }
+
     /**
      * @param Account $account
      * @return mixed[]

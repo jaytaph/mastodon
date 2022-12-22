@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
@@ -94,6 +94,6 @@ class RegistrationController extends AbstractController
             return $this->redirectToRoute('app_register');
         }
 
-        return $this->redirectToRoute('web_home');
+        return $this->redirectToRoute('app_index');
     }
 }

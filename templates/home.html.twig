@@ -6,7 +6,11 @@
         <div class="row justify-content-center">
             <div class="col-xl-10">
 
-                <h1> Homepage for {{ app.user.email }} </h1>
+                {% if app.user %}
+                    <h1> Homepage for {{ app.user.email }} </h1>
+                {% else %}
+                    <h1>Default homepage for non-logged-in users</h1>
+                {% endif %}
 
                 <p>Normally, you would see your timeline and stuff. But the web part is not done yet.</p>
 
@@ -22,7 +26,11 @@
                     <p><a class="btn btn-primary" href="{{ path('admin_config') }}">Instance configuration page</a></p>
                 {% endif %}
 
-                <a class="btn btn-primary" href="{{ path('web_logout') }}">Logout</a>
+                {% if app.user %}
+                <a class="btn btn-primary" href="{{ path('app_logout') }}">Logout</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">Login</a>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -22,7 +22,7 @@ class LoginController extends AbstractController
         $this->clientManager = $clientManager;
     }
 
-    #[Route('/web/login', name: 'web_login')]
+    #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -37,15 +37,10 @@ class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/web/logout', name: 'web_logout')]
+    #[Route('/logout', name: 'app_logout')]
     public function logout(): Response
     {
-        return new Response("DonkeyHeads Mastodon Server - Things will break here");
-    }
-
-    #[Route('/web/register', name: 'web_register')]
-    public function register(): Response
-    {
+        // This should never be called
         return new Response("DonkeyHeads Mastodon Server - Things will break here");
     }
 }
