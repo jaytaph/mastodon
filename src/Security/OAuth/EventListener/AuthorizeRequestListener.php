@@ -75,10 +75,13 @@ class AuthorizeRequestListener implements EventSubscriberInterface
      */
     protected function processSubmit(Request $request, AuthorizationRequestResolveEvent $event): array
     {
+        $user = $this->tokenStorage->getToken()?->getUser();
+
         // If we are logged in, we can simply check the accept/deny buttons
-        if ($this->tokenStorage->getToken()?->getUser()) {
+        if ($user) {
             if ($request->request->get('accept')) {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_APPROVED);
+                $event->setUser($user);
             } else {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_DENIED);
             }
@@ -95,6 +98,8 @@ class AuthorizeRequestListener implements EventSubscriberInterface
             /** @var PasswordAuthenticatedUserInterface $user */
             if ($this->hasher->isPasswordValid($user, strval($request->request->get('_password')))) {
                 $event->resolveAuthorization(AuthorizationRequestResolveEvent::AUTHORIZATION_APPROVED);
+                $event->setUser($user);
+
                 return [];
             }
         } catch (UserNotFoundException $exception) {

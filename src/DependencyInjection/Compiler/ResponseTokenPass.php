@@ -14,7 +14,7 @@ class ResponseTokenPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        // Override the default token response class
+        // Override the default token response class so we have a response with scopes in it.
         $authorizationServer = $container->findDefinition(AuthorizationServer::class);
         $authorizationServer->addArgument(new Reference(ScopedBearerTokenResponse::class));
     }

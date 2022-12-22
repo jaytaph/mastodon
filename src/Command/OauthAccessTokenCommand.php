@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Service\ConfigService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,6 +23,15 @@ use Jaytaph\TypeArray\TypeArray;
 )]
 class OauthAccessTokenCommand extends Command
 {
+    protected ConfigService $configService;
+
+    public function __construct(ConfigService $configService)
+    {
+        parent::__construct();
+        $this->configService = $configService;
+    }
+
+
     protected function configure(): void
     {
         $this
@@ -47,7 +57,7 @@ class OauthAccessTokenCommand extends Command
 
         $params = [
             "client_id" => $clientId,
-            "redirect_uri" => "https://dhpt.nl",
+            "redirect_uri" => $this->configService->getConfig()->getSiteUrl(),
             "response_type" => "code",
             "scope" => "read write follow",
             "state" => Uuid::v4(),

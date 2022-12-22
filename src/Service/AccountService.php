@@ -8,6 +8,7 @@ use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Entity\Status;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
@@ -37,9 +38,11 @@ class AccountService
         $this->clientRepository = $clientRepository;
         $this->configService = $configService;
 
-        $userName = $this->tokenStorage->getToken()?->getUserIdentifier();
-        if ($userName) {
-            $this->setLoggedInAccount($userName);
+
+        $user = $this->tokenStorage->getToken()?->getUser();
+        if ($user) {
+            /** @var User $user */
+            $this->setLoggedInAccount($user->getAccount());
         }
     }
 
@@ -55,9 +58,9 @@ class AccountService
         return $client?->getName() ?? '';
     }
 
-    public function setLoggedInAccount(string $acct): void
+    public function setLoggedInAccount(?Account $account): void
     {
-        $this->loggedinUser = $this->findAccount($acct);
+        $this->loggedinUser = $account;
     }
 
     public function getLoggedInAccount(): ?Account

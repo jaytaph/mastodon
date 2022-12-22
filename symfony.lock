@@ -240,6 +240,15 @@
             "tests/bootstrap.php"
         ]
     },
+    "symfony/postmark-mailer": {
+        "version": "6.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "4.4",
+            "ref": "84842f6791eaef80618dda244d4e3bbcbbcdf543"
+        }
+    },
     "symfony/routing": {
         "version": "6.0",
         "recipe": {
