@@ -132,17 +132,17 @@ class Status
     #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
     private ?Poll $poll = null;
 
-    #[ORM\Column(nullable: true)]
-    private array $_to = [];
+    #[ORM\Column(name: '_to', type: 'array', nullable: true)]
+    private ?array $to_ = [];
 
     #[ORM\Column(nullable: true)]
-    private array $bto = [];
+    private ?array $bto = [];
 
     #[ORM\Column(nullable: true)]
-    private array $cc = [];
+    private ?array $cc = [];
 
     #[ORM\Column(nullable: true)]
-    private array $bcc = [];
+    private ?array $bcc = [];
 
     public function getId(): Uuid
     {
@@ -613,12 +613,12 @@ class Status
 
     public function getTo(): array
     {
-        return $this->_to;
+        return $this->to_;
     }
 
-    public function setTo(?array $_to): self
+    public function setTo(?array $to_): self
     {
-        $this->_to = $_to;
+        $this->to_ = $to_;
 
         return $this;
     }

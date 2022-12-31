@@ -7,7 +7,6 @@ namespace App\Service\Inbox;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Service\AccountService;
-use App\Service\SignatureService;
 use Doctrine\ORM\EntityManagerInterface;
 use Jaytaph\TypeArray\TypeArray;
 

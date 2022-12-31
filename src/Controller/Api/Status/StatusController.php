@@ -31,7 +31,8 @@ class StatusController extends BaseApiController
 
         $data = $this->apiModelConverter->status($status);
         return new JsonResponse($data);
-/*
+
+        /*
         $ret = [
             '@context' => 'https://www.w3.org/ns/activitystreams',
             'id' => $status->getUri(),

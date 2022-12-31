@@ -52,7 +52,8 @@ class StatusController extends AbstractController
         // @TODO: Do we need to check for private statuses??
 
         if ($request->getPreferredFormat() == 'json') {
-            $data = $this->activityStreamConverter->status($status);
+//            $data = $this->activityStreamConverter->status($status);
+            $data = [];
             return new JsonResponse($data);
         }
 

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Web;
 
+use App\ActivityStream\Collection;
+use App\ActivityStream\CollectionPage;
 use App\Controller\AccountTrait;
+use App\Entity\Account;
 use App\Service\AccountService;
+use App\Service\TimelineService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,10 +22,12 @@ class UserController extends AbstractController
     use AccountTrait;
 
     protected AccountService $accountService;
+    protected TimelineService $timelineService;
 
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $accountService, TimelineService $timelineService)
     {
         $this->accountService = $accountService;
+        $this->timelineService = $timelineService;
     }
 
     #[Cache(vary: ['Accept'])]
@@ -55,8 +61,11 @@ class UserController extends AbstractController
             return new JsonResponse($this->accountService->toProfileJson($account));
         }
 
+        $timeline = $this->timelineService->getTimelineForAccount($account, local: true, remote: true, onlyMedia: false, limit: 40);
+
         return $this->render('user/show.html.twig', [
             'account' => $account,
+            'timeline' => $timeline,
         ]);
     }
 
@@ -68,13 +77,18 @@ class UserController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-//        $collection = new Collection();
-//        foreach ($this->accountService->getFollowers($account) as $follower) {
-//            $collection->add($activityStreamConverter->accountToAS($follower->getUri());
-//        }
+        $elements = array_map(function (Account $follower) {
+            return $follower->getUri();
+        }, $this->accountService->getFollowers($account));
 
-        // Output activitystream collection
+        $collection = new Collection($account->getUri() . '/followers', $elements);
+        $data = $collection->toArray();
 
-        return new JsonResponse($collection->toArray());
+        if ($collection->getTotalItems() > 50) {
+            $page = new CollectionPage($collection);
+            $data = $page->getPage($request->query->getInt('page', 1), 20);
+        }
+
+        return new JsonResponse($data);
     }
 }

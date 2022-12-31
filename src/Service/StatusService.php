@@ -184,7 +184,6 @@ class StatusService
     }
 
     /**
-     * @param Status $status
      * @return Status[]
      */
     public function getParents(Status $status): array
@@ -193,12 +192,9 @@ class StatusService
     }
 
     /**
-     * @param Account $owner
-     * @param TypeArray $object
-     * @return Status|null
-     * @throws \Exception
+     * Creates a status from an incoming ActivityPub object in the inbox of a user.
      */
-    public function createStatusFromObject(Account $owner, TypeArray $object): ?Status
+    public function createStatusFromActivityPub(Account $owner, TypeArray $object): ?Status
     {
         $status = new Status();
 

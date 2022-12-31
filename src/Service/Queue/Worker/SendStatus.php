@@ -26,10 +26,10 @@ class SendStatus implements WorkerInterface
     protected EntityManagerInterface $doctrine;
     protected AuthClientService $authClientService;
     protected AccountService $accountService;
+    protected StatusService $statusService;
+    protected SignatureService $signatureService;
 
     public const TYPE = 'send_status';
-    protected StatusService $statusService;
-    protected SignatureService $messageService;
 
     public function __construct(
         Queue $queue,
@@ -153,11 +153,11 @@ class SendStatus implements WorkerInterface
         $entry->setFinished(false);
     }
 
-    protected function wrapInCreate(TypeArray $note, Account $source)
+    protected function wrapInCreate(TypeArray $note, Account $source): TypeArray
     {
         $ret = [
             '@context' => 'https://www.w3.org/ns/activitystreams',
-            'id' => $note->getString('[id]').'/activity',
+            'id' => $note->getString('[id]') . '/activity',
             'type' => 'Create',
             'actor' => $source->getUri(),
             'published' => $note->getString('[published]'),
@@ -188,12 +188,14 @@ class SendStatus implements WorkerInterface
             'id' => $status->getUri(),
             'type' => 'Note',
             'summary' => '',
-            'published' => $status->getCreatedAt()->format(ActivityStream::DATETIME_FORMAT),
-            'attributedTo' => $status->getAccount()->getUri(),
+            'published' => $status->getCreatedAt()?->format(ActivityStream::DATETIME_FORMAT),
+            'attributedTo' => $status->getAccount()?->getUri(),
             'to' => $status->getTo(),
             'cc' => $status->getCc(),
             'sensitive' => $status->isSensitive(),
             'content' => $status->getContent(),
+            'attachment' => [],
+            'tag' => [],
         ];
 
         array_map(function (Uuid $id) use (&$note) {
@@ -203,7 +205,7 @@ class SendStatus implements WorkerInterface
             }
             $note['attachment'][] = [
                 'type' => 'Document',
-                'mediaType' => $attachment->getMimeType(),
+//                'mediaType' => $attachment->getMimeType(),
                 'url' => $attachment->getUrl(),
             ];
         }, $status->getAttachmentIds());
@@ -215,7 +217,7 @@ class SendStatus implements WorkerInterface
             }
             $note['tag'][] = [
                 'type' => 'Mention',
-                'href' => $tag->getUrl(),
+                'href' => $tag->getHref(),
                 'name' => $tag->getName(),
             ];
         }, $status->getTagIds());
