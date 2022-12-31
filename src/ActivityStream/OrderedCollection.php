@@ -6,6 +6,9 @@ namespace App\ActivityStream;
 
 class OrderedCollection extends Collection
 {
+    /**
+     * @return mixed[]
+     */
     public function toArray(): array
     {
         $ret = parent::toArray();

@@ -6,10 +6,16 @@ namespace App\ActivityStream;
 
 class Collection
 {
+    /** @var mixed[] */
     protected array $elements = [];
     protected string $id;
     protected ?string $summary = null;
 
+    /**
+     * @param string $id
+     * @param mixed[] $elements
+     * @param string|null $summary
+     */
     public function __construct(string $id, array $elements, string $summary = null)
     {
         $this->id = $id;
@@ -17,11 +23,18 @@ class Collection
         $this->summary = $summary;
     }
 
-    public function addElement(array $element): void
+    /**
+     * @param mixed $element
+     * @return void
+     */
+    public function addElement(mixed $element): void
     {
         $this->elements[] = $element;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getElements(): array
     {
         return $this->elements;
@@ -37,6 +50,9 @@ class Collection
         return $this->summary;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function toArray(): array
     {
         $data = [

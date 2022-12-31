@@ -7,7 +7,6 @@ namespace App\Service;
 use App\Entity\Account;
 use App\Entity\Status;
 use Doctrine\ORM\EntityManagerInterface;
-use Jaytaph\TypeArray\TypeArray;
 use Symfony\Component\Uid\Uuid;
 
 class TimelineService

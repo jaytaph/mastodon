@@ -25,8 +25,8 @@
                                         {{ form_start(requestForm) }}
                                             {{ form_row(requestForm.email) }}
 
-                                        {% if registrationForm.captcha is defined %}
-                                            {{ form_row(registrationForm.captcha) }}
+                                        {% if requestForm.captcha is defined %}
+                                            {{ form_row(requestForm.captcha) }}
                                         {% endif %}
 
                                             <div class="form-group mt-3">

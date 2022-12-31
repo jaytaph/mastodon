@@ -13,6 +13,9 @@ class CollectionPage
         $this->collection = $collection;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getPage(int $pageNr, int $pageSize): array
     {
         $items = array_slice($this->collection->getElements(), ($pageNr - 1) * $pageSize, $pageSize);
