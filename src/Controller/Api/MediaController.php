@@ -23,7 +23,8 @@ class MediaController extends BaseApiController
         $file = $request->files->get('file');
         $mediaAttachment = $this->mediaService->createMediaAttachmentFromFile($file);
 
-        return new JsonResponse($mediaAttachment->toArray());
+        $data = $this->apiModelConverter->media($mediaAttachment);
+        return new JsonResponse($data);
     }
 
     #[Route('/api/v1/media/{uuid}', name: 'api_media_edit', methods: 'PUT')]
@@ -61,6 +62,7 @@ class MediaController extends BaseApiController
 
         $this->mediaService->save($mediaAttachment);
 
-        return new JsonResponse($mediaAttachment->toArray());
+        $data = $this->apiModelConverter->media($mediaAttachment);
+        return new JsonResponse($data);
     }
 }

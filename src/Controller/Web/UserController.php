@@ -59,4 +59,22 @@ class UserController extends AbstractController
             'account' => $account,
         ]);
     }
+
+    #[Route('/users/{acct}/followers', name: 'app_users_followers')]
+    public function followers(Request $request, string $acct): Response
+    {
+        $account = $this->findAccount($acct, localOnly: true);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
+
+//        $collection = new Collection();
+//        foreach ($this->accountService->getFollowers($account) as $follower) {
+//            $collection->add($activityStreamConverter->accountToAS($follower->getUri());
+//        }
+
+        // Output activitystream collection
+
+        return new JsonResponse($collection->toArray());
+    }
 }

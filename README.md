@@ -23,18 +23,20 @@ After this, you will be able to configure your server. From that point on, thing
     redirected to a page with a token in the url. Copy that token and paste it in the console. If all goes well, you will see
     a json response with your user info and a json with your access token which you can use to do your own curl requests for instance.
 
-- If you want to test during development via a browser, you can set the `OAUTH_OVERRIDE=true` and set the `OAUTH_OVERRIDE_USER` to the user who will be automatically logged in when calling an API url.
+- If you want to test during development via a browser, you can set the `OAUTH_OVERRIDE=true` and set the `OAUTH_OVERRIDE_USER` to 
+  the user who will be automatically logged in when calling an API url.
 - Try and setup an account on the mastodon mobile client, whalebird or any other client. Most should work ok enough.
 
 ## How to contribute?
-Think of stuff that we miss, and create an issue for it. Or create a PR with a fix or feature. If it's large, please create an issue first to see if we can incorporate the feature, otherwise it might be waste of your time.
+Think of stuff that we miss, and create an issue for it. Or create a PR with a fix or feature. If it's large, please create an issue 
+first to see if we can incorporate the feature, otherwise it might be waste of your time.
 
 Note that this is written just to get acquainted with the mastodon API. It is not meant to be a production ready server.
 
 ## What is missing?
 Besides a lot:
 
-- Better datbase entities to cover everything we need.
+- Better database entities to cover everything we need.
 - Make sure we handle all the API endpoints.
 - A proper storage engine for media.
 - A proper way to handle the federation.
@@ -53,6 +55,12 @@ There is mention of an "inbox", basically this is a big json file which captures
 pre-db things i've setup and it is not used anymore. It's still there for debugging purposes and to easily replay a large dataset of messages.
 
 Most things are confined in their own service class. But this needs a bit of tidying up.
+
+
+There are 3 different formats we use in this application. The first is the "internal" format. This is the format we use to store
+data in the database. The second is the "API" format. This is the format we use to communicate with mastodon clients through the 
+API endpoints. The third is the "activitypub" format. This is the format we use to communicate with other activitypub servers. 
+
 
 
 ## What's available:

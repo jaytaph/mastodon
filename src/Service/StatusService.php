@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Status;
-use App\Entity\Tag;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
 use Jaytaph\TypeArray\TypeArray;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
@@ -87,13 +85,14 @@ class StatusService
         $status->setCreatedWithApplicationId($applicationId);
 
         if (! $data->isNullOrNotExists('[status]')) {
-            $status->setContent('<p>' . $data->getString('[status]') . '</p>');
-            $status->setText($data->getString('[status]'));
+            $content = $data->getString('[status]');
+            $status->setContent('<p>' . $content . '</p>');
+            $status->setText($content);
+            $status->setMentionIds($this->parseMentions($content));
         }
 
 //        $status->setAttachmentIds($data['media_ids'] ?? []);
         $status->setTagIds([]);
-        $status->setMentionIds([]);
         $status->setEmojiIds([]);
         $status->setInReplyTo(null);
         $status->setInReplyToUri('');
@@ -110,76 +109,9 @@ class StatusService
         return $status;
     }
 
-
-    /**
-     * @param Status $status
-     * @return mixed[]
-     */
-    public function toJson(Status $status): array
-    {
-        $json = [
-            'id' => $status->getId()->toBase58(),
-            'created_at' => $status->getCreatedAt()?->format(ActivityPub::DATETIME_FORMAT),
-            'in_reply_to_id' => $status->getInReplyTo()?->getId()->toBase58(),
-            'in_reply_to_account_id' => $status->getInReplyTo()?->getAccount()?->getId()->toBase58(),
-            'sensitive' => $status->isSensitive(),
-            'spoiler_text' => $status->getContentWarning(),
-            'visibility' => $status->getVisibility(),
-            'language' => 'en', // $status->getLanguage(),
-            'uri' => $status->getUri(),
-            'url' => $status->getUrl(),
-            'replies_count' => 0,
-            'reblogs_count' => 0,
-            'favourites_count' => 0,
-            'favourited' => false,
-            'reblogged' => false,
-            'muted' => false,
-            'bookmarked' => false,
-            'pinned' => false,
-            'content' => $status->getContent(),
-            'account' => $this->accountService->toJson($status->getAccount()),
-            'reblog' => null,
-            'media_attachments' => $this->toMediaAttachmentJson($status->getAttachmentIds()),
-            'mentions' => [],
-            'tags' => [],
-            'emojis' => $this->toEmojiJson($status->getEmojiIds()),
-//            'mentions' => $status->getMentionIds(),
-//            'tags' => $this->toTagJson($status->getTagIds()),
-//            'emojis' => $status->getEmojiIds(),
-        ];
-
-
-        if ($status->getPoll() !== null) {
-            $poll = $status->getPoll();
-
-            $json['poll'] = [
-                'id' => $poll->getId()->toBase58(),
-                'expires_at' => $poll->getExpiresAt()->format(ActivityPub::DATETIME_FORMAT),
-                'expired' => $poll->isExpired(),
-                'multiple' => $poll->isMultiple(),
-                'votes_count' => $poll->getVotesCount(),
-                'voters_count' => $poll->getVotersCount(),
-                'voted' => false,
-                'own_votes' => [],
-                'options' => $this->toPollOptionJson($poll->getOptions()),
-                'emojis' => [],
-            ];
-        }
-
-        if ($status->getCreatedWithApplicationId()) {
-            $json['application'] = [
-                'name' => $status->getCreatedWithApplicationId(),
-                // @TODO: This is not a correct key
-                'vapid_key' => 'BCk-AAAAAA-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
-            ];
-        }
-
-        return $json;
-    }
-
     /**
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @return mixed[]
+     * @return Status[]
      */
     public function getTimelineForAccount(
         Account $account,
@@ -240,28 +172,7 @@ class StatusService
             if (! $entry->getAccount()) {
                 continue;
             }
-
-            /** @var Status $entry */
-            $ret[] = $this->toJson($entry);
-        }
-
-        return $ret;
-    }
-
-    /**
-     * @param mixed[] $attachmentIds
-     * @return mixed[]
-     */
-    protected function toMediaAttachmentJson(array $attachmentIds): array
-    {
-        $ret = [];
-
-        /** @var Uuid $id */
-        foreach ($attachmentIds as $id) {
-            $media = $this->mediaService->findMediaAttachmentById($id);
-            if ($media) {
-                $ret[] = $this->mediaService->toJson($media);
-            }
+            $ret[] = $entry;
         }
 
         return $ret;
@@ -279,21 +190,6 @@ class StatusService
     public function getParents(Status $status): array
     {
         return $this->doctrine->getRepository(Status::class)->findBy(['inReplyTo' => $status->getId()]);
-    }
-
-    /**
-     * @param Uuid[] $tagIds
-     * @return Tag[]
-     */
-    protected function toTagJson(array $tagIds): array
-    {
-        $ret = [];
-
-        foreach ($tagIds as $id) {
-            $ret[] = $this->tagService->fetch($id);
-        }
-
-        return  array_filter($ret);
     }
 
     /**
@@ -393,10 +289,7 @@ class StatusService
                 $status->addTag($tag);
             }
             if ($entry->getString('[type]', '') == 'Mention') {
-                $account = $this->accountService->findAccountByUri($entry->getString('[href]', ''));
-                if ($account) {
-                    $status->addMention($account);
-                }
+                $status->addMention($entry->getString('[href]', ''));
             }
             if ($entry->getString('[type]', '') == 'Emoji') {
                 $emoji = $this->emojiService->findOrCreateEmoji($entry);
@@ -405,49 +298,34 @@ class StatusService
         }
     }
 
-    protected function toPollOptionJson(TypeArray $options): TypeArray
-    {
-        $oneOf = $options->getTypeArray('[oneOf]', TypeArray::empty());
-        if (! $oneOf->isEmpty()) {
-            $options = $oneOf;
-        } else {
-            $options = $options->getTypeArray('[anyOf]', TypeArray::empty());
-        }
-
-        $ret = [];
-        foreach ($options->toArray() as $option) {
-            $option = new TypeArray((array)$option);
-            $ret[] = [
-                'title' => $option->getString('[name]'),
-                'votes_count' => $option->getInt('[replies][totalItems]', 0),
-            ];
-        }
-
-        return new TypeArray($ret);
-    }
-
     /**
-     * @param Uuid[] $emojiIds
+     * Parses content and returns an array of mentions URI's
+     * @param string $content
+     * @return string[]
      */
-    protected function toEmojiJson(array $emojiIds): TypeArray
+    protected function parseMentions(string $content): array
     {
-        $ret = [];
-
-        foreach ($emojiIds as $id) {
-            $emoji = $this->emojiService->findEmojiById($id);
-            if (!$emoji) {
-                continue;
-            }
-
-            $ret[] = [
-                'shortcode' => substr($emoji->getName() ?? '', 1, -1),
-                'url' => $emoji->getIconUrl(),
-                'static_url' => $emoji->getIconUrl(),
-                'visible_in_picker' => false,
-                'category' => 'custom',
-            ];
+        if (!$content) {
+            return [];
         }
 
-        return new TypeArray($ret);
+        // Parse all mentions first
+        $mentions = [];
+        preg_match_all('/@(([A-Z0-9._%+-]+)(@([A-Z0-9.-]+\.[A-Z]{2,})\b)?)/mi', $content, $matches);
+        foreach ($matches[1] as $match) {
+            $mentions[] = $match;
+        }
+        $mentions = array_unique($mentions);
+
+        // resolve mentions to accounts
+        $mentionUris = [];
+        foreach ($mentions as $mention) {
+            $account = $this->accountService->findAccount($mention);
+            if ($account) {
+                $mentionUris[] = $account->getUri();
+            }
+        }
+
+        return $mentionUris;
     }
 }

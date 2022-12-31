@@ -10,18 +10,19 @@ use Jaytaph\TypeArray\TypeArray;
 
 class InboxService
 {
-    /** @var TypeProcessorInterface[] */
-    protected array $processors = [];
-    protected MessageService $messageService;
+    protected SignatureService $signatureService;
     protected AccountService $accountService;
 
+    /** @var TypeProcessorInterface[] */
+    protected array $processors = [];
+
     /** @param TypeProcessorInterface[] $processors */
-    public function __construct(iterable $processors, MessageService $messageService, AccountService $accountService)
+    public function __construct(iterable $processors, SignatureService $signatureService, AccountService $accountService)
     {
         $processors = $processors instanceof \Traversable ? iterator_to_array($processors) : $processors;
         $this->processors = $processors;
 
-        $this->messageService = $messageService;
+        $this->signatureService = $signatureService;
         $this->accountService = $accountService;
     }
 
@@ -32,12 +33,12 @@ class InboxService
         }
 
         // Validate message if it has a signature
-        if ($validateMessage && $this->messageService->hasSignature($message)) {
+        if ($validateMessage && $this->signatureService->hasSignature($message)) {
             $creator = $this->accountService->fetchMessageCreator($source, $message);
             if (!$creator) {
                 return false;
             }
-            if (!$this->messageService->validate($creator, $message)) {
+            if (!$this->signatureService->validate($creator, $message)) {
                 return false;
             }
         }

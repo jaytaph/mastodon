@@ -59,7 +59,7 @@ class Status
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $tagIds = [];
 
-    /** @var Uuid[] array  */
+    /** @var string[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $mentionIds = [];
 
@@ -70,7 +70,7 @@ class Status
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $local;
 
-    #[ORM\Column(type: 'text', nullable: false)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private string $inReplyToUri;
 
     #[ORM\ManyToOne]
@@ -131,6 +131,18 @@ class Status
 
     #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
     private ?Poll $poll = null;
+
+    #[ORM\Column(nullable: true)]
+    private array $_to = [];
+
+    #[ORM\Column(nullable: true)]
+    private array $bto = [];
+
+    #[ORM\Column(nullable: true)]
+    private array $cc = [];
+
+    #[ORM\Column(nullable: true)]
+    private array $bcc = [];
 
     public function getId(): Uuid
     {
@@ -240,22 +252,20 @@ class Status
     }
 
     /**
-     * @return Uuid[]
+     * @return string[]
      */
     public function getMentionIds(): array
     {
-        $this->mentionIds = $this->convertUuids($this->mentionIds);
-
         return $this->mentionIds;
     }
 
     /**
-     * @param Uuid[] $mentionIds
+     * @param string[] $mentionIds
      * @return $this
      */
     public function setMentionIds(array $mentionIds): self
     {
-        $this->mentionIds = $this->convertUuids($mentionIds);
+        $this->mentionIds = $mentionIds;
 
         return $this;
     }
@@ -538,9 +548,9 @@ class Status
         return $this;
     }
 
-    public function addMention(Account $account): void
+    public function addMention(string $uri): void
     {
-        $this->mentionIds[] = $account->getId();
+        $this->mentionIds[] = $uri;
     }
 
     public function addTag(Tag $tag): void
@@ -599,5 +609,53 @@ class Status
         }
 
         return $ids;
+    }
+
+    public function getTo(): array
+    {
+        return $this->_to;
+    }
+
+    public function setTo(?array $_to): self
+    {
+        $this->_to = $_to;
+
+        return $this;
+    }
+
+    public function getBto(): array
+    {
+        return $this->bto;
+    }
+
+    public function setBto(?array $bto): self
+    {
+        $this->bto = $bto;
+
+        return $this;
+    }
+
+    public function getCc(): array
+    {
+        return $this->cc;
+    }
+
+    public function setCc(?array $cc): self
+    {
+        $this->cc = $cc;
+
+        return $this;
+    }
+
+    public function getBcc(): array
+    {
+        return $this->bcc;
+    }
+
+    public function setBcc(?array $bcc): self
+    {
+        $this->bcc = $bcc;
+
+        return $this;
     }
 }

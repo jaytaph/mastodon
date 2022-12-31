@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1b38aabdc1f61df0039371ea4ae56087",
+    "content-hash": "4da1c0b8ef42929342141894d3090dac",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -1978,16 +1978,16 @@
         },
         {
             "name": "jaytaph/typearray",
-            "version": "v0.0.1",
+            "version": "v0.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jaytaph/typearray.git",
-                "reference": "c721a16dceba97c155d571feef28d046c5a87c56"
+                "reference": "6f1a07e6bf19162af84f39c243888b7515d6b687"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jaytaph/typearray/zipball/c721a16dceba97c155d571feef28d046c5a87c56",
-                "reference": "c721a16dceba97c155d571feef28d046c5a87c56",
+                "url": "https://api.github.com/repos/jaytaph/typearray/zipball/6f1a07e6bf19162af84f39c243888b7515d6b687",
+                "reference": "6f1a07e6bf19162af84f39c243888b7515d6b687",
                 "shasum": ""
             },
             "require": {
@@ -2021,9 +2021,9 @@
             "description": "Typed Array",
             "support": {
                 "issues": "https://github.com/jaytaph/typearray/issues",
-                "source": "https://github.com/jaytaph/typearray/tree/v0.0.1"
+                "source": "https://github.com/jaytaph/typearray/tree/v0.0.2"
             },
-            "time": "2022-12-11T10:36:32+00:00"
+            "time": "2022-12-31T11:11:53+00:00"
         },
         {
             "name": "kornrunner/blurhash",
@@ -2138,6 +2138,55 @@
                 }
             ],
             "time": "2022-11-21T01:32:31+00:00"
+        },
+        {
+            "name": "landrok/activitypub",
+            "version": "0.5.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/landrok/activitypub.git",
+                "reference": "f30b8f726cf1a196337ec065536eba2d66a4b329"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/landrok/activitypub/zipball/f30b8f726cf1a196337ec065536eba2d66a4b329",
+                "reference": "f30b8f726cf1a196337ec065536eba2d66a4b329",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": ">=6.3",
+                "monolog/monolog": "^1.12|^2.0|^3.0",
+                "php": "^7.2|^8.0",
+                "phpseclib/phpseclib": "^3.0.7",
+                "psr/cache": "^1.0|^2.0|^3.0",
+                "symfony/cache": ">=4.0",
+                "symfony/http-foundation": ">=3.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ActivityPhp\\": "src/ActivityPhp/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A PHP implementation of ActivityPub protocol based upon the ActivityStreams 2.0 data format.",
+            "homepage": "https://github.com/landrok/activitypub",
+            "keywords": [
+                "Federation",
+                "activitypub",
+                "activitystreams"
+            ],
+            "support": {
+                "issues": "https://github.com/landrok/activitypub/issues",
+                "source": "https://github.com/landrok/activitypub/tree/0.5.8"
+            },
+            "time": "2022-06-07T11:22:35+00:00"
         },
         {
             "name": "lcobucci/clock",
@@ -2948,6 +2997,73 @@
             "time": "2022-06-22T07:13:36+00:00"
         },
         {
+            "name": "paragonie/constant_time_encoding",
+            "version": "v2.6.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/paragonie/constant_time_encoding.git",
+                "reference": "58c3f47f650c94ec05a151692652a868995d2938"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/paragonie/constant_time_encoding/zipball/58c3f47f650c94ec05a151692652a868995d2938",
+                "reference": "58c3f47f650c94ec05a151692652a868995d2938",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7|^8"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6|^7|^8|^9",
+                "vimeo/psalm": "^1|^2|^3|^4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ParagonIE\\ConstantTime\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Paragon Initiative Enterprises",
+                    "email": "security@paragonie.com",
+                    "homepage": "https://paragonie.com",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Steve 'Sc00bz' Thomas",
+                    "email": "steve@tobtu.com",
+                    "homepage": "https://www.tobtu.com",
+                    "role": "Original Developer"
+                }
+            ],
+            "description": "Constant-time Implementations of RFC 4648 Encoding (Base-64, Base-32, Base-16)",
+            "keywords": [
+                "base16",
+                "base32",
+                "base32_decode",
+                "base32_encode",
+                "base64",
+                "base64_decode",
+                "base64_encode",
+                "bin2hex",
+                "encoding",
+                "hex",
+                "hex2bin",
+                "rfc4648"
+            ],
+            "support": {
+                "email": "info@paragonie.com",
+                "issues": "https://github.com/paragonie/constant_time_encoding/issues",
+                "source": "https://github.com/paragonie/constant_time_encoding"
+            },
+            "time": "2022-06-14T06:56:20+00:00"
+        },
+        {
             "name": "paragonie/random_compat",
             "version": "v9.99.100",
             "source": {
@@ -3050,6 +3166,116 @@
                 "source": "https://github.com/php-http/message-factory/tree/master"
             },
             "time": "2015-12-19T14:08:53+00:00"
+        },
+        {
+            "name": "phpseclib/phpseclib",
+            "version": "3.0.18",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpseclib/phpseclib.git",
+                "reference": "f28693d38ba21bb0d9f0c411ee5dae2b178201da"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/f28693d38ba21bb0d9f0c411ee5dae2b178201da",
+                "reference": "f28693d38ba21bb0d9f0c411ee5dae2b178201da",
+                "shasum": ""
+            },
+            "require": {
+                "paragonie/constant_time_encoding": "^1|^2",
+                "paragonie/random_compat": "^1.4|^2.0|^9.99.99",
+                "php": ">=5.6.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "suggest": {
+                "ext-dom": "Install the DOM extension to load XML formatted public keys.",
+                "ext-gmp": "Install the GMP (GNU Multiple Precision) extension in order to speed up arbitrary precision integer arithmetic operations.",
+                "ext-libsodium": "SSH2/SFTP can make use of some algorithms provided by the libsodium-php extension.",
+                "ext-mcrypt": "Install the Mcrypt extension in order to speed up a few other cryptographic operations.",
+                "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "phpseclib/bootstrap.php"
+                ],
+                "psr-4": {
+                    "phpseclib3\\": "phpseclib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jim Wigginton",
+                    "email": "terrafrost@php.net",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Patrick Monnerat",
+                    "email": "pm@datasphere.ch",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Andreas Fischer",
+                    "email": "bantu@phpbb.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Hans-Jürgen Petrich",
+                    "email": "petrich@tronic-media.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Graham Campbell",
+                    "email": "graham@alt-three.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP Secure Communications Library - Pure-PHP implementations of RSA, AES, SSH2, SFTP, X.509 etc.",
+            "homepage": "http://phpseclib.sourceforge.net",
+            "keywords": [
+                "BigInteger",
+                "aes",
+                "asn.1",
+                "asn1",
+                "blowfish",
+                "crypto",
+                "cryptography",
+                "encryption",
+                "rsa",
+                "security",
+                "sftp",
+                "signature",
+                "signing",
+                "ssh",
+                "twofish",
+                "x.509",
+                "x509"
+            ],
+            "support": {
+                "issues": "https://github.com/phpseclib/phpseclib/issues",
+                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.18"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/terrafrost",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/phpseclib",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/phpseclib/phpseclib",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2022-12-17T18:26:50+00:00"
         },
         {
             "name": "psr/cache",

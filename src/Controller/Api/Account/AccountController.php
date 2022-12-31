@@ -21,6 +21,7 @@ class AccountController extends BaseApiController
             throw $this->createNotFoundException();
         }
 
-        return new JsonResponse($this->accountService->toJson($account));
+        $data = $this->apiModelConverter->account($account);
+        return new JsonResponse($data);
     }
 }

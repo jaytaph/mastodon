@@ -15,6 +15,8 @@ services:
     _instanceof:
         App\Service\Inbox\TypeProcessorInterface:
             tags: ['app.inbox.type_processor']
+        App\Service\Queue\WorkerInterface:
+            tags: ['app.queue.worker']
 
     App\:
         resource: '../src/'
@@ -35,3 +37,7 @@ services:
     App\Service\InboxService:
         arguments:
             - !tagged_iterator { tag: 'app.inbox.type_processor' }
+
+    App\Service\Queue\Queue:
+        arguments:
+            - !tagged_iterator { tag: 'app.queue.worker' }

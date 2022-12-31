@@ -68,14 +68,14 @@ class SearchService
             if ($resolve && $source) {
                 $account = $this->webfingerService->fetch($source, $query);
                 if ($account) {
-                    $ret['accounts'][] = $this->accountService->toJson($account);
+                    $ret['accounts'][] = $account;
                 }
                 $foundResolved  = 1;
             }
 
             $items = $this->doctrine->getRepository(Account::class)->search($query, $offset, $limit - $foundResolved);
             foreach ($items as $item) {
-                $ret['accounts'][] = $this->accountService->toJson($item);
+                $ret['accounts'][] = $item;
             }
         }
 
@@ -87,7 +87,7 @@ class SearchService
             foreach ($items as $item) {
                 $stats = $this->tagService->getTrend($item, $since);
                 if (! $stats->isEmpty()) {
-                    $ret['hashtags'][] = $stats->toArray();
+                    $ret['hashtags'][] = $stats;
                 }
             }
         }
@@ -101,7 +101,7 @@ class SearchService
 
             $items = $this->doctrine->getRepository(Status::class)->search($query, $offset, $limit, $minId, $maxId, $account);
             foreach ($items as $item) {
-                $ret['statuses'][] = $this->statusService->toJson($item);
+                $ret['statuses'][] = $item;
             }
         }
 

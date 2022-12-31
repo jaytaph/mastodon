@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
+use App\Service\Queue\QueueInterface;
+use App\Service\Queue\Worker\FederateStatus;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +19,7 @@ class StatusController extends BaseApiController
 {
     #[Route('/api/v1/statuses', name: 'api_account_status_create')]
     #[IsGranted('ROLE_OAUTH2_WRITE')]
-    public function createStatus(Request $request): Response
+    public function createStatus(Request $request, QueueInterface $queue): Response
     {
         $account = $this->getOauthAccount();
         $app = $this->accountService->getLoggedInApplication();
@@ -25,7 +27,40 @@ class StatusController extends BaseApiController
         $data = TypeArray::fromJson($request->getContent());
         $status = $this->statusService->createStatus($data, $account, $app);
 
-        return new JsonResponse($this->statusService->toJson($status));
+        $queue->queue(FederateStatus::TYPE, new TypeArray(['id' => $status->getId()]));
+
+        $data = $this->apiModelConverter->status($status);
+        return new JsonResponse($data);
+/*
+        $ret = [
+            '@context' => 'https://www.w3.org/ns/activitystreams',
+            'id' => $status->getUri(),
+            'type' => 'Create',
+            'actor' => $status->getAccount()->getUri(),
+            'published' => $status->getCreatedAt()->format(\DateTime::ATOM),
+            'to' => [],
+            'cc' => [],
+            'object' => $this->statusService->toJson($status),
+        ];
+
+        if ($data->getString('[visibility]') === 'public') {
+            $ret['to'][] = 'https://www.w3.org/ns/activitystreams#Public';
+            $ret['cc'][] = $status->getAccount()->getUri() . '/followers';
+            $ret['cc'] = array_merge($ret['cc'], $status->getMentionIds());
+        }
+        if ($data->getString('[visibility]') === 'unlisted') {
+            $ret['cc'][] = 'https://www.w3.org/ns/activitystreams#Public';
+            $ret['cc'][] = $status->getAccount()->getUri() . '/followers';
+            $ret['cc'] = array_merge($ret['cc'], $status->getMentionIds());
+        }
+        if ($data->getString('[visibility]') === 'direct') {
+            $ret['to'] = array_merge($ret['to'], $status->getMentionIds());
+        }
+        if ($data->getString('[visibility]') === 'private') {
+            $ret['to'][] = $status->getAccount()->getUri() . '/followers';
+        }
+        return new JsonResponse($ret);
+*/
     }
 
     #[Route('/api/v1/statuses/{uuid}/context', name: 'api_account_status_context')]
@@ -43,19 +78,15 @@ class StatusController extends BaseApiController
 
         $ancestors = [];
         if ($status->getInReplyTo()) {
-            $ancestors[] = $this->statusService->toJson($status->getInReplyTo());
+            $ancestors[] = $status->getInReplyTo();
         }
-
 
         $descendants = [];
         foreach ($this->statusService->getParents($status) as $parentStatus) {
-            $descendants[] = $this->statusService->toJson($parentStatus);
+            $descendants[] = $parentStatus;
         }
 
-
-        return new JsonResponse([
-            'ancestors' => $ancestors,
-            'descendants' => $descendants,
-        ]);
+        $data = $this->apiModelConverter->context($ancestors, $descendants);
+        return new JsonResponse($data);
     }
 }

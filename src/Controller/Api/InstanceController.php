@@ -19,33 +19,7 @@ class InstanceController extends BaseApiController
     {
         $config = $config->getConfig();
 
-        $data = [
-            'uri' => $config->getInstanceDomain(),
-            'title' => $config->getInstanceTitle(),
-            'description' => $config->getInstanceDescription(),
-            'short_description' => $config->getInstanceShortDescription(),
-            'email' => $config->getInstanceEmail(),
-            'version' => '4.0.1',       // @TODO: Store version in config somewhere
-            'languages' => $config->getLanguages(),
-            'registrations' => $config->isRegistrationAllowed(),
-            'approval_required' => $config->isApprovalRequired(),
-            'invites_enabled' => $config->isInviteEnabled(),
-            'urls' => [
-//                'streaming_api' => 'wss://' . $config->getInstanceDomain() . '/api/v1/streaming',
-            ],
-            'stats' => [
-                'user_count' => $this->accountService->getLocalAccountCount(),
-                'status_count' => $this->statusService->getLocalStatusCount(),
-                'domain_count' => 1,        // @TODO: hardcoded
-            ],
-            'thumbnail' => $config->getThumbnailUrl(),
-        ];
-
-        $adminAccount = $this->accountService->findAccount($config->getAdminAccount());
-        if ($adminAccount) {
-            $data['contact_account'] = $this->accountService->toJson($adminAccount);
-        }
-
-        return new JsonResponse($data);
+        $data = $this->apiModelConverter->config($config);
+        return new JsonResponse($config);
     }
 }

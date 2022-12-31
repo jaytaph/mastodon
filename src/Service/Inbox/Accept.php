@@ -7,19 +7,17 @@ namespace App\Service\Inbox;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Service\AccountService;
-use App\Service\MessageService;
+use App\Service\SignatureService;
 use Doctrine\ORM\EntityManagerInterface;
 use Jaytaph\TypeArray\TypeArray;
 
 class Accept implements TypeProcessorInterface
 {
-    protected MessageService $messageService;
     protected AccountService $accountService;
     protected EntityManagerInterface $doctrine;
 
-    public function __construct(MessageService $messageService, AccountService $accountService, EntityManagerInterface $doctrine)
+    public function __construct(AccountService $accountService, EntityManagerInterface $doctrine)
     {
-        $this->messageService = $messageService;
         $this->accountService = $accountService;
         $this->doctrine = $doctrine;
     }

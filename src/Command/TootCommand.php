@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\ActivityPub;
+use App\ActivityStream;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -36,7 +36,7 @@ class TootCommand extends Command
         $msg = $input->getArgument('msg');
 
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format(ActivityPub::DATETIME_FORMAT);
+        $date = $dt->format(ActivityStream::DATETIME_FORMAT);
 
         $senderKey = "https://dhpt.nl/users/jaytaph#main-key";
         $senderUrl = "https://dhpt.nl/users/jaytaph";
@@ -52,7 +52,7 @@ class TootCommand extends Command
             'type' => 'Note',
             'summary' => null,
             'inReplyTo' => null,
-            'published' => $dt->format(ActivityPub::DATETIME_FORMAT),
+            'published' => $dt->format(ActivityStream::DATETIME_FORMAT),
             'attributedTo' => $senderUrl,
             'to' => [
                 $senderUrl . '/followers',
@@ -74,7 +74,7 @@ class TootCommand extends Command
             ],
             'id' => "https://dhpt.nl/users/jaytaph/posts/" . Uuid::v4(),
             'object' => $obj,
-            'published' => $dt->format(ActivityPub::DATETIME_FORMAT),
+            'published' => $dt->format(ActivityStream::DATETIME_FORMAT),
             'to' => 'https://www.w3.org/ns/activitystreams#Public',
             'type' => 'Create',
         ];

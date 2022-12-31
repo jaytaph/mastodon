@@ -70,7 +70,7 @@ class FollowerController extends BaseApiController
 
         $ret = [];
         foreach ($this->accountService->getFollowing($account) as $follower) {
-            $ret[] = $this->accountService->toJson($follower);
+            $ret[] = $this->apiModelConverter->account($follower)->toArray();
         }
 
         return new JsonResponse($ret);
@@ -87,7 +87,7 @@ class FollowerController extends BaseApiController
 
         $ret = [];
         foreach ($this->accountService->getFollowers($account) as $follower) {
-            $ret[] = $this->accountService->toJson($follower);
+            $ret[] = $this->apiModelConverter->account($follower)->toArray();
         }
 
         return new JsonResponse($ret);

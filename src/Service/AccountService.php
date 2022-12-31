@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\ActivityPub;
 use App\Entity\Account;
 use App\Entity\Follower;
 use App\Entity\Status;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Jaytaph\TypeArray\TypeArray;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Uid\Uuid;
-use Jaytaph\TypeArray\TypeArray;
 
 class AccountService
 {
@@ -148,40 +147,6 @@ class AccountService
             ],
             'followers' => $accountUrl . '/followers',
             'following' => $accountUrl . '/following',
-        ];
-    }
-
-    /**
-     * @param Account $account
-     * @return mixed[]
-     */
-    public function toJson(?Account $account): array
-    {
-        if (!$account) {
-            return [];
-        }
-
-        return [
-            'id' => $account->getId()->toBase58(),
-            'username' => $account->getUsername(),
-            'acct' => $account->getAcct(),
-            'url' => $account->getUri(),
-            'display_name' => $account->getDisplayName(),
-            'note' => $account->getNote(),
-            'avatar' => $account->getAvatar(),
-            'avatar_static' => $account->getAvatarStatic(),
-            'header' => $account->getHeader(),
-            'header_static' => $account->getHeaderStatic(),
-            'locked' => $account->isLocked(),
-            'emojis' => $account->getEmojis(),
-            'discoverable' => true,
-            'created_at' => $account->getCreatedAt()->format(ActivityPub::DATETIME_FORMAT),
-            'last_status_at' => $account->getLastStatusAt()->format(ActivityPub::DATETIME_FORMAT),
-            'statuses_count' => $this->statusesCount($account),
-            'followers_count' => $this->followersCount($account),
-            'following_count' => $this->followingCount($account),
-            'fields' => $account->getFields(),
-            'bot' => $account->isBot(),
         ];
     }
 

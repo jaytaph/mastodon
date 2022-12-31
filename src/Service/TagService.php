@@ -13,18 +13,12 @@ use Jaytaph\TypeArray\TypeArray;
 class TagService
 {
     protected EntityManagerInterface $doctrine;
-    protected ConfigService $configService;
 
-    public function __construct(EntityManagerInterface $doctrine, ConfigService $configService)
+    public function __construct(EntityManagerInterface $doctrine)
     {
         $this->doctrine = $doctrine;
-        $this->configService = $configService;
     }
 
-    /**
-     * @param TypeArray $tagData
-     * @return Tag
-     */
     public function findOrCreateTag(TypeArray $tagData, \DateTime $dt, string $acct): Tag
     {
         $tag = $this->doctrine->getRepository(Tag::class)->findOneBy([
@@ -70,7 +64,7 @@ class TagService
         }
 
         // Return the first element of the array, which is the stats of the given tag
-        return $this->convertStatsToTrend($stats)->getTypeArray('[0]');
+        return new TypeArray($stats[0]);
     }
 
     public function getTrends(\DateTime $since): TypeArray
@@ -78,35 +72,6 @@ class TagService
         /** @var string[][] $stats */
         $stats = $this->doctrine->getRepository(TagHistory::class)->getTrendStats($since);
 
-        return $this->convertStatsToTrend($stats);
-    }
-
-    /**
-     * @param string[][] $stats
-     */
-    protected function convertStatsToTrend(array $stats): TypeArray
-    {
-        $ret = [];
-
-        foreach ($stats as $stat) {
-            $tag = substr($stat['name'], 1);
-
-            if (! isset($ret[$tag])) {
-                $ret[$tag] = [
-                    'name' => $tag,
-                    'url' => $this->configService->getConfig()->getSiteUrl() . '/tags/' . $tag,
-                    'following' => false,
-                    'history' => [],
-                ];
-            }
-
-            $ret[$tag]['history'][] = [
-                'date' => $stat['date'],
-                'accounts' => $stat['accounts'],
-                'uses' => $stat['uses']
-            ];
-        }
-
-        return new TypeArray(array_values($ret));
+        return new TypeArray($stats);
     }
 }

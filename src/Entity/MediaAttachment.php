@@ -159,29 +159,6 @@ class MediaAttachment
         return $this;
     }
 
-    /**
-     * @return array|mixed[]
-     */
-    public function toArray(): array
-    {
-        $ret = [
-            'id' => $this->getId(),
-            'type' => $this->getType(),
-            'url' => $this->getUrl(),
-            'preview_url' => $this->getPreviewUrl(),
-            'text_url' => $this->getTextUrl(),
-            'remote_url' => $this->getRemoteUrl(),
-            'description' => $this->getDescription(),
-            'blurhash' => $this->getBlurhash(),
-        ];
-
-        if ($this->meta) {
-            $ret['meta'] = $this->meta;
-        }
-
-        return $ret;
-    }
-
     public function getFilename(): ?string
     {
         return $this->filename;
