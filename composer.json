@@ -20,6 +20,7 @@
         "kornrunner/blurhash": "^1.2",
         "landrok/activitypub": "^0.5.8",
         "league/oauth2-server-bundle": "dev-master",
+        "meteo-concept/hcaptcha-bundle": "^3.3",
         "ml/json-ld": "^1.2",
         "sensio/framework-extra-bundle": "^6.1",
         "symfony-bundles/json-request-bundle": "^4.1",

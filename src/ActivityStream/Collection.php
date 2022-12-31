@@ -10,7 +10,8 @@ class Collection
     protected string $id;
     protected ?string $summary = null;
 
-    public function __construct(string $id, array $elements, string $summary = null) {
+    public function __construct(string $id, array $elements, string $summary = null)
+    {
         $this->id = $id;
         $this->elements = $elements;
         $this->summary = $summary;

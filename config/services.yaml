@@ -11,6 +11,8 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $captchaEnabled: '%env(bool:HCAPTCHA_ENABLED)%'
 
     _instanceof:
         App\Service\Inbox\TypeProcessorInterface:
