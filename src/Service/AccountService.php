@@ -147,6 +147,16 @@ class AccountService
             ],
             'followers' => $accountUrl . '/followers',
             'following' => $accountUrl . '/following',
+            'icon' => [
+                'type' => 'Image',
+                'mediaType' => 'image/png',
+                'url' => $account->getAvatar(),
+            ],
+            'image' => [
+                'type' => 'Image',
+                'mediaType' => 'image/png',
+                'url' => $account->getHeader(),
+            ]
         ];
     }
 

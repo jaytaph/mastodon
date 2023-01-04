@@ -56,18 +56,13 @@ class SendStatus implements WorkerInterface
     {
         $uri = $entry->getData()->getString('[uri]');
 
-        $statusId = $entry->getData()->getString('[status_id]');
-        $status = $this->statusService->findStatusById(Uuid::fromString($statusId));
+        $status = $this->getStatus($entry);
         if (!$status) {
-            $entry->setFailedReason('Status not found');
-            $entry->setFailed(true);
             return;
         }
 
-        $source = $status->getAccount();
+        $source = $this->getSourceAccount($entry, $status);
         if (!$source) {
-            $entry->setFailedReason('Source account not found');
-            $entry->setFailed(true);
             return;
         }
 
@@ -78,79 +73,23 @@ class SendStatus implements WorkerInterface
             return;
         }
 
-        // Dereference the uri to get the actual host
-        $response = $this->authClientService->fetch($source, $uri);
-        if (!$response || $response->getStatusCode() != 200) {
-            $entry->setFailedReason('Failed to dereference uri');
-            $entry->setRetry(true);
+        $object = $this->getObjectFromURI($entry, $source, $uri);
+        if ($object->isEmpty()) {
+            $entry->setFailed(true);
+            $entry->setFailedReason("Could not find object for $uri");
             return;
         }
 
-        $body = json_decode($response->getBody()->getContents(), true);
-        if (is_array($body)) {
-            $body = new TypeArray($body);
+        if ($this->isCollection($object)) {
+            $this->sendToCollection($object, $status);
+        } elseif ($this->isOrderedCollection($object)) {
+            $this->sendToOrderedCollection($object, $status);
         } else {
-            $body = TypeArray::empty();
-        }
-
-        if (! $body->exists('[type]')) {
-            $entry->setFailedReason('Failed to dereference uri');
-            $entry->setRetry(true);
-            return;
-        }
-
-        if ($body->getString('[type]') == 'Collection') {
-            // Handle collection
-            foreach ($body->getTypeArray('[items]')->toArray() as $uri) {
-                $this->queue->queue(self::TYPE, new TypeArray([
-                    'uri' => $uri,
-                    'status_id' => $status->getId(),
-                ]));
+            $result = $this->sendToActor($entry, $status, $source, $object);
+            if (! $result) {
+                $entry->setFinished(false);
             }
-            return;
         }
-        if ($body->getString('[type]') == 'OrderedCollection') {
-            // Handle ordered collection
-            foreach ($body->getTypeArray('[orderedItems]')->toArray() as $uri) {
-                $this->queue->queue(self::TYPE, new TypeArray([
-                    'uri' => $uri,
-                    'status_id' => $status->getId(),
-                ]));
-            }
-            return;
-        }
-
-        if ($body->getString('[type]') == 'Person') {
-            // Handle person
-            if (!$body->exists('[inbox]')) {
-                $entry->setFailedReason('No inbox');
-                $entry->setRetry(true);
-                return;
-            }
-
-            // @TODO: Convert status to activitystream
-
-            $note = $this->convertToNote($status);
-            $created = $this->wrapInCreate($note, $source);
-
-            $inbox = $body->getString('[inbox]');
-            $response = $this->authClientService->sendToUri($source, $inbox, $created);
-            if (!$response) {
-                $entry->setFailedReason('Failed to send to inbox');
-                $entry->setRetry(true);
-                return;
-            }
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
-                $entry->setFailedReason('Failed to send to inbox');
-                $entry->setRetry(true);
-            }
-
-            dump($response->getStatusCode());
-            dump($response->getBody()->getContents());
-            return;
-        }
-
-        $entry->setFinished(false);
     }
 
     protected function wrapInCreate(TypeArray $note, Account $source): TypeArray
@@ -225,5 +164,121 @@ class SendStatus implements WorkerInterface
         // @TODO: In replyTo
         // @TODO: Replies
         return new TypeArray($note);
+    }
+
+    private function getStatus(QueueEntry $entry): ?Status
+    {
+        $statusId = $entry->getData()->getString('[status_id]');
+        $status = $this->statusService->findStatusById(Uuid::fromString($statusId));
+        if (!$status) {
+            $entry->setFailedReason('Status not found');
+            $entry->setFailed(true);
+        }
+
+        return $status;
+    }
+
+    protected function getSourceAccount(QueueEntry $entry, Status $status): ?Account
+    {
+        $source = $status->getAccount();
+        if (!$source) {
+            $entry->setFailedReason('Source account not found');
+            $entry->setFailed(true);
+        }
+
+        return $source;
+    }
+
+    protected function getObjectFromURI(QueueEntry $entry, Account $source, string $uri): TypeArray
+    {
+        // Dereference the uri to get the actual host
+        $response = $this->authClientService->fetch($source, $uri);
+        if (!$response || $response->getStatusCode() != 200) {
+            $entry->setFailedReason('Failed to dereference uri');
+            $entry->setRetry(true);
+            return TypeArray::empty();
+        }
+
+        $body = json_decode($response->getBody()->getContents(), true);
+        if (is_array($body)) {
+            $body = new TypeArray($body);
+        } else {
+            $body = TypeArray::empty();
+        }
+
+        if (! $body->exists('[type]')) {
+            $entry->setFailedReason('Failed to dereference uri');
+            $entry->setRetry(true);
+            return TypeArray::empty();
+        }
+
+        return $body;
+    }
+
+    protected function isCollection(TypeArray $object): bool
+    {
+        return $object->getString('[type]') == 'Collection';
+    }
+
+    protected function isOrderedCollection(TypeArray $object): bool
+    {
+        return $object->getString('[type]') == 'OrderedCollection';
+    }
+
+    protected function sendToCollection(TypeArray $object, Status $status): void
+    {
+        foreach ($object->getTypeArray('[items]')->toArray() as $uri) {
+            $this->queue->queue(self::TYPE, new TypeArray([
+                'uri' => $uri,
+                'status_id' => $status->getId(),
+            ]));
+        }
+    }
+
+    protected function sendToOrderedCollection(TypeArray $object, Status $status): void
+    {
+        // Handle ordered collection
+        foreach ($object->getTypeArray('[orderedItems]')->toArray() as $uri) {
+            $this->queue->queue(self::TYPE, new TypeArray([
+                'uri' => $uri,
+                'status_id' => $status->getId(),
+            ]));
+        }
+    }
+
+    protected function sendToActor(QueueEntry $entry, Status $status, Account $source, TypeArray $object): bool
+    {
+        // Handle person
+        if (!$object->exists('[inbox]')) {
+            $entry->setFailedReason('No inbox');
+            $entry->setRetry(true);
+
+            return false;
+        }
+
+        // Convert status to activitystream create object
+        $note = $this->convertToNote($status);
+        $created = $this->wrapInCreate($note, $source);
+
+        $inbox = $object->getString('[inbox]');
+        $response = $this->authClientService->sendToUri($source, $inbox, $created);
+        if (!$response) {
+            $entry->setFailedReason('Failed to send to inbox');
+            $entry->setRetry(true);
+
+            return false;
+        }
+
+        if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+            $entry->setFailedReason('Failed to send to inbox');
+            $entry->setRetry(true);
+
+            return false;
+        }
+
+        dump($response->getStatusCode());
+        dump($response->getBody()->getContents());
+
+        return true;
     }
 }

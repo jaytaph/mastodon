@@ -91,4 +91,27 @@ class UserController extends AbstractController
 
         return new JsonResponse($data);
     }
+
+    #[Route('/users/{acct}/following', name: 'app_users_followings')]
+    public function followings(Request $request, string $acct): Response
+    {
+        $account = $this->findAccount($acct, localOnly: true);
+        if (!$account) {
+            throw $this->createNotFoundException();
+        }
+
+        $elements = array_map(function (Account $follower) {
+            return $follower->getUri();
+        }, $this->accountService->getFollowing($account));
+
+        $collection = new Collection($account->getUri() . '/followings', $elements);
+        $data = $collection->toArray();
+
+        if ($collection->getTotalItems() > 50) {
+            $page = new CollectionPage($collection);
+            $data = $page->getPage($request->query->getInt('page', 1), 20);
+        }
+
+        return new JsonResponse($data);
+    }
 }

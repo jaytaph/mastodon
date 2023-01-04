@@ -91,7 +91,6 @@ class StatusService
             $status->setMentionIds($this->parseMentions($content));
         }
 
-//        $status->setAttachmentIds($data['media_ids'] ?? []);
         $status->setTagIds([]);
         $status->setEmojiIds([]);
         $status->setInReplyTo(null);
@@ -102,6 +101,36 @@ class StatusService
         $status->setBoostable(true);
         $status->setReplyable(true);
         $status->setLikable(true);
+
+
+
+        if ($status->getVisibility() === Status::VISIBILITY_PUBLIC) {
+            $to = $status->getTo();
+            $to[] = 'https://www.w3.org/ns/activitystreams#Public';
+            $status->setTo($to);
+
+            $cc = $status->getCc();
+            $cc[] = $status->getAccount()->getUri() . '/followers';
+            $cc = array_merge($cc, $status->getMentionIds());
+            $status->setCc($cc);
+        }
+        if ($status->getVisibility() === Status::VISIBILITY_UNLISTED) {
+            $cc = $status->getCc();
+            $cc[] = 'https://www.w3.org/ns/activitystreams#Public';
+            $cc[] = $status->getAccount()->getUri() . '/followers';
+            $cc = array_merge($cc, $status->getMentionIds());
+            $status->setCc($cc);
+        }
+        if ($status->getVisibility() === Status::VISIBILITY_DIRECT) {
+            $to = $status->getTo();
+            $to = array_merge($to, $status->getMentionIds());
+            $status->setTo($to);
+        }
+        if ($status->getVisibility() === Status::VISIBILITY_PRIVATE) {
+            $to = $status->getTo();
+            $to[] = $status->getAccount()->getUri() . '/followers';
+            $status->setTo($to);
+        }
 
         $this->doctrine->persist($status);
         $this->doctrine->flush();

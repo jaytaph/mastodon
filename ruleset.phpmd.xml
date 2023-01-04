@@ -34,7 +34,7 @@
 
     <rule ref="rulesets/naming.xml/ShortVariable">
         <properties>
-            <property name="exceptions" description="Comma-separated list of exceptions" value="ts,dt,qb,e,em,id,io,it,i,a,b"/>
+            <property name="exceptions" description="Comma-separated list of exceptions" value="cc,to,ts,dt,qb,e,em,id,io,it,i,a,b"/>
         </properties>
     </rule>
 

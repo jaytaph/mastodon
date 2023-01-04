@@ -20,6 +20,6 @@ class InstanceController extends BaseApiController
         $config = $config->getConfig();
 
         $data = $this->apiModelConverter->config($config);
-        return new JsonResponse($config);
+        return new JsonResponse($data);
     }
 }

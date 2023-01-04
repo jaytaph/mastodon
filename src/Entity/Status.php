@@ -15,6 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.LongVariable)
+ * @SuppressWarnings(PHPMD.CamelCasePropertyName)
  */
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
 class Status
@@ -22,6 +23,7 @@ class Status
     public const VISIBILITY_PRIVATE = 'private';
     public const VISIBILITY_PUBLIC = 'public';
     public const VISIBILITY_UNLISTED = 'unlisted';
+    public const VISIBILITY_DIRECT = 'direct';
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -71,7 +73,7 @@ class Status
     private bool $local;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $inReplyToUri;
+    private ?string $inReplyToUri;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
@@ -132,15 +134,19 @@ class Status
     #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
     private ?Poll $poll = null;
 
-    #[ORM\Column(name: '_to', type: 'array', nullable: true)]
+    /** @var string[]|null */
+    #[ORM\Column(name: '_to', type: 'json', nullable: true)]
     private ?array $to_ = [];
 
+    /** @var string[]|null */
     #[ORM\Column(nullable: true)]
     private ?array $bto = [];
 
+    /** @var string[]|null */
     #[ORM\Column(nullable: true)]
     private ?array $cc = [];
 
+    /** @var string[]|null */
     #[ORM\Column(nullable: true)]
     private ?array $bcc = [];
 
@@ -611,48 +617,76 @@ class Status
         return $ids;
     }
 
+    /**
+     * @return string[]
+     */
     public function getTo(): array
     {
-        return $this->to_;
+        return $this->to_ ?? [];
     }
 
-    public function setTo(?array $to_): self
+    /**
+     * @param string[] $to
+     * @return $this
+     */
+    public function setTo(array $to): self
     {
-        $this->to_ = $to_;
+        $this->to_ = $to;
 
         return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function getBto(): array
     {
-        return $this->bto;
+        return $this->bto ?? [];
     }
 
-    public function setBto(?array $bto): self
+    /**
+     * @param string[] $bto
+     * @return $this
+     */
+    public function setBto(array $bto): self
     {
         $this->bto = $bto;
 
         return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function getCc(): array
     {
-        return $this->cc;
+        return $this->cc ?? [];
     }
 
-    public function setCc(?array $cc): self
+    /**
+     * @param string[] $cc
+     * @return $this
+     */
+    public function setCc(array $cc): self
     {
         $this->cc = $cc;
 
         return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function getBcc(): array
     {
-        return $this->bcc;
+        return $this->bcc ?? [];
     }
 
-    public function setBcc(?array $bcc): self
+    /**
+     * @param string[] $bcc
+     * @return $this
+     */
+    public function setBcc(array $bcc): self
     {
         $this->bcc = $bcc;
 

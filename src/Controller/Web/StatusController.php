@@ -22,13 +22,13 @@ class StatusController extends AbstractController
 
     protected AccountService $accountService;
     protected StatusService $statusService;
-    protected ActivityStreamConverter $activityStreamConverter;
+    protected ActivityStreamConverter $streamConverter;
 
-    public function __construct(AccountService $accountService, StatusService $statusService, ActivityStreamConverter $activityStreamConverter)
+    public function __construct(AccountService $accountService, StatusService $statusService, ActivityStreamConverter $streamConverter)
     {
         $this->accountService = $accountService;
         $this->statusService = $statusService;
-        $this->activityStreamConverter = $activityStreamConverter;
+        $this->streamConverter = $streamConverter;
     }
 
     #[Cache(vary: ['Accept'])]

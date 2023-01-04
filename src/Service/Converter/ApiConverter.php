@@ -21,10 +21,12 @@ use Jaytaph\TypeArray\TypeArray;
 
 // Converts elements from internal format to mastodon API format
 
+/**
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ */
 class ApiConverter
 {
     public const DATETIME_FORMAT = 'Y-m-d\TH:i:s\Z';
-    public const DATETIME_FORMAT_GMT = \DateTimeInterface::RFC7231;
 
     protected AccountService $accountService;
     protected StatusService $statusService;
@@ -32,6 +34,23 @@ class ApiConverter
     protected EmojiService $emojiService;
     protected MediaService $mediaService;
     protected TagService $tagService;
+
+    public function __construct(
+        AccountService $accountService,
+        StatusService $statusService,
+        ConfigService $configService,
+        EmojiService $emojiService,
+        MediaService $mediaService,
+        TagService $tagService
+    ) {
+        $this->accountService = $accountService;
+        $this->statusService = $statusService;
+        $this->configService = $configService;
+        $this->emojiService = $emojiService;
+        $this->mediaService = $mediaService;
+        $this->tagService = $tagService;
+    }
+
 
     public function config(Config $config): TypeArray
     {
@@ -223,7 +242,7 @@ class ApiConverter
 
     public function emoji(Emoji $emoji): TypeArray
     {
-        $data[] = [
+        $data = [
             'shortcode' => substr($emoji->getName() ?? '', 1, -1),
             'url' => $emoji->getIconUrl(),
             'static_url' => $emoji->getIconUrl(),
@@ -261,27 +280,27 @@ class ApiConverter
             $options = $options->getTypeArray('[anyOf]', TypeArray::empty());
         }
 
-        $ret = [];
+        $data = [];
         foreach ($options->toArray() as $option) {
             $option = new TypeArray((array)$option);
-            $ret[] = [
+            $data[] = [
                 'title' => $option->getString('[name]'),
                 'votes_count' => $option->getInt('[replies][totalItems]', 0),
             ];
         }
 
-        return new TypeArray($ret);
+        return new TypeArray($data);
     }
 
     public function tag(Tag $tag): TypeArray
     {
-        $ret[] = [
+        $data = [
             'name' => $tag->getName(),
             'url' => $tag->getHref(),
             'history' => [],
         ];
 
-        return new TypeArray($ret);
+        return new TypeArray($data);
     }
 
     public function account(Account $account): TypeArray
