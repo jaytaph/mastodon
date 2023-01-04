@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Security\OAuth\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
-use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 
 class OauthService
@@ -36,12 +36,7 @@ class OauthService
 
         $client
             ->setRedirectUris(...array_map(static function (string $redirectUri): RedirectUri {
-                try {
-                    return new RedirectUri($redirectUri);
-                } catch (\Throwable) {
-                    // @TODO: Handle invalid redirect URI
-                    return new RedirectUri('https://localhost');
-                }
+                return new RedirectUri($redirectUri);
             }, explode(' ', $redirectUris)));
         $client
             ->setGrants(...array_map(static function (string $grant): Grant {
