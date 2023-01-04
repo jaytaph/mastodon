@@ -50,6 +50,8 @@ class EmojiController extends BaseApiController
               ]
         ];
 
+        // @TODO: convert emojis to API format via model converter service
+
         return new JsonResponse($data);
     }
 }

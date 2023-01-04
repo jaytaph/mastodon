@@ -18,9 +18,9 @@ class TrendController extends BaseApiController
     public function trendHistory(TagService $tagService): Response
     {
         $since = (new \DateTime("now"))->sub(new \DateInterval('P1W'));
-        $ret = $tagService->getTrends($since);
+        $trends = $tagService->getTrends($since);
 
-        return new JsonResponse($ret);
+        return new JsonResponse($this->apiModelConverter->trends($trends));
     }
 
     #[Route('/api/v1/trends/statuses', name: 'api_trends_statuses')]

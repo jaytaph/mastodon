@@ -32,6 +32,10 @@
 
                                         {{ form_row(registrationForm.agreeTerms) }}
 
+                                    {% if registrationForm.captcha is defined %}
+                                        {{ form_row(registrationForm.captcha) }}
+                                    {% endif %}
+
                                         <div class="form-group mt-3">
                                             <button type="submit" class="btn btn-primary">Register</button>
                                             <a href="{{ path('app_login') }}">Already have an account?</a>

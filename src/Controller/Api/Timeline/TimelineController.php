@@ -26,9 +26,14 @@ class TimelineController extends BaseApiController
         $remote = $request->query->getBoolean('remote');
         $onlyMedia = $request->query->getBoolean('only_media');
 
-        $timeline = $this->statusService->getTimelineForAccount($account, $local, $remote, $onlyMedia, $maxId, $minId, $sinceId);
+        $statuses = $this->statusService->getTimelineForAccount($account, $local, $remote, $onlyMedia, $maxId, $minId, $sinceId);
 
-        return new JsonResponse($timeline);
+        $data = [];
+        foreach ($statuses as $status) {
+            $data[] = $this->apiModelConverter->status($status)->toArray();
+        }
+
+        return new JsonResponse($data);
     }
 
     #[Route('/api/v1/timelines/public', name: 'api_timeline_public')]

@@ -125,23 +125,6 @@ class MediaService
     }
 
     /**
-     * @return mixed[]
-     */
-    public function toJson(MediaAttachment $media): array
-    {
-        return [
-            'id' => $media->getId(),
-            'type' => 'image', // $media->getType(),
-            'url' => $media->getUrl(),
-            'preview_url' => $media->getPreviewUrl(),
-            'remote_url' => $media->getRemoteUrl(),
-//            'meta' => $media->getMeta(),
-            'description' => $media->getDescription(),
-            'blurhash' => $media->getBlurHash(),
-        ];
-    }
-
-    /**
      * @param TypeArray $data
      * @return MediaAttachment
      */

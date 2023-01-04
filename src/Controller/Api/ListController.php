@@ -29,6 +29,8 @@ class ListController extends BaseApiController
             ]
         ];
 
+        // @TODO: convert lists to api format through the model converter service
+
         return new JsonResponse($data);
     }
 }

@@ -57,7 +57,7 @@ class Create implements TypeProcessorInterface
             return false;
         }
 
-        $status = $this->statusService->createStatusFromObject($source, $object);
+        $status = $this->statusService->createStatusFromActivityPub($source, $object);
 
         return $status !== null;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
+use Jaytaph\TypeArray\TypeArray;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,21 +15,21 @@ class SuggestionController extends BaseApiController
 {
     #[Route('/api/v2/suggestions', name: 'apiv2_suggestions')]
     #[IsGranted('ROLE_OAUTH2_READ')]
-    public function trendStatuses(): Response
+    public function suggestions(): Response
     {
         $account1 = $this->accountService->getAccount('jaytaph');
         $account2 = $this->accountService->getAccount('cybolic');
 
-        $data = [
-            [
-                'source' => 'staff',
-                'account' => $this->accountService->toJson($account1),
+        $data = new TypeArray([
+            'staff' => [
+                $account1->getUri(),
             ],
-            [
-                'source' => 'past-interactions',
-                'account' => $this->accountService->toJson($account2),
-            ]
-        ];
+            'past-interactions' => [
+                $account2->getUri(),
+            ],
+        ]);
+
+        $data = $this->apiModelConverter->suggestions($data);
         return new JsonResponse($data);
     }
 }

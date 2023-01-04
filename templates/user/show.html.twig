@@ -676,6 +676,53 @@
                     <li class="nav-item"><a href="#" class="nav-link_ active show">FRIENDS</a></li>
                 </ul>
             </div>
+
+
+            <div class="row">
+                <div class="offset-3 col-6">
+
+            {% for entry in timeline %}
+
+                <div class="card rounded mt-3">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <img style="width: 75px" class="img-xs rounded-circle" src="{{ entry.account.avatar }}" alt="">
+                                <div class="m-3">
+                                    <h5>{{ entry.account.displayName }}</h5>
+                                    <p class="tx-11 text-muted">{{ entry.createdAt.format("Y-m-d h:i:s") }}</p>
+                                </div>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="dropdownMenuButton3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         class="feather feather-more-horizontal icon-lg pb-3px">
+                                        <circle cx="12" cy="12" r="1"></circle>
+                                        <circle cx="19" cy="12" r="1"></circle>
+                                        <circle cx="5" cy="12" r="1"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3 tx-14">{{ entry.content|raw }}</p>
+                    </div>
+                    <div class="card-footer">
+
+                        {% if entry.inReplyTo %}
+                            <small><i>{{ entry.inReplyTo.content|raw }}</i></small>
+                        {% endif %}
+                        &nbsp;
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+        </div>
+
         </div>
     </div>
 

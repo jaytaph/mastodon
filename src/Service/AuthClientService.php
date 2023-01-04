@@ -4,27 +4,30 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\ActivityPub;
+use App\ActivityStream;
 use App\Entity\Account;
 use GuzzleHttp\Client;
-use Psr\Http\Message\ResponseInterface;
 use Jaytaph\TypeArray\TypeArray;
+use Psr\Http\Message\ResponseInterface;
 
 class AuthClientService
 {
     protected Client $client;
-    protected MessageService $messageService;
+    protected SignatureService $signatureService;
 
-    public function __construct(Client $client = null, MessageService $messageService)
+    public function __construct(Client $client = null, SignatureService $signatureService)
     {
         $this->client = $client ?? new Client([]);
-        $this->messageService = $messageService;
+        $this->signatureService = $signatureService;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function fetch(Account $account, string $href): ?ResponseInterface
     {
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format(ActivityPub::DATETIME_FORMAT_GMT);
+        $date = $dt->format(ActivityStream::DATETIME_FORMAT_GMT);
 
         $senderKey = $account->getUri() . "#main-key";
 
@@ -63,28 +66,32 @@ class AuthClientService
     }
 
     /**
-     * @param Account $source
-     * @param Account $recipient
-     * @param TypeArray $message
-     * @return ResponseInterface|null
      * @throws \Exception
      */
     public function send(Account $source, Account $recipient, TypeArray $message): ?ResponseInterface
     {
+        $recipientUri = $recipient->getUri() . '/inbox';
+        return $this->sendToUri($source, $recipientUri, $message);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function sendToUri(Account $source, string $recipientUri, TypeArray $message): ?ResponseInterface
+    {
+        $recipientPath = parse_url($recipientUri, PHP_URL_PATH);
+        $recipientHost = parse_url($recipientUri, PHP_URL_HOST);
+
         $dt = new \DateTime("now", new \DateTimeZone('GMT'));
-        $date = $dt->format(ActivityPub::DATETIME_FORMAT_GMT);
+        $date = $dt->format(ActivityStream::DATETIME_FORMAT_GMT);
 
         $senderKey = $source->getUri() . "#main-key";
-
-        $recipientUrl = $recipient->getUri() . '/inbox';
-        $recipientPath = parse_url($recipientUrl, PHP_URL_PATH);
-        $recipientHost = parse_url($recipientUrl, PHP_URL_HOST);
 
         $message = json_encode($message);
         if (!$message) {
             $message = '';
         }
-        $msgDigest = $this->messageService->createHashDigest($message);
+        $msgDigest = $this->signatureService->createHashDigest($message);
 
         // Sign the headers with the users private key for authenticity
         $sigText = "(request-target): post $recipientPath\nhost: $recipientHost\ndate: $date\ndigest: $msgDigest";
@@ -101,12 +108,14 @@ class AuthClientService
             'Host' => $recipientHost,
             'Signature' => $sigHeader,
             'Accept' => 'application/activity+json',
+            'Content-Type' => 'application/activity+json',
         ];
 
+        dump($message);
         // Send data to the receiver
         try {
             $client = new Client();
-            $result = $client->post($recipientUrl, [
+            $result = $client->post($recipientUri, [
                 'headers' => $headers,
                 'http_errors' => false,
                 'body' => $message,

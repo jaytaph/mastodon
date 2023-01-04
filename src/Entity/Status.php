@@ -15,6 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.LongVariable)
+ * @SuppressWarnings(PHPMD.CamelCasePropertyName)
  */
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
 class Status
@@ -22,6 +23,7 @@ class Status
     public const VISIBILITY_PRIVATE = 'private';
     public const VISIBILITY_PUBLIC = 'public';
     public const VISIBILITY_UNLISTED = 'unlisted';
+    public const VISIBILITY_DIRECT = 'direct';
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -59,7 +61,7 @@ class Status
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $tagIds = [];
 
-    /** @var Uuid[] array  */
+    /** @var string[] array  */
     #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $mentionIds = [];
 
@@ -70,8 +72,8 @@ class Status
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $local;
 
-    #[ORM\Column(type: 'text', nullable: false)]
-    private string $inReplyToUri;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $inReplyToUri;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
@@ -131,6 +133,22 @@ class Status
 
     #[ORM\OneToOne(mappedBy: 'status', cascade: ['persist', 'remove'])]
     private ?Poll $poll = null;
+
+    /** @var string[]|null */
+    #[ORM\Column(name: '_to', type: 'json', nullable: true)]
+    private ?array $to_ = [];
+
+    /** @var string[]|null */
+    #[ORM\Column(nullable: true)]
+    private ?array $bto = [];
+
+    /** @var string[]|null */
+    #[ORM\Column(nullable: true)]
+    private ?array $cc = [];
+
+    /** @var string[]|null */
+    #[ORM\Column(nullable: true)]
+    private ?array $bcc = [];
 
     public function getId(): Uuid
     {
@@ -240,22 +258,20 @@ class Status
     }
 
     /**
-     * @return Uuid[]
+     * @return string[]
      */
     public function getMentionIds(): array
     {
-        $this->mentionIds = $this->convertUuids($this->mentionIds);
-
         return $this->mentionIds;
     }
 
     /**
-     * @param Uuid[] $mentionIds
+     * @param string[] $mentionIds
      * @return $this
      */
     public function setMentionIds(array $mentionIds): self
     {
-        $this->mentionIds = $this->convertUuids($mentionIds);
+        $this->mentionIds = $mentionIds;
 
         return $this;
     }
@@ -538,9 +554,9 @@ class Status
         return $this;
     }
 
-    public function addMention(Account $account): void
+    public function addMention(string $uri): void
     {
-        $this->mentionIds[] = $account->getId();
+        $this->mentionIds[] = $uri;
     }
 
     public function addTag(Tag $tag): void
@@ -599,5 +615,81 @@ class Status
         }
 
         return $ids;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getTo(): array
+    {
+        return $this->to_ ?? [];
+    }
+
+    /**
+     * @param string[] $to
+     * @return $this
+     */
+    public function setTo(array $to): self
+    {
+        $this->to_ = $to;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getBto(): array
+    {
+        return $this->bto ?? [];
+    }
+
+    /**
+     * @param string[] $bto
+     * @return $this
+     */
+    public function setBto(array $bto): self
+    {
+        $this->bto = $bto;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCc(): array
+    {
+        return $this->cc ?? [];
+    }
+
+    /**
+     * @param string[] $cc
+     * @return $this
+     */
+    public function setCc(array $cc): self
+    {
+        $this->cc = $cc;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getBcc(): array
+    {
+        return $this->bcc ?? [];
+    }
+
+    /**
+     * @param string[] $bcc
+     * @return $this
+     */
+    public function setBcc(array $bcc): self
+    {
+        $this->bcc = $bcc;
+
+        return $this;
     }
 }

@@ -1,0 +1,4 @@
+meteo_concept_h_captcha:
+    hcaptcha:
+        site_key: '%env(resolve:HCAPTCHA_SITE_KEY)%'
+        secret: '%env(resolve:HCAPTCHA_SECRET)%'
