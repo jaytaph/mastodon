@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Api\Status;
 
 use App\Controller\BaseApiController;
-use App\Entity\Status;
 use App\Service\Queue\QueueInterface;
 use App\Service\Queue\Worker\FederateStatus;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;

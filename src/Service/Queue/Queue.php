@@ -53,8 +53,7 @@ class Queue implements QueueInterface
                 if ($entry->getAttempts() > 5) {
                     $dbEntry->setStatus('failed');
                 }
-
-            } else if ($entry->isFinished()) {
+            } elseif ($entry->isFinished()) {
                 $dbEntry->setStatus('finished');
             }
 

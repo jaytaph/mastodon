@@ -110,14 +110,14 @@ class StatusService
             $status->setTo($to);
 
             $cc = $status->getCc();
-            $cc[] = $status->getAccount()->getUri() . '/followers';
+            $cc[] = $owner->getUri() . '/followers';
             $cc = array_merge($cc, $status->getMentionIds());
             $status->setCc($cc);
         }
         if ($status->getVisibility() === Status::VISIBILITY_UNLISTED) {
             $cc = $status->getCc();
             $cc[] = 'https://www.w3.org/ns/activitystreams#Public';
-            $cc[] = $status->getAccount()->getUri() . '/followers';
+            $cc[] = $owner->getUri() . '/followers';
             $cc = array_merge($cc, $status->getMentionIds());
             $status->setCc($cc);
         }
@@ -128,7 +128,7 @@ class StatusService
         }
         if ($status->getVisibility() === Status::VISIBILITY_PRIVATE) {
             $to = $status->getTo();
-            $to[] = $status->getAccount()->getUri() . '/followers';
+            $to[] = $owner->getUri() . '/followers';
             $status->setTo($to);
         }
 
