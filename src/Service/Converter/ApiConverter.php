@@ -18,6 +18,7 @@ use App\Service\MediaService;
 use App\Service\StatusService;
 use App\Service\TagService;
 use Jaytaph\TypeArray\TypeArray;
+use Symfony\Component\Uid\Uuid;
 
 // Converts elements from internal format to mastodon API format
 
@@ -191,8 +192,10 @@ class ApiConverter
             'pinned' => false,
             'content' => $status->getContent(),
             'reblog' => null,
-            'mentions' => $status->getMentionIds(),
+            'mentions' => $this->getMentions($status),
             'tags' => [],
+            'emojis' => [],
+            'media_attachments' => [],
 //            'tags' => $this->toTagJson($status->getTagIds()),
         ];
 
@@ -329,5 +332,15 @@ class ApiConverter
         ];
 
         return new TypeArray($data);
+    }
+
+    protected function getMentions(Status $status): array
+    {
+        $ret = array_map(function (string $uri) {
+            $account = $this->accountService->findAccountByURI($uri);
+            return $account ? $this->account($account)->toArray() : null;
+        }, $status->getMentionIds());
+
+        return array_filter($ret);
     }
 }
