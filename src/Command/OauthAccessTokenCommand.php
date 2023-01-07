@@ -89,6 +89,9 @@ class OauthAccessTokenCommand extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * @param string[] $redirectUris
+     */
     protected function createApp(Client $client, string $url, array $redirectUris): TypeArray
     {
         $response = $client->post("https://$url/api/v1/apps", [

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Security\OAuth;
 
-use \League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri as BaseRedirectUri;
+use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri as BaseRedirectUri;
 
+/**
+ * @psalm-immutable
+ */
 class RedirectUri extends BaseRedirectUri
 {
     protected string $redirectUri;

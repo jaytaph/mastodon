@@ -18,7 +18,6 @@ use App\Service\MediaService;
 use App\Service\StatusService;
 use App\Service\TagService;
 use Jaytaph\TypeArray\TypeArray;
-use Symfony\Component\Uid\Uuid;
 
 // Converts elements from internal format to mastodon API format
 
@@ -334,6 +333,7 @@ class ApiConverter
         return new TypeArray($data);
     }
 
+    /** @return mixed[] */
     protected function getMentions(Status $status): array
     {
         $ret = array_map(function (string $uri) {
