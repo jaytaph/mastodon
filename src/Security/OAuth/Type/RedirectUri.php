@@ -32,7 +32,6 @@ class RedirectUri extends ImplodedArray
      */
     protected function convertDatabaseValues(array $values): array
     {
-        dump($values);
         return array_map(static function (string $value): RedirectUriModel {
             return new RedirectUriModel($value);
         }, $values);
