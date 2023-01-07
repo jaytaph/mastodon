@@ -22,9 +22,9 @@ class AppsController extends BaseApiController
     public function apps(OauthService $oauthService, Request $request): Response
     {
         $client = $oauthService->createClient(
-            strval($request->get('name')),
-            strval($request->get('redirect_uri')),
-            strval($request->get('scopes'))
+            clientName: strval($request->get('name')),
+            scopes: strval($request->get('scopes')),
+            redirectUris: strval($request->get('redirect_uris')),
         );
 
         return new JsonResponse($client);

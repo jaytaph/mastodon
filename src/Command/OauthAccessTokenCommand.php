@@ -50,16 +50,20 @@ class OauthAccessTokenCommand extends Command
 
         $client = new Client();
 
-        $response = $this->createApp($client, strval($input->getArgument('url')));
+        $redirUris = [
+            'mastodon-android-auth://callback',
+        ];
+
+        $response = $this->createApp($client, strval($input->getArgument('url')), $redirUris);
 
         $clientId = $response->getStringOrNull("[client_id]");
         $clientSecret = $response->getStringOrNull("[client_secret]");
 
         $params = [
             "client_id" => $clientId,
-            "redirect_uri" => $this->configService->getConfig()->getSiteUrl(),
+            "redirect_uri" => $redirUris[0], //$this->configService->getConfig()->getSiteUrl(),
             "response_type" => "code",
-            "scope" => "read write follow",
+            "scope" => "read write follow push",
             "state" => Uuid::v4(),
         ];
         $authUrl = 'https://' . $input->getArgument('url') . '/oauth/authorize?' . http_build_query($params);
@@ -85,7 +89,10 @@ class OauthAccessTokenCommand extends Command
         return Command::SUCCESS;
     }
 
-    protected function createApp(Client $client, string $url): TypeArray
+    /**
+     * @param string[] $redirectUris
+     */
+    protected function createApp(Client $client, string $url, array $redirectUris): TypeArray
     {
         $response = $client->post("https://$url/api/v1/apps", [
             "headers" => [
@@ -94,7 +101,7 @@ class OauthAccessTokenCommand extends Command
             ],
             "body" => json_encode([
                 "client_name" => "Simple Test App",
-                "redirect_uris" => "https://dhpt.nl",
+                "redirect_uris" => join(" ", $redirectUris),
                 "scopes" => "read write follow",
                 "website" => "https://dhpt.nl",
             ]),

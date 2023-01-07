@@ -3,6 +3,7 @@ doctrine:
         url: '%env(resolve:DATABASE_URL)%'
         types:
             type_array: Jaytaph\TypeArray\Doctrine\DBAL\Types\TypeArrayType
+            oauth2_redirect_uri: App\Security\OAuth\Type\RedirectUri
 
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)

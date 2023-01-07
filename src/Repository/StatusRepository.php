@@ -77,6 +77,8 @@ class StatusRepository extends ServiceEntityRepository
                 ->setParameter('account', $account->getId());
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var Status[] $ret */
+        $ret = $qb->getQuery()->getResult();
+        return $ret;
     }
 }

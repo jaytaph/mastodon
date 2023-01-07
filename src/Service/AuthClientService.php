@@ -111,7 +111,6 @@ class AuthClientService
             'Content-Type' => 'application/activity+json',
         ];
 
-        dump($message);
         // Send data to the receiver
         try {
             $client = new Client();

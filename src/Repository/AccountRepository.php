@@ -55,6 +55,8 @@ class AccountRepository extends ServiceEntityRepository
             ->setFirstResult($offset)
             ->setMaxResults($limit);
 
-        return $qb->getQuery()->getResult();
+        /** @var Account[] $ret */
+        $ret = $qb->getQuery()->getResult();
+        return $ret;
     }
 }

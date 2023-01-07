@@ -41,6 +41,7 @@ security:
         - { path: ^/oauth/authorize, roles: PUBLIC_ACCESS }
         - { path: ^/oauth/token, roles: PUBLIC_ACCESS }
 
+        - { path: ^/api/v1/accounts, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/instance, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/apps, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/custom_emojis, roles: PUBLIC_ACCESS }

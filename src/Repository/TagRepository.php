@@ -61,6 +61,8 @@ class TagRepository extends ServiceEntityRepository
             ->setFirstResult($offset)
             ->setMaxResults($limit);
 
-        return $qb->getQuery()->getResult();
+        /** @var Tag[] $ret */
+        $ret = $qb->getQuery()->getResult();
+        return $ret;
     }
 }
